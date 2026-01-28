@@ -96,6 +96,25 @@ textarea { min-height: 80px; }
   </select>
   <button id="recordGoal">Record Goal</button>
 
+  <h4>Add Shot</h4>
+  <select id="shotTeam"></select>
+  <select id="shotPlayer"></select>
+  <button id="recordShot">Record Shot</button>
+
+  <h4>Add Penalty</h4>
+  <select id="penTeam"></select>
+  <select id="penPlayer"></select>
+  <select id="penType">
+    <option>Tripping</option>
+    <option>Hooking</option>
+    <option>Slashing</option>
+    <option>Interference</option>
+    <option>Roughing</option>
+    <option>Misconduct</option>
+  </select>
+  <input id="penMinutes" type="number" value="2">
+  <button id="recordPenalty">Record Penalty</button>
+
   <h4>Game Notes</h4>
   <textarea id="gameNotes" placeholder="Notes..."></textarea>
 
@@ -273,23 +292,38 @@ advancePeriod.onclick=()=>{
 
 /* GAME SELECTORS */
 function setupGameSelectors(){
-  goalTeam.innerHTML='<option>Home</option><option>Away</option>';
-  goalTeam.onchange=populatePlayers;
+  goalTeam.innerHTML=shotTeam.innerHTML=penTeam.innerHTML=
+    '<option>Home</option><option>Away</option>';
+  goalTeam.onchange=shotTeam.onchange=penTeam.onchange=populatePlayers;
   populatePlayers();
 }
 
 function populatePlayers(){
-  const team=goalTeam.value==="Away"?state.game.away:state.game.home;
+  const teamKey=this?.value==="Away"?"away":"home";
+  const team=state.game[teamKey];
   const list=state.rosters[team]||[];
   goalScorer.innerHTML=goalA1.innerHTML=goalA2.innerHTML=
+  shotPlayer.innerHTML=penPlayer.innerHTML=
     `<option></option>`+list.map(p=>`<option>${p.name}</option>`).join("");
 }
 
+/* RECORD EVENTS */
 recordGoal.onclick=()=>{
   const key=goalTeam.value==="Away"?"away":"home";
   state.game.score[key]++;
   updateScore();
-  eventLog.innerHTML+=`${clock.textContent} P${state.game.period} ${goalScorer.value} ${goalType.value}<br>`;
+  eventLog.innerHTML+=`${clock.textContent} P${state.game.period} GOAL ${goalScorer.value} ${goalType.value}<br>`;
+};
+
+recordShot.onclick=()=>{
+  const key=shotTeam.value==="Away"?"away":"home";
+  state.game.shots[key]++;
+  updateScore();
+  eventLog.innerHTML+=`${clock.textContent} P${state.game.period} SHOT ${shotPlayer.value}<br>`;
+};
+
+recordPenalty.onclick=()=>{
+  eventLog.innerHTML+=`${clock.textContent} P${state.game.period} PEN ${penPlayer.value} ${penType.value} ${penMinutes.value}m<br>`;
 };
 
 gameNotes.oninput=()=>{ if(state.game) state.game.notes=gameNotes.value; };
@@ -297,6 +331,8 @@ gameNotes.oninput=()=>{ if(state.game) state.game.notes=gameNotes.value; };
 function updateScore(){
   scoreHome.textContent=state.game.score.home;
   scoreAway.textContent=state.game.score.away;
+  shotsHome.textContent=state.game.shots.home;
+  shotsAway.textContent=state.game.shots.away;
 }
 
 function renderBoxScore(){
