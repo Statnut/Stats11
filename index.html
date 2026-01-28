@@ -14,11 +14,11 @@ nav button { flex: 1; padding: 12px; border: none; background: none; color: whit
 nav button.active { background: #333; }
 section { display: none; padding: 12px; }
 section.active { display: block; }
-input, select, button { margin: 4px 0; padding: 6px; }
+input, select, button, textarea { margin: 4px 0; padding: 6px; width: 100%; }
 .list-item { display:flex; justify-content:space-between; align-items:center; }
 .scoreline { font-size: 18px; margin: 8px 0; }
 .log { border-top: 1px solid #ccc; margin-top: 10px; padding-top: 10px; }
-#boxScore { background:#fafafa; border:1px solid #ccc; padding:12px; }
+textarea { min-height: 80px; }
 </style>
 </head>
 
@@ -32,6 +32,7 @@ input, select, button { margin: 4px 0; padding: 6px; }
   <button data-tab="boxscore">Box Score</button>
 </nav>
 
+<!-- SEASONS -->
 <section id="seasons" class="active">
   <h3>Seasons</h3>
   <input id="seasonName" placeholder="Season name">
@@ -39,17 +40,18 @@ input, select, button { margin: 4px 0; padding: 6px; }
   <div id="seasonList"></div>
 </section>
 
+<!-- TEAMS / ROSTERS -->
 <section id="teams">
   <h3>Teams</h3>
-  <select id="teamSeason"></select><br>
+  <select id="teamSeason"></select>
   <input id="teamName" placeholder="Team name">
   <input id="teamAbbr" placeholder="Abbr">
   <button id="addTeam">Add Team</button>
   <div id="teamList"></div>
 
   <h4>Roster</h4>
-  <select id="rosterTeam"></select><br>
-  <input id="playerNum" placeholder="#" style="width:60px">
+  <select id="rosterTeam"></select>
+  <input id="playerNum" placeholder="#">
   <input id="playerName" placeholder="Player name">
   <select id="playerPos">
     <option value="F">Forward</option>
@@ -60,16 +62,18 @@ input, select, button { margin: 4px 0; padding: 6px; }
   <div id="rosterList"></div>
 </section>
 
+<!-- NEW GAME -->
 <section id="newgame">
   <h3>New Game</h3>
-  <select id="ngSeason"></select><br>
+  <select id="ngSeason"></select>
   <select id="ngAway"></select>
-  <select id="ngAwayG"></select><br>
+  <select id="ngAwayG"></select>
   <select id="ngHome"></select>
-  <select id="ngHomeG"></select><br>
+  <select id="ngHomeG"></select>
   <button id="startGame">Start Game</button>
 </section>
 
+<!-- GAME -->
 <section id="game">
   <h3 id="gameStatus"></h3>
 
@@ -80,11 +84,10 @@ input, select, button { margin: 4px 0; padding: 6px; }
 
   <h2 id="clock">20:00</h2>
   <button id="clockToggle">Start / Stop</button>
-  <button id="clockPlus">+1 min</button>
   <button id="advancePeriod">Advance Period</button>
 
   <h4>Add Goal</h4>
-  <select id="goalTeam"></select><br>
+  <select id="goalTeam"></select>
   <select id="goalScorer"></select>
   <select id="goalA1"></select>
   <select id="goalA2"></select>
@@ -93,24 +96,13 @@ input, select, button { margin: 4px 0; padding: 6px; }
   </select>
   <button id="recordGoal">Record Goal</button>
 
-  <h4>Add Shot</h4>
-  <select id="shotTeam"></select>
-  <select id="shotPlayer"></select>
-  <button id="recordShot">Record Shot</button>
-
-  <h4>Add Penalty</h4>
-  <select id="penTeam"></select>
-  <select id="penPlayer"></select>
-  <select id="penType">
-    <option>Tripping</option><option>Hooking</option><option>Slashing</option>
-    <option>Interference</option><option>Roughing</option><option>Misconduct</option>
-  </select>
-  <input id="penMinutes" type="number" value="2" style="width:60px">
-  <button id="recordPenalty">Record Penalty</button>
+  <h4>Game Notes</h4>
+  <textarea id="gameNotes" placeholder="Notes..."></textarea>
 
   <div class="log" id="eventLog"></div>
 </section>
 
+<!-- BOX SCORE -->
 <section id="boxscore">
   <h3>Box Score</h3>
   <div id="boxScore"></div>
@@ -127,7 +119,7 @@ const state = {
   clock: { seconds:1200, running:false, timer:null }
 };
 
-/* Tabs */
+/* NAV */
 document.querySelectorAll("nav button").forEach(b=>{
   b.onclick=()=>{
     document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
@@ -140,11 +132,10 @@ document.querySelectorAll("nav button").forEach(b=>{
 
 /* SEASONS */
 addSeason.onclick=()=>{
-  const n=seasonName.value.trim();
-  if(!n) return;
-  if(!state.seasons.includes(n)){
-    state.seasons.push(n);
-    state.teams[n]=[];
+  if(!seasonName.value) return;
+  if(!state.seasons.includes(seasonName.value)){
+    state.seasons.push(seasonName.value);
+    state.teams[seasonName.value]=[];
   }
   seasonName.value="";
   renderSeasons();
@@ -167,8 +158,7 @@ function renderSeasons(){
     d.appendChild(del);
     seasonList.appendChild(d);
   });
-  teamSeason.innerHTML=
-  ngSeason.innerHTML=
+  teamSeason.innerHTML=ngSeason.innerHTML=
     state.seasons.map(s=>`<option>${s}</option>`).join("");
 }
 
@@ -235,7 +225,88 @@ function renderRoster(){
 }
 rosterTeam.onchange=renderRoster;
 
-/* GAME / CLOCK / BOX SCORE logic unchanged from baseline */
+/* GOALIES */
+function populateGoalies(team, sel){
+  sel.innerHTML="";
+  (state.rosters[team]||[]).filter(p=>p.position==="G")
+    .forEach(g=>sel.innerHTML+=`<option>${g.name}</option>`);
+}
+ngHome.onchange=()=>populateGoalies(ngHome.value,ngHomeG);
+ngAway.onchange=()=>populateGoalies(ngAway.value,ngAwayG);
+
+/* START GAME */
+startGame.onclick=()=>{
+  state.game={
+    home:ngHome.value,
+    away:ngAway.value,
+    score:{home:0,away:0},
+    shots:{home:0,away:0},
+    period:1,
+    notes:""
+  };
+  gameNotes.value="";
+  updateScore();
+  gameStatus.textContent=`Period 1 — ${state.game.away} @ ${state.game.home}`;
+  document.querySelector('[data-tab="game"]').click();
+  setupGameSelectors();
+};
+
+/* CLOCK */
+function renderClock(){
+  clock.textContent=
+    `${String(Math.floor(state.clock.seconds/60)).padStart(2,'0')}:${String(state.clock.seconds%60).padStart(2,'0')}`;
+}
+clockToggle.onclick=()=>{
+  state.clock.running=!state.clock.running;
+  if(state.clock.running){
+    state.clock.timer=setInterval(()=>{
+      if(state.clock.seconds>0){state.clock.seconds--;renderClock();}
+    },1000);
+  } else clearInterval(state.clock.timer);
+};
+advancePeriod.onclick=()=>{
+  state.game.period++;
+  state.clock.seconds=1200;
+  renderClock();
+  gameStatus.textContent=`Period ${state.game.period} — ${state.game.away} @ ${state.game.home}`;
+};
+
+/* GAME SELECTORS */
+function setupGameSelectors(){
+  goalTeam.innerHTML='<option>Home</option><option>Away</option>';
+  goalTeam.onchange=populatePlayers;
+  populatePlayers();
+}
+
+function populatePlayers(){
+  const team=goalTeam.value==="Away"?state.game.away:state.game.home;
+  const list=state.rosters[team]||[];
+  goalScorer.innerHTML=goalA1.innerHTML=goalA2.innerHTML=
+    `<option></option>`+list.map(p=>`<option>${p.name}</option>`).join("");
+}
+
+recordGoal.onclick=()=>{
+  const key=goalTeam.value==="Away"?"away":"home";
+  state.game.score[key]++;
+  updateScore();
+  eventLog.innerHTML+=`${clock.textContent} P${state.game.period} ${goalScorer.value} ${goalType.value}<br>`;
+};
+
+gameNotes.oninput=()=>{ if(state.game) state.game.notes=gameNotes.value; };
+
+function updateScore(){
+  scoreHome.textContent=state.game.score.home;
+  scoreAway.textContent=state.game.score.away;
+}
+
+function renderBoxScore(){
+  if(!state.game){ boxScore.innerHTML="No game"; return; }
+  boxScore.innerHTML=`
+    <strong>${state.game.away} @ ${state.game.home}</strong><br>
+    Final: ${state.game.score.away} – ${state.game.score.home}<br><br>
+    <strong>Notes</strong><br>${state.game.notes||"None"}
+  `;
+}
 </script>
 
 </body>
