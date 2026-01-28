@@ -19,7 +19,6 @@ input, select, button, textarea { margin: 4px 0; padding: 6px; width: 100%; }
 .scoreline { font-size: 18px; margin: 8px 0; }
 .log { border-top: 1px solid #ccc; margin-top: 10px; padding-top: 10px; }
 textarea { min-height: 80px; }
-.clock-controls button { width: 100%; }
 </style>
 </head>
 
@@ -41,7 +40,7 @@ textarea { min-height: 80px; }
   <div id="seasonList"></div>
 </section>
 
-<!-- TEAMS / ROSTERS -->
+<!-- TEAMS -->
 <section id="teams">
   <h3>Teams</h3>
   <select id="teamSeason"></select>
@@ -84,13 +83,9 @@ textarea { min-height: 80px; }
   </div>
 
   <h2 id="clock">20:00</h2>
-
-  <div class="clock-controls">
-    <button id="clockToggle">Start / Stop</button>
-    <button id="subtractMinute">Subtract 1 Minute</button>
-    <button id="advancePeriod">Advance Period</button>
-    <button id="endGame">End Game</button>
-  </div>
+  <button id="clockToggle">Start / Stop</button>
+  <button id="clockMinus">−1 min</button>
+  <button id="advancePeriod">Advance Period</button>
 
   <h4>Add Goal</h4>
   <select id="goalTeam"></select>
@@ -110,15 +105,8 @@ textarea { min-height: 80px; }
   <h4>Add Penalty</h4>
   <select id="penTeam"></select>
   <select id="penPlayer"></select>
-  <select id="penType">
-    <option>Tripping</option>
-    <option>Hooking</option>
-    <option>Slashing</option>
-    <option>Interference</option>
-    <option>Roughing</option>
-    <option>Misconduct</option>
-  </select>
-  <input id="penMinutes" type="number" value="2">
+  <select id="penType"></select>
+  <input id="penMinutes" type="number">
   <button id="recordPenalty">Record Penalty</button>
 
   <h4>Game Notes</h4>
@@ -135,6 +123,15 @@ textarea { min-height: 80px; }
 
 <script>
 const $ = id => document.getElementById(id);
+
+const penaltyTypes = {
+  "Tripping":2,"Hooking":2,"Slashing":2,"Interference":2,"Holding":2,
+  "Holding the Stick":2,"Cross-checking":2,"High-sticking":2,"Elbowing":2,
+  "Boarding":2,"Charging":2,"Roughing":2,"Unsportsmanlike Conduct":2,
+  "Delay of Game":2,"Too Many Men":2,
+  "Fighting":5,"Major Boarding":5,
+  "Misconduct":10,"Game Misconduct":10
+};
 
 const state = {
   seasons: [],
@@ -199,9 +196,7 @@ addTeam.onclick=()=>{
 
 function renderTeams(){
   teamList.innerHTML="";
-  rosterTeam.innerHTML="";
-  ngHome.innerHTML="";
-  ngAway.innerHTML="";
+  rosterTeam.innerHTML=ngHome.innerHTML=ngAway.innerHTML="";
   (state.teams[teamSeason.value]||[]).forEach(t=>{
     const d=document.createElement("div");
     d.className="list-item";
@@ -267,11 +262,8 @@ startGame.onclick=()=>{
     score:{home:0,away:0},
     shots:{home:0,away:0},
     period:1,
-    final:false,
     notes:""
   };
-  state.clock.seconds=1200;
-  renderClock();
   gameNotes.value="";
   updateScore();
   gameStatus.textContent=`Period 1 — ${state.game.away} @ ${state.game.home}`;
@@ -284,39 +276,23 @@ function renderClock(){
   clock.textContent=
     `${String(Math.floor(state.clock.seconds/60)).padStart(2,'0')}:${String(state.clock.seconds%60).padStart(2,'0')}`;
 }
-
 clockToggle.onclick=()=>{
-  if(!state.game || state.game.final) return;
   state.clock.running=!state.clock.running;
   if(state.clock.running){
     state.clock.timer=setInterval(()=>{
-      if(state.clock.seconds>0){
-        state.clock.seconds--;
-        renderClock();
-      }
+      if(state.clock.seconds>0){state.clock.seconds--;renderClock();}
     },1000);
   } else clearInterval(state.clock.timer);
 };
-
-subtractMinute.onclick=()=>{
+clockMinus.onclick=()=>{
   state.clock.seconds=Math.max(0,state.clock.seconds-60);
   renderClock();
 };
-
 advancePeriod.onclick=()=>{
-  if(!state.game || state.game.final) return;
   state.game.period++;
   state.clock.seconds=1200;
   renderClock();
   gameStatus.textContent=`Period ${state.game.period} — ${state.game.away} @ ${state.game.home}`;
-};
-
-endGame.onclick=()=>{
-  if(!state.game) return;
-  clearInterval(state.clock.timer);
-  state.clock.running=false;
-  state.game.final=true;
-  gameStatus.textContent=`FINAL — ${state.game.away} @ ${state.game.home}`;
 };
 
 /* GAME SELECTORS */
@@ -324,6 +300,9 @@ function setupGameSelectors(){
   goalTeam.innerHTML=shotTeam.innerHTML=penTeam.innerHTML=
     '<option>Home</option><option>Away</option>';
   goalTeam.onchange=shotTeam.onchange=penTeam.onchange=populatePlayers;
+  penType.innerHTML=Object.keys(penaltyTypes)
+    .map(p=>`<option data-min="${penaltyTypes[p]}">${p}</option>`).join("");
+  penType.onchange=()=>penMinutes.value=penaltyTypes[penType.value];
   populatePlayers();
 }
 
@@ -368,8 +347,7 @@ function renderBoxScore(){
   if(!state.game){ boxScore.innerHTML="No game"; return; }
   boxScore.innerHTML=`
     <strong>${state.game.away} @ ${state.game.home}</strong><br>
-    ${state.game.final ? "Final" : "In Progress"}<br>
-    ${state.game.score.away} – ${state.game.score.home}<br><br>
+    Final: ${state.game.score.away} – ${state.game.score.home}<br><br>
     <strong>Notes</strong><br>${state.game.notes||"None"}
   `;
 }
