@@ -19,6 +19,7 @@ input, select, button, textarea { margin: 4px 0; padding: 6px; width: 100%; }
 .scoreline { font-size: 18px; margin: 8px 0; }
 .log { border-top: 1px solid #ccc; margin-top: 10px; padding-top: 10px; }
 textarea { min-height: 80px; }
+.clock-controls button { width: 100%; }
 </style>
 </head>
 
@@ -83,8 +84,13 @@ textarea { min-height: 80px; }
   </div>
 
   <h2 id="clock">20:00</h2>
-  <button id="clockToggle">Start / Stop</button>
-  <button id="advancePeriod">Advance Period</button>
+
+  <div class="clock-controls">
+    <button id="clockToggle">Start / Stop</button>
+    <button id="subtractMinute">Subtract 1 Minute</button>
+    <button id="advancePeriod">Advance Period</button>
+    <button id="endGame">End Game</button>
+  </div>
 
   <h4>Add Goal</h4>
   <select id="goalTeam"></select>
@@ -261,8 +267,11 @@ startGame.onclick=()=>{
     score:{home:0,away:0},
     shots:{home:0,away:0},
     period:1,
+    final:false,
     notes:""
   };
+  state.clock.seconds=1200;
+  renderClock();
   gameNotes.value="";
   updateScore();
   gameStatus.textContent=`Period 1 — ${state.game.away} @ ${state.game.home}`;
@@ -275,19 +284,39 @@ function renderClock(){
   clock.textContent=
     `${String(Math.floor(state.clock.seconds/60)).padStart(2,'0')}:${String(state.clock.seconds%60).padStart(2,'0')}`;
 }
+
 clockToggle.onclick=()=>{
+  if(!state.game || state.game.final) return;
   state.clock.running=!state.clock.running;
   if(state.clock.running){
     state.clock.timer=setInterval(()=>{
-      if(state.clock.seconds>0){state.clock.seconds--;renderClock();}
+      if(state.clock.seconds>0){
+        state.clock.seconds--;
+        renderClock();
+      }
     },1000);
   } else clearInterval(state.clock.timer);
 };
+
+subtractMinute.onclick=()=>{
+  state.clock.seconds=Math.max(0,state.clock.seconds-60);
+  renderClock();
+};
+
 advancePeriod.onclick=()=>{
+  if(!state.game || state.game.final) return;
   state.game.period++;
   state.clock.seconds=1200;
   renderClock();
   gameStatus.textContent=`Period ${state.game.period} — ${state.game.away} @ ${state.game.home}`;
+};
+
+endGame.onclick=()=>{
+  if(!state.game) return;
+  clearInterval(state.clock.timer);
+  state.clock.running=false;
+  state.game.final=true;
+  gameStatus.textContent=`FINAL — ${state.game.away} @ ${state.game.home}`;
 };
 
 /* GAME SELECTORS */
@@ -339,7 +368,8 @@ function renderBoxScore(){
   if(!state.game){ boxScore.innerHTML="No game"; return; }
   boxScore.innerHTML=`
     <strong>${state.game.away} @ ${state.game.home}</strong><br>
-    Final: ${state.game.score.away} – ${state.game.score.home}<br><br>
+    ${state.game.final ? "Final" : "In Progress"}<br>
+    ${state.game.score.away} – ${state.game.score.home}<br><br>
     <strong>Notes</strong><br>${state.game.notes||"None"}
   `;
 }
