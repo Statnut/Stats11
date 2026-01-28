@@ -40,7 +40,7 @@ textarea { min-height: 80px; }
   <div id="seasonList"></div>
 </section>
 
-<!-- TEAMS -->
+<!-- TEAMS / ROSTERS -->
 <section id="teams">
   <h3>Teams</h3>
   <select id="teamSeason"></select>
@@ -66,10 +66,10 @@ textarea { min-height: 80px; }
 <section id="newgame">
   <h3>New Game</h3>
   <select id="ngSeason"></select>
-  <select id="ngAway"></select>
-  <select id="ngAwayG"></select>
-  <select id="ngHome"></select>
-  <select id="ngHomeG"></select>
+  <select id="ngAway"><option value="">Select Away Team</option></select>
+  <select id="ngAwayG"><option value="">Select Away Goalie</option></select>
+  <select id="ngHome"><option value="">Select Home Team</option></select>
+  <select id="ngHomeG"><option value="">Select Home Goalie</option></select>
   <button id="startGame">Start Game</button>
 </section>
 
@@ -105,8 +105,15 @@ textarea { min-height: 80px; }
   <h4>Add Penalty</h4>
   <select id="penTeam"></select>
   <select id="penPlayer"></select>
-  <select id="penType"></select>
-  <input id="penMinutes" type="number">
+  <select id="penType">
+    <option>Tripping</option>
+    <option>Hooking</option>
+    <option>Slashing</option>
+    <option>Interference</option>
+    <option>Roughing</option>
+    <option>Misconduct</option>
+  </select>
+  <input id="penMinutes" type="number" value="2">
   <button id="recordPenalty">Record Penalty</button>
 
   <h4>Game Notes</h4>
@@ -123,15 +130,6 @@ textarea { min-height: 80px; }
 
 <script>
 const $ = id => document.getElementById(id);
-
-const penaltyTypes = {
-  "Tripping":2,"Hooking":2,"Slashing":2,"Interference":2,"Holding":2,
-  "Holding the Stick":2,"Cross-checking":2,"High-sticking":2,"Elbowing":2,
-  "Boarding":2,"Charging":2,"Roughing":2,"Unsportsmanlike Conduct":2,
-  "Delay of Game":2,"Too Many Men":2,
-  "Fighting":5,"Major Boarding":5,
-  "Misconduct":10,"Game Misconduct":10
-};
 
 const state = {
   seasons: [],
@@ -196,7 +194,9 @@ addTeam.onclick=()=>{
 
 function renderTeams(){
   teamList.innerHTML="";
-  rosterTeam.innerHTML=ngHome.innerHTML=ngAway.innerHTML="";
+  rosterTeam.innerHTML="";
+  ngHome.innerHTML='<option value="">Select Home Team</option>';
+  ngAway.innerHTML='<option value="">Select Away Team</option>';
   (state.teams[teamSeason.value]||[]).forEach(t=>{
     const d=document.createElement("div");
     d.className="list-item";
@@ -247,7 +247,7 @@ rosterTeam.onchange=renderRoster;
 
 /* GOALIES */
 function populateGoalies(team, sel){
-  sel.innerHTML="";
+  sel.innerHTML='<option value="">Select Goalie</option>';
   (state.rosters[team]||[]).filter(p=>p.position==="G")
     .forEach(g=>sel.innerHTML+=`<option>${g.name}</option>`);
 }
@@ -264,6 +264,8 @@ startGame.onclick=()=>{
     period:1,
     notes:""
   };
+  state.clock.seconds=1200;
+  renderClock();
   gameNotes.value="";
   updateScore();
   gameStatus.textContent=`Period 1 — ${state.game.away} @ ${state.game.home}`;
@@ -300,9 +302,6 @@ function setupGameSelectors(){
   goalTeam.innerHTML=shotTeam.innerHTML=penTeam.innerHTML=
     '<option>Home</option><option>Away</option>';
   goalTeam.onchange=shotTeam.onchange=penTeam.onchange=populatePlayers;
-  penType.innerHTML=Object.keys(penaltyTypes)
-    .map(p=>`<option data-min="${penaltyTypes[p]}">${p}</option>`).join("");
-  penType.onchange=()=>penMinutes.value=penaltyTypes[penType.value];
   populatePlayers();
 }
 
