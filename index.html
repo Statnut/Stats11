@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hockey Stat Sheet</title>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<style>
+body { font-family: system-ui; margin: 0; }
+nav { display: flex; background: #111; color: white; }
+nav button { flex: 1; padding: 12px; border: none; background: none; color: white; }
+nav button.active { background: #333; }
+section { display: none; padding: 12px; }
+section.active { display: block; }
+input, select, button { margin: 4px 0; padding: 6px; }
+.small { font-size: 12px; color: #666; }
+.list-item { display:flex; justify-content:space-between; }
+</style>
+</head>
+
+<body>
+
+<nav>
+  <button data-tab="seasons" class="active">Seasons</button>
+  <button data-tab="teams">Teams</button>
+  <button data-tab="newgame">New Game</button>
+  <button data-tab="game">Game</button>
+</nav>
+
+<section id="seasons" class="active">
+  <h3>Seasons</h3>
+  <input id="seasonName" placeholder="Season name">
+  <button id="addSeason">Add Season</button>
+  <div id="seasonList"></div>
+</section>
+
+<section id="teams">
+  <h3>Teams</h3>
+  <select id="teamSeason"></select><br>
+  <input id="teamName" placeholder="Team name">
+  <input id="teamAbbr" placeholder="Abbr">
+  <button id="addTeam">Add Team</button>
+  <div id="teamList"></div>
+
+  <h4>Roster</h4>
+  <select id="rosterTeam"></select><br>
+  <input id="playerNum" placeholder="#" style="width:60px">
+  <input id="playerName" placeholder="Player name">
+  <select id="playerPos">
+    <option value="F">Forward</option>
+    <option value="D">Defense</option>
+    <option value="G">Goalie</option>
+  </select>
+  <button id="addPlayer">Add Player</button>
+  <div id="rosterList"></div>
+</section>
+
+<section id="newgame">
+  <h3>New Game</h3>
+  <select id="ngSeason"></select><br>
+  <select id="ngAway"></select>
+  <select id="ngHome"></select><br>
+  <button id="startGame">Start Game</button>
+</section>
+
+<section id="game">
+  <h3 id="gameStatus"></h3>
+</section>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const state = {
+  seasons: [],
+  teams: {},
+  rosters: {},
+  game: null
+};
+
+/* Tabs */
+document.querySelectorAll("nav button").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
+    b.classList.add("active");
+    $(b.dataset.tab).classList.add("active");
+  };
+});
+
+/* Seasons */
+addSeason.onclick = () => {
+  const name = seasonName.value.trim();
+  if (!name) return;
+  if (!state.seasons.includes(name)) {
+    state.seasons.push(name);
+    state.teams[name] = [];
+  }
+  seasonName.value = "";
+  renderSeasons();
+};
+
+function renderSeasons(){
+  seasonList.innerHTML = "";
+  state.seasons.forEach(s=>{
+    const div = document.createElement("div");
+    div.className="list-item";
+    div.innerHTML = `<span>${s}</span>`;
+    const del = document.createElement("button");
+    del.textContent="Delete";
+    del.onclick=()=>{
+      state.seasons = state.seasons.filter(x=>x!==s);
+      delete state.teams[s];
+      renderSeasons();
+      renderTeams();
+    };
+    div.appendChild(del);
+    seasonList.appendChild(div);
+  });
+
+  teamSeason.innerHTML =
+  ngSeason.innerHTML =
+    state.seasons.map(s=>`<option>${s}</option>`).join("");
+}
+
+/* Teams */
+addTeam.onclick = () => {
+  const s = teamSeason.value;
+  if(!s || !teamName.value) return;
+  state.teams[s].push({ name: teamName.value, abbr: teamAbbr.value });
+  state.rosters[teamName.value] = [];
+  teamName.value = teamAbbr.value = "";
+  renderTeams();
+};
+
+function renderTeams(){
+  teamList.innerHTML="";
+  rosterTeam.innerHTML="";
+  ngHome.innerHTML="";
+  ngAway.innerHTML="";
+
+  const s = teamSeason.value;
+  (state.teams[s]||[]).forEach(t=>{
+    const div = document.createElement("div");
+    div.className="list-item";
+    div.innerHTML = `<span>${t.name} (${t.abbr})</span>`;
+    const del = document.createElement("button");
+    del.textContent="Delete";
+    del.onclick=()=>{
+      state.teams[s]=state.teams[s].filter(x=>x!==t);
+      delete state.rosters[t.name];
+      renderTeams();
+    };
+    div.appendChild(del);
+    teamList.appendChild(div);
+
+    rosterTeam.innerHTML += `<option>${t.name}</option>`;
+    ngHome.innerHTML += `<option>${t.name}</option>`;
+    ngAway.innerHTML += `<option>${t.name}</option>`;
+  });
+
+  renderRoster();
+}
+
+teamSeason.onchange = renderTeams;
+
+/* Roster */
+addPlayer.onclick = () => {
+  const t = rosterTeam.value;
+  if(!t || !playerName.value) return;
+  state.rosters[t].push({
+    number: playerNum.value,
+    name: playerName.value,
+    position: playerPos.value
+  });
+  playerNum.value = playerName.value = "";
+  renderRoster();
+};
+
+function renderRoster(){
+  rosterList.innerHTML="";
+  const t = rosterTeam.value;
+  (state.rosters[t]||[]).forEach(p=>{
+    const div = document.createElement("div");
+    div.className="list-item";
+    div.innerHTML = `<span>#${p.number} ${p.name} (${p.position})</span>`;
+    const del = document.createElement("button");
+    del.textContent="Delete";
+    del.onclick=()=>{
+      state.rosters[t]=state.rosters[t].filter(x=>x!==p);
+      renderRoster();
+    };
+    div.appendChild(del);
+    rosterList.appendChild(div);
+  });
+}
+
+rosterTeam.onchange = renderRoster;
+</script>
+
+</body>
+</html>
