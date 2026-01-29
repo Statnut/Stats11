@@ -15,10 +15,11 @@ nav button.active { background: #333; }
 section { display: none; padding: 12px; }
 section.active { display: block; }
 input, select, button, textarea { margin: 4px 0; padding: 6px; width: 100%; }
-.list-item { display:flex; justify-content:space-between; align-items:center; }
+.list-item { display:flex; justify-content:space-between; align-items:center; gap:8px; }
 .scoreline { font-size: 18px; margin: 8px 0; }
 .log { border-top: 1px solid #ccc; margin-top: 10px; padding-top: 10px; }
 textarea { min-height: 80px; }
+button.small { width:auto; padding:6px 10px; }
 </style>
 </head>
 
@@ -66,10 +67,10 @@ textarea { min-height: 80px; }
 <section id="newgame">
   <h3>New Game</h3>
   <select id="ngSeason"></select>
-  <select id="ngAway"><option value="">Select Away Team</option></select>
-  <select id="ngAwayG"><option value="">Select Away Goalie</option></select>
-  <select id="ngHome"><option value="">Select Home Team</option></select>
-  <select id="ngHomeG"><option value="">Select Home Goalie</option></select>
+  <select id="ngAway"><option value="">Away team</option></select>
+  <select id="ngAwayG"><option value="">Away goalie</option></select>
+  <select id="ngHome"><option value="">Home team</option></select>
+  <select id="ngHomeG"><option value="">Home goalie</option></select>
   <button id="startGame">Start Game</button>
 </section>
 
@@ -86,6 +87,7 @@ textarea { min-height: 80px; }
   <button id="clockToggle">Start / Stop</button>
   <button id="clockMinus">−1 min</button>
   <button id="advancePeriod">Advance Period</button>
+  <button id="endGame" style="background:#600;color:#fff;">End Game</button>
 
   <h4>Add Goal</h4>
   <select id="goalTeam"></select>
@@ -111,6 +113,11 @@ textarea { min-height: 80px; }
     <option>Slashing</option>
     <option>Interference</option>
     <option>Roughing</option>
+    <option>High-sticking</option>
+    <option>Boarding</option>
+    <option>Charging</option>
+    <option>Cross-checking</option>
+    <option>Too Many Men</option>
     <option>Misconduct</option>
   </select>
   <input id="penMinutes" type="number" value="2">
@@ -131,7 +138,10 @@ textarea { min-height: 80px; }
 <script>
 const $ = id => document.getElementById(id);
 
-const state = {
+/* ---------------- STATE + STORAGE ---------------- */
+const STORAGE_KEY = "hockeyStatSheet_v1";
+
+let state = {
   seasons: [],
   teams: {},
   rosters: {},
@@ -139,7 +149,17 @@ const state = {
   clock: { seconds:1200, running:false, timer:null }
 };
 
-/* NAV */
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+function loadState(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){
+    state = JSON.parse(raw);
+  }
+}
+
+/* ---------------- NAV ---------------- */
 document.querySelectorAll("nav button").forEach(b=>{
   b.onclick=()=>{
     document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
@@ -150,7 +170,7 @@ document.querySelectorAll("nav button").forEach(b=>{
   };
 });
 
-/* SEASONS */
+/* ---------------- SEASONS ---------------- */
 addSeason.onclick=()=>{
   if(!seasonName.value) return;
   if(!state.seasons.includes(seasonName.value)){
@@ -159,6 +179,7 @@ addSeason.onclick=()=>{
   }
   seasonName.value="";
   renderSeasons();
+  saveState();
 };
 
 function renderSeasons(){
@@ -174,15 +195,17 @@ function renderSeasons(){
       delete state.teams[s];
       renderSeasons();
       renderTeams();
+      saveState();
     };
     d.appendChild(del);
     seasonList.appendChild(d);
   });
   teamSeason.innerHTML=ngSeason.innerHTML=
+    `<option value="">Select season</option>`+
     state.seasons.map(s=>`<option>${s}</option>`).join("");
 }
 
-/* TEAMS */
+/* ---------------- TEAMS ---------------- */
 addTeam.onclick=()=>{
   const s=teamSeason.value;
   if(!s||!teamName.value) return;
@@ -190,13 +213,14 @@ addTeam.onclick=()=>{
   state.rosters[teamName.value]=[];
   teamName.value=teamAbbr.value="";
   renderTeams();
+  saveState();
 };
 
 function renderTeams(){
   teamList.innerHTML="";
   rosterTeam.innerHTML="";
-  ngHome.innerHTML='<option value="">Select Home Team</option>';
-  ngAway.innerHTML='<option value="">Select Away Team</option>';
+  ngHome.innerHTML='<option value="">Home team</option>';
+  ngAway.innerHTML='<option value="">Away team</option>';
   (state.teams[teamSeason.value]||[]).forEach(t=>{
     const d=document.createElement("div");
     d.className="list-item";
@@ -207,6 +231,7 @@ function renderTeams(){
       state.teams[teamSeason.value]=state.teams[teamSeason.value].filter(x=>x!==t);
       delete state.rosters[t.name];
       renderTeams();
+      saveState();
     };
     d.appendChild(del);
     teamList.appendChild(d);
@@ -218,13 +243,19 @@ function renderTeams(){
 }
 teamSeason.onchange=renderTeams;
 
-/* ROSTER */
+/* ---------------- ROSTERS ---------------- */
 addPlayer.onclick=()=>{
   const t=rosterTeam.value;
   if(!t||!playerName.value) return;
-  state.rosters[t].push({number:playerNum.value,name:playerName.value,position:playerPos.value});
+  state.rosters[t].push({
+    number:playerNum.value,
+    name:playerName.value,
+    position:playerPos.value,
+    goals:0, assists:0, shots:0, pim:0
+  });
   playerNum.value=playerName.value="";
   renderRoster();
+  saveState();
 };
 
 function renderRoster(){
@@ -238,6 +269,7 @@ function renderRoster(){
     del.onclick=()=>{
       state.rosters[rosterTeam.value]=state.rosters[rosterTeam.value].filter(x=>x!==p);
       renderRoster();
+      saveState();
     };
     d.appendChild(del);
     rosterList.appendChild(d);
@@ -245,40 +277,48 @@ function renderRoster(){
 }
 rosterTeam.onchange=renderRoster;
 
-/* GOALIES */
+/* ---------------- GOALIES ---------------- */
 function populateGoalies(team, sel){
-  sel.innerHTML='<option value="">Select Goalie</option>';
+  sel.innerHTML='<option value="">Select goalie</option>';
   (state.rosters[team]||[]).filter(p=>p.position==="G")
     .forEach(g=>sel.innerHTML+=`<option>${g.name}</option>`);
 }
 ngHome.onchange=()=>populateGoalies(ngHome.value,ngHomeG);
 ngAway.onchange=()=>populateGoalies(ngAway.value,ngAwayG);
 
-/* START GAME */
+/* ---------------- START GAME ---------------- */
 startGame.onclick=()=>{
+  if(!ngHome.value||!ngAway.value) return;
   state.game={
     home:ngHome.value,
     away:ngAway.value,
+    homeG:ngHomeG.value,
+    awayG:ngAwayG.value,
     score:{home:0,away:0},
     shots:{home:0,away:0},
     period:1,
-    notes:""
+    final:false,
+    notes:"",
+    events:[]
   };
   state.clock.seconds=1200;
+  state.clock.running=false;
   renderClock();
-  gameNotes.value="";
   updateScore();
+  gameNotes.value="";
   gameStatus.textContent=`Period 1 — ${state.game.away} @ ${state.game.home}`;
   document.querySelector('[data-tab="game"]').click();
   setupGameSelectors();
+  saveState();
 };
 
-/* CLOCK */
+/* ---------------- CLOCK ---------------- */
 function renderClock(){
   clock.textContent=
     `${String(Math.floor(state.clock.seconds/60)).padStart(2,'0')}:${String(state.clock.seconds%60).padStart(2,'0')}`;
 }
 clockToggle.onclick=()=>{
+  if(!state.game||state.game.final) return;
   state.clock.running=!state.clock.running;
   if(state.clock.running){
     state.clock.timer=setInterval(()=>{
@@ -291,13 +331,24 @@ clockMinus.onclick=()=>{
   renderClock();
 };
 advancePeriod.onclick=()=>{
+  if(!state.game||state.game.final) return;
   state.game.period++;
   state.clock.seconds=1200;
   renderClock();
   gameStatus.textContent=`Period ${state.game.period} — ${state.game.away} @ ${state.game.home}`;
 };
 
-/* GAME SELECTORS */
+/* ---------------- END GAME ---------------- */
+endGame.onclick=()=>{
+  if(!state.game) return;
+  state.game.final=true;
+  state.clock.running=false;
+  clearInterval(state.clock.timer);
+  gameStatus.textContent=`FINAL — ${state.game.away} @ ${state.game.home}`;
+  saveState();
+};
+
+/* ---------------- GAME SELECTORS ---------------- */
 function setupGameSelectors(){
   goalTeam.innerHTML=shotTeam.innerHTML=penTeam.innerHTML=
     '<option>Home</option><option>Away</option>';
@@ -306,6 +357,7 @@ function setupGameSelectors(){
 }
 
 function populatePlayers(){
+  if(!state.game) return;
   const teamKey=this?.value==="Away"?"away":"home";
   const team=state.game[teamKey];
   const list=state.rosters[team]||[];
@@ -314,26 +366,37 @@ function populatePlayers(){
     `<option></option>`+list.map(p=>`<option>${p.name}</option>`).join("");
 }
 
-/* RECORD EVENTS */
+/* ---------------- RECORD EVENTS ---------------- */
 recordGoal.onclick=()=>{
+  if(state.game.final) return;
   const key=goalTeam.value==="Away"?"away":"home";
   state.game.score[key]++;
   updateScore();
   eventLog.innerHTML+=`${clock.textContent} P${state.game.period} GOAL ${goalScorer.value} ${goalType.value}<br>`;
+  saveState();
 };
 
 recordShot.onclick=()=>{
+  if(state.game.final) return;
   const key=shotTeam.value==="Away"?"away":"home";
   state.game.shots[key]++;
   updateScore();
   eventLog.innerHTML+=`${clock.textContent} P${state.game.period} SHOT ${shotPlayer.value}<br>`;
+  saveState();
 };
 
 recordPenalty.onclick=()=>{
+  if(state.game.final) return;
   eventLog.innerHTML+=`${clock.textContent} P${state.game.period} PEN ${penPlayer.value} ${penType.value} ${penMinutes.value}m<br>`;
+  saveState();
 };
 
-gameNotes.oninput=()=>{ if(state.game) state.game.notes=gameNotes.value; };
+gameNotes.oninput=()=>{
+  if(state.game){
+    state.game.notes=gameNotes.value;
+    saveState();
+  }
+};
 
 function updateScore(){
   scoreHome.textContent=state.game.score.home;
@@ -342,6 +405,7 @@ function updateScore(){
   shotsAway.textContent=state.game.shots.away;
 }
 
+/* ---------------- BOX SCORE ---------------- */
 function renderBoxScore(){
   if(!state.game){ boxScore.innerHTML="No game"; return; }
   boxScore.innerHTML=`
@@ -350,6 +414,12 @@ function renderBoxScore(){
     <strong>Notes</strong><br>${state.game.notes||"None"}
   `;
 }
+
+/* ---------------- INIT ---------------- */
+loadState();
+renderSeasons();
+renderTeams();
+renderClock();
 </script>
 
 </body>
