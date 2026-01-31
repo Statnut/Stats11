@@ -19,7 +19,7 @@ input, select, button, textarea { margin: 4px 0; padding: 6px; width: 100%; }
 .scoreline { font-size: 18px; margin: 8px 0; }
 .log { border-top: 1px solid #ccc; margin-top: 10px; padding-top: 10px; }
 textarea { min-height: 80px; }
-.box { border:1px solid #ccc; padding:8px; margin:8px 0; }
+h4 { margin-top: 16px; }
 </style>
 </head>
 
@@ -65,9 +65,9 @@ textarea { min-height: 80px; }
   <h3>New Game</h3>
   <select id="ngSeason"></select>
   <select id="ngAway"><option value="">Away Team</option></select>
-  <select id="ngAwayG"><option value="">Away Goalie</option></select>
+  <select id="ngAwayG"></select>
   <select id="ngHome"><option value="">Home Team</option></select>
-  <select id="ngHomeG"><option value="">Home Goalie</option></select>
+  <select id="ngHomeG"></select>
   <button id="startGame">Start Game</button>
 </section>
 
@@ -76,12 +76,12 @@ textarea { min-height: 80px; }
 
   <div class="scoreline">
     Score: <span id="scoreAway">0</span> – <span id="scoreHome">0</span><br>
-    Shots: <span id="shotsAway">0</span> – <span id="shotsHome">0</span><br>
-    Faceoffs: <span id="foAway">0</span> – <span id="foHome">0</span>
+    Shots: <span id="shotsAway">0</span> – <span id="shotsHome">0</span>
   </div>
 
   <h2 id="clock">20:00</h2>
   <button id="clockToggle">Start / Stop</button>
+  <button id="clockMinus">−1 min</button>
   <button id="advancePeriod">Advance Period</button>
   <button id="endGame">End Game</button>
 
@@ -100,22 +100,23 @@ textarea { min-height: 80px; }
   <select id="shotPlayer"></select>
   <button id="recordShot">Record Shot</button>
 
-  <h4>Add Faceoff Win</h4>
-  <select id="foTeam"></select>
-  <button id="recordFO">Record Faceoff</button>
-
   <h4>Add Penalty</h4>
   <select id="penTeam"></select>
   <select id="penPlayer"></select>
-  <select id="penType">
-    <option>Tripping</option><option>Hooking</option><option>Slashing</option>
-    <option>Interference</option><option>Roughing</option>
-    <option>Holding</option><option>High-sticking</option>
-    <option>Boarding</option><option>Charging</option>
-    <option>Cross-checking</option><option>Misconduct</option>
-  </select>
-  <input id="penMinutes" type="number" value="2">
+  <select id="penType"></select>
+  <input id="penMinutes" type="number">
   <button id="recordPenalty">Record Penalty</button>
+
+  <h4>Faceoff</h4>
+  <select id="foTeam">
+    <option>Home</option>
+    <option>Away</option>
+  </select>
+  <select id="foResult">
+    <option>Win</option>
+    <option>Loss</option>
+  </select>
+  <button id="recordFaceoff">Record Faceoff</button>
 
   <h4>Game Notes</h4>
   <textarea id="gameNotes"></textarea>
@@ -129,56 +130,77 @@ textarea { min-height: 80px; }
 </section>
 
 <script>
-const $=id=>document.getElementById(id);
-let state=JSON.parse(localStorage.getItem("hockeyState"))||{
-  seasons:[],teams:{},rosters:{},
-  game:null,
-  clock:{seconds:1200,running:false},
+const $ = id => document.getElementById(id);
+
+/* ---------- DATA ---------- */
+const penaltyTypes = {
+  "Tripping":2,"Hooking":2,"Slashing":2,"Interference":2,"Holding":2,
+  "Holding the Stick":2,"Cross-checking":2,"Boarding":2,"Charging":2,
+  "Elbowing":2,"High-sticking":2,"Roughing":2,"Too Many Men":2,
+  "Delay of Game":2,"High-sticking (Double)":4,
+  "Fighting":5,"Boarding (Major)":5,"Charging (Major)":5,
+  "Misconduct":10,"Game Misconduct":10,"Match Penalty":10
 };
 
-function save(){localStorage.setItem("hockeyState",JSON.stringify(state));}
+let state = JSON.parse(localStorage.getItem("hockeyState")) || {
+  seasons: [],
+  teams: {},
+  rosters: {},
+  game: null,
+  clock: { seconds:1200, running:false, timer:null }
+};
 
+function save(){ localStorage.setItem("hockeyState",JSON.stringify(state)); }
+
+/* ---------- NAV ---------- */
 document.querySelectorAll("nav button").forEach(b=>{
   b.onclick=()=>{
     document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
     document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
-    b.classList.add("active");$(b.dataset.tab).classList.add("active");
-    if(b.dataset.tab==="boxscore")renderBoxScore();
+    b.classList.add("active");
+    $(b.dataset.tab).classList.add("active");
+    if(b.dataset.tab==="boxscore") renderBoxScore();
   };
 });
 
+/* ---------- SEASONS ---------- */
 addSeason.onclick=()=>{
-  if(!seasonName.value)return;
+  if(!seasonName.value) return;
   if(!state.seasons.includes(seasonName.value)){
-    state.seasons.push(seasonName.value);state.teams[seasonName.value]=[];
+    state.seasons.push(seasonName.value);
+    state.teams[seasonName.value]=[];
   }
-  seasonName.value="";renderSeasons();save();
+  seasonName.value="";
+  save(); renderSeasons();
 };
 
 function renderSeasons(){
   seasonList.innerHTML="";
   state.seasons.forEach(s=>{
-    const d=document.createElement("div");d.className="list-item";
+    const d=document.createElement("div");
+    d.className="list-item";
     d.innerHTML=`<span>${s}</span>`;
     const del=document.createElement("button");
-    del.textContent="Delete";del.onclick=()=>{
+    del.textContent="Delete";
+    del.onclick=()=>{
       state.seasons=state.seasons.filter(x=>x!==s);
-      delete state.teams[s];renderSeasons();renderTeams();save();
+      delete state.teams[s];
+      save(); renderSeasons(); renderTeams();
     };
-    d.appendChild(del);seasonList.appendChild(d);
+    d.appendChild(del); seasonList.appendChild(d);
   });
   teamSeason.innerHTML=ngSeason.innerHTML=
-    `<option value="">Select Season</option>`+
     state.seasons.map(s=>`<option>${s}</option>`).join("");
 }
 
+/* ---------- TEAMS ---------- */
 addTeam.onclick=()=>{
   const s=teamSeason.value;
-  if(!s||!teamName.value)return;
+  if(!s||!teamName.value) return;
   state.teams[s].push({name:teamName.value,abbr:teamAbbr.value});
   state.rosters[teamName.value]=[];
   teamName.value=teamAbbr.value="";
-  renderTeams();save();
+  save(); renderTeams();
 };
 
 function renderTeams(){
@@ -187,177 +209,206 @@ function renderTeams(){
   ngHome.innerHTML='<option value="">Home Team</option>';
   ngAway.innerHTML='<option value="">Away Team</option>';
   (state.teams[teamSeason.value]||[]).forEach(t=>{
-    const d=document.createElement("div");d.className="list-item";
+    const d=document.createElement("div");
+    d.className="list-item";
     d.innerHTML=`<span>${t.name} (${t.abbr})</span>`;
     const del=document.createElement("button");
-    del.textContent="Delete";del.onclick=()=>{
+    del.textContent="Delete";
+    del.onclick=()=>{
       state.teams[teamSeason.value]=state.teams[teamSeason.value].filter(x=>x!==t);
-      delete state.rosters[t.name];renderTeams();save();
+      delete state.rosters[t.name];
+      save(); renderTeams();
     };
-    d.appendChild(del);teamList.appendChild(d);
+    d.appendChild(del); teamList.appendChild(d);
     rosterTeam.innerHTML+=`<option>${t.name}</option>`;
     ngHome.innerHTML+=`<option>${t.name}</option>`;
     ngAway.innerHTML+=`<option>${t.name}</option>`;
   });
+  renderRoster();
 }
+teamSeason.onchange=renderTeams;
 
+/* ---------- ROSTER ---------- */
 addPlayer.onclick=()=>{
   const t=rosterTeam.value;
-  if(!t||!playerName.value)return;
-  state.rosters[t].push({number:playerNum.value,name:playerName.value,position:playerPos.value});
+  if(!t||!playerName.value) return;
+  state.rosters[t].push({number:playerNum.value,name:playerName.value,position:playerPos.value,pim:0});
   playerNum.value=playerName.value="";
-  renderRoster();save();
+  save(); renderRoster();
 };
 
 function renderRoster(){
   rosterList.innerHTML="";
   (state.rosters[rosterTeam.value]||[]).forEach(p=>{
-    const d=document.createElement("div");d.className="list-item";
+    const d=document.createElement("div");
+    d.className="list-item";
     d.innerHTML=`<span>#${p.number} ${p.name} (${p.position})</span>`;
     const del=document.createElement("button");
-    del.textContent="Delete";del.onclick=()=>{
+    del.textContent="Delete";
+    del.onclick=()=>{
       state.rosters[rosterTeam.value]=state.rosters[rosterTeam.value].filter(x=>x!==p);
-      renderRoster();save();
+      save(); renderRoster();
     };
-    d.appendChild(del);rosterList.appendChild(d);
+    d.appendChild(del); rosterList.appendChild(d);
   });
 }
+rosterTeam.onchange=renderRoster;
 
-ngHome.onchange=()=>populateGoalies(ngHome.value,ngHomeG);
-ngAway.onchange=()=>populateGoalies(ngAway.value,ngAwayG);
-function populateGoalies(team,sel){
-  sel.innerHTML='<option value="">Goalie</option>';
+/* ---------- GOALIES ---------- */
+function populateGoalies(team, sel){
+  sel.innerHTML="";
   (state.rosters[team]||[]).filter(p=>p.position==="G")
     .forEach(g=>sel.innerHTML+=`<option>${g.name}</option>`);
 }
+ngHome.onchange=()=>populateGoalies(ngHome.value,ngHomeG);
+ngAway.onchange=()=>populateGoalies(ngAway.value,ngAwayG);
 
+/* ---------- GAME ---------- */
 startGame.onclick=()=>{
   state.game={
-    home:ngHome.value,away:ngAway.value,
+    home:ngHome.value,
+    away:ngAway.value,
     score:{home:0,away:0},
     shots:{home:0,away:0},
-    faceoffs:{home:0,away:0},
-    period:1,notes:"",
-    goalieResults:{
-      home:{win:false,loss:false,tie:false,shutout:false},
-      away:{win:false,loss:false,tie:false,shutout:false}
-    }
+    faceoffs:{home:{wins:0,losses:0},away:{wins:0,losses:0}},
+    period:1,
+    notes:"",
+    final:false
   };
-  state.clock.seconds=1200;renderClock();
+  state.clock.seconds=1200;
+  gameNotes.value="";
+  save();
+  updateScore();
+  setupGameSelectors();
   gameStatus.textContent=`Period 1 — ${state.game.away} @ ${state.game.home}`;
   document.querySelector('[data-tab="game"]').click();
-  setupGameSelectors();save();
 };
 
+/* ---------- CLOCK ---------- */
+function renderClock(){
+  clock.textContent=
+    `${String(Math.floor(state.clock.seconds/60)).padStart(2,'0')}:${String(state.clock.seconds%60).padStart(2,'0')}`;
+}
+renderClock();
+
 clockToggle.onclick=()=>{
+  if(state.game?.final) return;
   state.clock.running=!state.clock.running;
   if(state.clock.running){
     state.clock.timer=setInterval(()=>{
-      if(state.clock.seconds>0){state.clock.seconds--;renderClock();save();}
+      if(state.clock.seconds>0){state.clock.seconds--;renderClock();}
     },1000);
   } else clearInterval(state.clock.timer);
 };
 
+clockMinus.onclick=()=>{
+  state.clock.seconds=Math.max(0,state.clock.seconds-60);
+  renderClock();
+};
+
 advancePeriod.onclick=()=>{
-  state.game.period++;state.clock.seconds=1200;
+  if(state.game?.final) return;
+  state.game.period++;
+  state.clock.seconds=1200;
+  renderClock();
   gameStatus.textContent=`Period ${state.game.period} — ${state.game.away} @ ${state.game.home}`;
-  renderClock();save();
 };
 
 endGame.onclick=()=>{
+  state.game.final=true;
   state.clock.running=false;
   clearInterval(state.clock.timer);
   gameStatus.textContent=`FINAL — ${state.game.away} @ ${state.game.home}`;
   save();
 };
 
-function renderClock(){
-  clock.textContent=
-    `${String(Math.floor(state.clock.seconds/60)).padStart(2,'0')}:${String(state.clock.seconds%60).padStart(2,'0')}`;
-}
-
+/* ---------- GAME SELECTORS ---------- */
 function setupGameSelectors(){
-  goalTeam.innerHTML=shotTeam.innerHTML=penTeam.innerHTML=foTeam.innerHTML=
-    '<option>Home</option><option>Away</option>';
+  goalTeam.innerHTML=shotTeam.innerHTML=penTeam.innerHTML='<option>Home</option><option>Away</option>';
   goalTeam.onchange=shotTeam.onchange=penTeam.onchange=populatePlayers;
-  populatePlayers.call(goalTeam);
+  penType.innerHTML=Object.keys(penaltyTypes).map(p=>`<option>${p}</option>`).join("");
+  penType.onchange=()=>penMinutes.value=penaltyTypes[penType.value];
+  populatePlayers();
 }
 
 function populatePlayers(){
-  const key=this.value==="Away"?"away":"home";
-  const team=state.game[key];
+  const teamKey=this?.value==="Away"?"away":"home";
+  const team=state.game[teamKey];
   const list=state.rosters[team]||[];
   goalScorer.innerHTML=goalA1.innerHTML=goalA2.innerHTML=
   shotPlayer.innerHTML=penPlayer.innerHTML=
     `<option></option>`+list.map(p=>`<option>${p.name}</option>`).join("");
 }
 
+/* ---------- RECORD EVENTS ---------- */
 recordGoal.onclick=()=>{
-  const k=goalTeam.value==="Away"?"away":"home";
-  state.game.score[k]++;updateScore();
-  eventLog.innerHTML+=`${clock.textContent} P${state.game.period} GOAL ${goalScorer.value}<br>`;
+  if(state.game.final) return;
+  const key=goalTeam.value==="Away"?"away":"home";
+  state.game.score[key]++;
+  updateScore();
+  eventLog.innerHTML+=`${clock.textContent} P${state.game.period} GOAL ${goalScorer.value} ${goalType.value}<br>`;
   save();
 };
 
 recordShot.onclick=()=>{
-  const k=shotTeam.value==="Away"?"away":"home";
-  state.game.shots[k]++;updateScore();
-  eventLog.innerHTML+=`${clock.textContent} SHOT ${shotPlayer.value}<br>`;
+  if(state.game.final) return;
+  const key=shotTeam.value==="Away"?"away":"home";
+  state.game.shots[key]++;
+  updateScore();
+  eventLog.innerHTML+=`${clock.textContent} P${state.game.period} SHOT ${shotPlayer.value}<br>`;
   save();
-};
-
-recordFO.onclick=()=>{
-  const k=foTeam.value==="Away"?"away":"home";
-  state.game.faceoffs[k]++;updateScore();save();
 };
 
 recordPenalty.onclick=()=>{
-  eventLog.innerHTML+=`${clock.textContent} PEN ${penPlayer.value} ${penType.value} ${penMinutes.value}m<br>`;
+  if(state.game.final) return;
+  const teamKey=penTeam.value==="Away"?"away":"home";
+  const team=state.game[teamKey];
+  const p=state.rosters[team].find(x=>x.name===penPlayer.value);
+  if(p) p.pim+=Number(penMinutes.value);
+  eventLog.innerHTML+=`${clock.textContent} P${state.game.period} PEN ${penPlayer.value} ${penType.value} ${penMinutes.value}m<br>`;
   save();
 };
 
-gameNotes.oninput=()=>{state.game.notes=gameNotes.value;save();};
+recordFaceoff.onclick=()=>{
+  if(state.game.final) return;
+  const key=foTeam.value==="Away"?"away":"home";
+  state.game.faceoffs[key][foResult.value==="Win"?"wins":"losses"]++;
+  eventLog.innerHTML+=`${clock.textContent} P${state.game.period} FO ${foResult.value} — ${foTeam.value}<br>`;
+  save();
+};
+
+gameNotes.oninput=()=>{ if(state.game){ state.game.notes=gameNotes.value; save(); }};
 
 function updateScore(){
   scoreHome.textContent=state.game.score.home;
   scoreAway.textContent=state.game.score.away;
   shotsHome.textContent=state.game.shots.home;
   shotsAway.textContent=state.game.shots.away;
-  foHome.textContent=state.game.faceoffs.home;
-  foAway.textContent=state.game.faceoffs.away;
 }
 
-function goalieRow(label,key){
-  const g=state.game.goalieResults[key];
-  return `
-  <div class="box">
-    <strong>${label} Goalie (Manual)</strong><br>
-    <label><input type="checkbox" ${g.win?"checked":""} onchange="setG('${key}','win')"> W</label>
-    <label><input type="checkbox" ${g.loss?"checked":""} onchange="setG('${key}','loss')"> L</label>
-    <label><input type="checkbox" ${g.tie?"checked":""} onchange="setG('${key}','tie')"> T</label>
-    <label><input type="checkbox" ${g.shutout?"checked":""} onchange="toggleSO('${key}')"> Shutout</label>
-  </div>`;
-}
-
-window.setG=(k,f)=>{
-  const g=state.game.goalieResults[k];
-  g.win=g.loss=g.tie=false;g[f]=true;save();renderBoxScore();
-};
-window.toggleSO=k=>{state.game.goalieResults[k].shutout=!state.game.goalieResults[k].shutout;save();};
-
+/* ---------- BOX SCORE ---------- */
 function renderBoxScore(){
-  if(!state.game){boxScore.innerHTML="No game";return;}
+  if(!state.game){ boxScore.innerHTML="No game"; return; }
+  const fo=state.game.faceoffs;
+  const foTotal=fo.home.wins+fo.home.losses+fo.away.wins+fo.away.losses;
+  const foRow=foTotal?
+    `<br><strong>Faceoffs</strong><br>
+     Home: ${fo.home.wins}-${fo.home.losses} (${Math.round(100*fo.home.wins/(fo.home.wins+fo.home.losses||1))}%)<br>
+     Away: ${fo.away.wins}-${fo.away.losses} (${Math.round(100*fo.away.wins/(fo.away.wins+fo.away.losses||1))}%)<br>`:"";
+
   boxScore.innerHTML=`
     <strong>${state.game.away} @ ${state.game.home}</strong><br>
-    Final: ${state.game.score.away} – ${state.game.score.home}<br><br>
-    ${goalieRow("Away","away")}
-    ${goalieRow("Home","home")}
-    <strong>Notes</strong><br>${state.game.notes||"None"}
+    Final: ${state.game.score.away} – ${state.game.score.home}<br>
+    Shots: ${state.game.shots.away} – ${state.game.shots.home}<br>
+    ${foRow}
+    <br><strong>Notes</strong><br>${state.game.notes||"None"}
   `;
 }
 
-renderSeasons();renderTeams();renderRoster();
-if(state.game){updateScore();renderClock();}
+/* ---------- INIT ---------- */
+renderSeasons();
+renderTeams();
 </script>
+
 </body>
 </html>
