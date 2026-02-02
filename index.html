@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hockey Stat Sheet</title>
+<title>Hockey Stat Sheet – v1.05</title>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 
@@ -20,6 +20,9 @@ input, select, button, textarea { margin: 4px 0; padding: 6px; width: 100%; }
 .log { border-top: 1px solid #ccc; margin-top: 10px; padding-top: 10px; }
 textarea { min-height: 80px; }
 h4 { margin-top: 16px; }
+table { width:100%; border-collapse: collapse; margin-top: 8px; }
+th, td { border:1px solid #ccc; padding:4px; font-size: 14px; text-align:left; }
+th { background:#f0f0f0; }
 </style>
 </head>
 
@@ -132,7 +135,6 @@ h4 { margin-top: 16px; }
 <script>
 const $ = id => document.getElementById(id);
 
-/* ---------- DATA ---------- */
 const penaltyTypes = {
   "Tripping":2,"Hooking":2,"Slashing":2,"Interference":2,"Holding":2,
   "Holding the Stick":2,"Cross-checking":2,"Boarding":2,"Charging":2,
@@ -152,7 +154,7 @@ let state = JSON.parse(localStorage.getItem("hockeyState")) || {
 
 function save(){ localStorage.setItem("hockeyState",JSON.stringify(state)); }
 
-/* ---------- NAV ---------- */
+/* NAV */
 document.querySelectorAll("nav button").forEach(b=>{
   b.onclick=()=>{
     document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
@@ -163,7 +165,7 @@ document.querySelectorAll("nav button").forEach(b=>{
   };
 });
 
-/* ---------- SEASONS ---------- */
+/* SEASONS */
 addSeason.onclick=()=>{
   if(!seasonName.value) return;
   if(!state.seasons.includes(seasonName.value)){
@@ -193,7 +195,7 @@ function renderSeasons(){
     state.seasons.map(s=>`<option>${s}</option>`).join("");
 }
 
-/* ---------- TEAMS ---------- */
+/* TEAMS */
 addTeam.onclick=()=>{
   const s=teamSeason.value;
   if(!s||!teamName.value) return;
@@ -228,7 +230,7 @@ function renderTeams(){
 }
 teamSeason.onchange=renderTeams;
 
-/* ---------- ROSTER ---------- */
+/* ROSTER */
 addPlayer.onclick=()=>{
   const t=rosterTeam.value;
   if(!t||!playerName.value) return;
@@ -254,7 +256,7 @@ function renderRoster(){
 }
 rosterTeam.onchange=renderRoster;
 
-/* ---------- GOALIES ---------- */
+/* GOALIES */
 function populateGoalies(team, sel){
   sel.innerHTML="";
   (state.rosters[team]||[]).filter(p=>p.position==="G")
@@ -263,13 +265,8 @@ function populateGoalies(team, sel){
 ngHome.onchange=()=>populateGoalies(ngHome.value,ngHomeG);
 ngAway.onchange=()=>populateGoalies(ngAway.value,ngAwayG);
 
-/* ---------- GAME ---------- */
+/* GAME */
 startGame.onclick=()=>{
-  clearInterval(state.clock.timer);
-  state.clock.running=false;
-  state.clock.seconds=1200;
-  renderClock();
-
   state.game={
     home:ngHome.value,
     away:ngAway.value,
@@ -280,17 +277,16 @@ startGame.onclick=()=>{
     notes:"",
     final:false
   };
-
+  state.clock.seconds=1200;
   gameNotes.value="";
   save();
   updateScore();
   setupGameSelectors();
-  populatePlayersFor("home");
   gameStatus.textContent=`Period 1 — ${state.game.away} @ ${state.game.home}`;
   document.querySelector('[data-tab="game"]').click();
 };
 
-/* ---------- CLOCK ---------- */
+/* CLOCK */
 function renderClock(){
   clock.textContent=
     `${String(Math.floor(state.clock.seconds/60)).padStart(2,'0')}:${String(state.clock.seconds%60).padStart(2,'0')}`;
@@ -328,25 +324,25 @@ endGame.onclick=()=>{
   save();
 };
 
-/* ---------- GAME SELECTORS ---------- */
+/* GAME SELECTORS */
 function setupGameSelectors(){
   goalTeam.innerHTML=shotTeam.innerHTML=penTeam.innerHTML='<option>Home</option><option>Away</option>';
-  goalTeam.onchange=()=>populatePlayersFor(goalTeam.value==="Away"?"away":"home");
-  shotTeam.onchange=()=>populatePlayersFor(shotTeam.value==="Away"?"away":"home");
-  penTeam.onchange =()=>populatePlayersFor(penTeam.value ==="Away"?"away":"home");
+  goalTeam.onchange=shotTeam.onchange=penTeam.onchange=populatePlayers;
   penType.innerHTML=Object.keys(penaltyTypes).map(p=>`<option>${p}</option>`).join("");
   penType.onchange=()=>penMinutes.value=penaltyTypes[penType.value];
+  populatePlayers();
 }
 
-function populatePlayersFor(side){
-  const team=state.game[side];
+function populatePlayers(){
+  const teamKey=this?.value==="Away"?"away":"home";
+  const team=state.game[teamKey];
   const list=state.rosters[team]||[];
-  const opts=`<option></option>`+list.map(p=>`<option>${p.name}</option>`).join("");
   goalScorer.innerHTML=goalA1.innerHTML=goalA2.innerHTML=
-  shotPlayer.innerHTML=penPlayer.innerHTML=opts;
+  shotPlayer.innerHTML=penPlayer.innerHTML=
+    `<option></option>`+list.map(p=>`<option>${p.name}</option>`).join("");
 }
 
-/* ---------- RECORD EVENTS ---------- */
+/* RECORD EVENTS */
 recordGoal.onclick=()=>{
   if(state.game.final) return;
   const key=goalTeam.value==="Away"?"away":"home";
@@ -392,24 +388,50 @@ function updateScore(){
   shotsAway.textContent=state.game.shots.away;
 }
 
-/* ---------- BOX SCORE ---------- */
+/* BOX SCORE + PENALTY SUMMARY */
 function renderBoxScore(){
   if(!state.game){ boxScore.innerHTML="No game"; return; }
-  const fo=state.game.faceoffs;
-  const foRow=(fo.home.wins+fo.home.losses)?
-    `<br><strong>Faceoffs</strong><br>
-     Home: ${fo.home.wins}-${fo.home.losses}<br>
-     Away: ${fo.away.wins}-${fo.away.losses}<br>`:"";
+
+  const lines = eventLog.innerHTML.split("<br>").filter(l=>l.includes("PEN"));
+  let penRows = "";
+
+  const parsed = lines.map(l=>{
+    const m = l.match(/(\d+:\d+)\sP(\d+)\sPEN\s(.+?)\s(.+?)\s(\d+)m/);
+    if(!m) return null;
+    return {
+      per: Number(m[2]),
+      time: m[1],
+      team: l.includes("— Away") || l.includes("Away") ? "AWAY" : "HOME",
+      player: m[3],
+      infraction: m[4],
+      min: m[5]
+    };
+  }).filter(Boolean)
+    .sort((a,b)=>a.per!==b.per ? a.per-b.per : b.time.localeCompare(a.time));
+
+  if(parsed.length){
+    penRows = `<table>
+      <tr><th>PER</th><th>TIME</th><th>TEAM</th><th>PLAYER</th><th>INFRACTION</th><th>MIN</th></tr>
+      ${parsed.map(p=>`<tr>
+        <td>${p.per}</td><td>${p.time}</td><td>${p.team}</td>
+        <td>${p.player}</td><td>${p.infraction}</td><td>${p.min}</td>
+      </tr>`).join("")}
+    </table>`;
+  } else {
+    penRows = `<em>No penalties recorded</em>`;
+  }
+
   boxScore.innerHTML=`
     <strong>${state.game.away} @ ${state.game.home}</strong><br>
     Final: ${state.game.score.away} – ${state.game.score.home}<br>
     Shots: ${state.game.shots.away} – ${state.game.shots.home}<br>
-    ${foRow}
+    <h4>Penalty Summary</h4>
+    ${penRows}
     <br><strong>Notes</strong><br>${state.game.notes||"None"}
   `;
 }
 
-/* ---------- INIT ---------- */
+/* INIT */
 renderSeasons();
 renderTeams();
 </script>
