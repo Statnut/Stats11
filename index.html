@@ -265,6 +265,11 @@ ngAway.onchange=()=>populateGoalies(ngAway.value,ngAwayG);
 
 /* ---------- GAME ---------- */
 startGame.onclick=()=>{
+  clearInterval(state.clock.timer);
+  state.clock.running=false;
+  state.clock.seconds=1200;
+  renderClock();
+
   state.game={
     home:ngHome.value,
     away:ngAway.value,
@@ -275,11 +280,12 @@ startGame.onclick=()=>{
     notes:"",
     final:false
   };
-  state.clock.seconds=1200;
+
   gameNotes.value="";
   save();
   updateScore();
   setupGameSelectors();
+  populatePlayersFor("home");
   gameStatus.textContent=`Period 1 — ${state.game.away} @ ${state.game.home}`;
   document.querySelector('[data-tab="game"]').click();
 };
@@ -325,19 +331,19 @@ endGame.onclick=()=>{
 /* ---------- GAME SELECTORS ---------- */
 function setupGameSelectors(){
   goalTeam.innerHTML=shotTeam.innerHTML=penTeam.innerHTML='<option>Home</option><option>Away</option>';
-  goalTeam.onchange=shotTeam.onchange=penTeam.onchange=populatePlayers;
+  goalTeam.onchange=()=>populatePlayersFor(goalTeam.value==="Away"?"away":"home");
+  shotTeam.onchange=()=>populatePlayersFor(shotTeam.value==="Away"?"away":"home");
+  penTeam.onchange =()=>populatePlayersFor(penTeam.value ==="Away"?"away":"home");
   penType.innerHTML=Object.keys(penaltyTypes).map(p=>`<option>${p}</option>`).join("");
   penType.onchange=()=>penMinutes.value=penaltyTypes[penType.value];
-  populatePlayers();
 }
 
-function populatePlayers(){
-  const teamKey=this?.value==="Away"?"away":"home";
-  const team=state.game[teamKey];
+function populatePlayersFor(side){
+  const team=state.game[side];
   const list=state.rosters[team]||[];
+  const opts=`<option></option>`+list.map(p=>`<option>${p.name}</option>`).join("");
   goalScorer.innerHTML=goalA1.innerHTML=goalA2.innerHTML=
-  shotPlayer.innerHTML=penPlayer.innerHTML=
-    `<option></option>`+list.map(p=>`<option>${p.name}</option>`).join("");
+  shotPlayer.innerHTML=penPlayer.innerHTML=opts;
 }
 
 /* ---------- RECORD EVENTS ---------- */
@@ -390,12 +396,10 @@ function updateScore(){
 function renderBoxScore(){
   if(!state.game){ boxScore.innerHTML="No game"; return; }
   const fo=state.game.faceoffs;
-  const foTotal=fo.home.wins+fo.home.losses+fo.away.wins+fo.away.losses;
-  const foRow=foTotal?
+  const foRow=(fo.home.wins+fo.home.losses)?
     `<br><strong>Faceoffs</strong><br>
-     Home: ${fo.home.wins}-${fo.home.losses} (${Math.round(100*fo.home.wins/(fo.home.wins+fo.home.losses||1))}%)<br>
-     Away: ${fo.away.wins}-${fo.away.losses} (${Math.round(100*fo.away.wins/(fo.away.wins+fo.away.losses||1))}%)<br>`:"";
-
+     Home: ${fo.home.wins}-${fo.home.losses}<br>
+     Away: ${fo.away.wins}-${fo.away.losses}<br>`:"";
   boxScore.innerHTML=`
     <strong>${state.game.away} @ ${state.game.home}</strong><br>
     Final: ${state.game.score.away} – ${state.game.score.home}<br>
