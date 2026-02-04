@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hockey Stat Sheet v1.08</title>
+<title>Hockey Stat Sheet v1.09</title>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 
@@ -297,6 +297,7 @@ startGame.onclick=()=>{
     score:{home:0,away:0},
     shots:{home:0,away:0},
     faceoffs:{home:{wins:0,losses:0},away:{wins:0,losses:0}},
+    goals: [],
     penalties:[],
     period:1,
     notes:"",
@@ -337,12 +338,51 @@ clockMinus.onclick=()=>{
   renderClock();
 };
 
+function getPeriodLabel(per){
+  if(per===4) return "OT";
+  return per;
+}
+
 advancePeriod.onclick=()=>{
   if(state.game?.final) return;
+
+  // If currently in Period 3, decide whether game ends or goes to OT
+  if(state.game.period===3){
+    if(state.game.score.home===state.game.score.away){
+      // Tied -> OT
+      state.game.period=4;
+      state.clock.seconds=1200;
+      renderClock();
+      gameStatus.textContent=`OT — ${state.game.away} @ ${state.game.home}`;
+      save();
+      return;
+    } else {
+      // Not tied -> Final
+      state.game.final=true;
+      state.clock.running=false;
+      clearInterval(state.clock.timer);
+      gameStatus.textContent=`FINAL — ${state.game.away} @ ${state.game.home}`;
+      save();
+      return;
+    }
+  }
+
+  // If already in OT, keep allowing more OT periods if needed
+  if(state.game.period>=4){
+    state.game.period++;
+    state.clock.seconds=1200;
+    renderClock();
+    gameStatus.textContent=`OT${state.game.period-3} — ${state.game.away} @ ${state.game.home}`;
+    save();
+    return;
+  }
+
+  // Normal regulation advance
   state.game.period++;
   state.clock.seconds=1200;
   renderClock();
   gameStatus.textContent=`Period ${state.game.period} — ${state.game.away} @ ${state.game.home}`;
+  save();
 };
 
 endGame.onclick=()=>{
@@ -397,10 +437,26 @@ function populatePlayersFor(context){
 /* ---------- RECORD EVENTS ---------- */
 recordGoal.onclick=()=>{
   if(state.game.final) return;
-  const key=goalTeam.value;
+
+  const key = goalTeam.value;
+  const teamName = state.game[key];
+
+  const goalObj = {
+    team: teamName,
+    scorer: goalScorer.value || "",
+    a1: goalA1.value || "",
+    a2: goalA2.value || "",
+    type: goalType.value || "",
+    period: state.game.period,
+    time: clock.textContent
+  };
+
+  state.game.goals.push(goalObj);
+
   state.game.score[key]++;
   updateScore();
-  eventLog.innerHTML+=`${clock.textContent} PER ${state.game.period} GOAL ${goalScorer.value} ${goalType.value}<br>`;
+
+  eventLog.innerHTML+=`${clock.textContent} PER ${getPeriodLabel(state.game.period)} GOAL ${goalScorer.value} ${goalType.value}<br>`;
   save();
 };
 
@@ -409,7 +465,7 @@ recordShot.onclick=()=>{
   const key=shotTeam.value;
   state.game.shots[key]++;
   updateScore();
-  eventLog.innerHTML+=`${clock.textContent} PER ${state.game.period} SHOT ${shotPlayer.value}<br>`;
+  eventLog.innerHTML+=`${clock.textContent} PER ${getPeriodLabel(state.game.period)} SHOT ${shotPlayer.value}<br>`;
   save();
 };
 
@@ -432,7 +488,7 @@ recordPenalty.onclick=()=>{
   const p=state.rosters[team].find(x=>x.name===penPlayer.value);
   if(p) p.pim+=Number(penMinutes.value);
 
-  eventLog.innerHTML+=`${clock.textContent} PER ${state.game.period} PEN ${penPlayer.value} ${penType.value} ${penMinutes.value}m<br>`;
+  eventLog.innerHTML+=`${clock.textContent} PER ${getPeriodLabel(state.game.period)} PEN ${penPlayer.value} ${penType.value} ${penMinutes.value}m<br>`;
   save();
 };
 
@@ -440,7 +496,7 @@ recordFaceoff.onclick=()=>{
   if(state.game.final) return;
   const key=foTeam.value==="Away"?"away":"home";
   state.game.faceoffs[key][foResult.value==="Win"?"wins":"losses"]++;
-  eventLog.innerHTML+=`${clock.textContent} PER ${state.game.period} FO ${foResult.value} — ${foTeam.value}<br>`;
+  eventLog.innerHTML+=`${clock.textContent} PER ${getPeriodLabel(state.game.period)} FO ${foResult.value} — ${foTeam.value}<br>`;
   save();
 };
 
@@ -463,6 +519,38 @@ function renderBoxScore(){
     Shots: ${state.game.shots.away} – ${state.game.shots.home}<br>
   `;
 
+  if(state.game.goals && state.game.goals.length){
+    html += `
+      <h4>Goal Summary</h4>
+      <table>
+        <tr>
+          <th>Team</th>
+          <th>Scorer</th>
+          <th>A1</th>
+          <th>A2</th>
+          <th>Type</th>
+          <th>PER</th>
+          <th>Time</th>
+        </tr>
+    `;
+
+    state.game.goals.forEach(g=>{
+      html += `
+        <tr>
+          <td>${g.team}</td>
+          <td>${g.scorer}</td>
+          <td>${g.a1}</td>
+          <td>${g.a2}</td>
+          <td>${g.type}</td>
+          <td>${getPeriodLabel(g.period)}</td>
+          <td>${g.time}</td>
+        </tr>
+      `;
+    });
+
+    html += `</table>`;
+  }
+
   if(state.game.penalties && state.game.penalties.length){
     html += `
       <h4>Penalty Summary</h4>
@@ -484,7 +572,7 @@ function renderBoxScore(){
           <td>${p.player}</td>
           <td>${p.type}</td>
           <td>${p.minutes}</td>
-          <td>${p.period}</td>
+          <td>${getPeriodLabel(p.period)}</td>
           <td>${p.time}</td>
         </tr>
       `;
@@ -513,7 +601,7 @@ exportRosters.onclick = ()=>{
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = "hockey_rosters_v1.08.json";
+  a.download = "hockey_rosters_v1.09.json";
   document.body.appendChild(a);
   a.click();
   a.remove();
