@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hockey Stat Sheet v1.09</title>
+<title>Hockey Stat Sheet v1.10</title>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 
@@ -35,6 +35,14 @@ th { background:#f0f0f0; }
 .tools-box strong { display:block; margin-bottom:6px; }
 .tools-box button { margin-top: 6px; }
 .small-note { font-size: 12px; color: #555; margin-top: 6px; }
+.note-box {
+  border: 1px dashed #aaa;
+  padding: 8px;
+  margin-top: 10px;
+  border-radius: 6px;
+  background: #fcfcfc;
+  font-size: 13px;
+}
 </style>
 </head>
 
@@ -153,6 +161,11 @@ th { background:#f0f0f0; }
 <section id="boxscore">
   <h3>Box Score</h3>
   <div id="boxScore"></div>
+
+  <div class="note-box">
+    <strong>Note:</strong> Regulation periods are currently fixed at 20:00.
+    A future update will allow custom period length + custom overtime length.
+  </div>
 </section>
 
 <script>
@@ -258,7 +271,12 @@ teamSeason.onchange=renderTeams;
 addPlayer.onclick=()=>{
   const t=rosterTeam.value;
   if(!t||!playerName.value) return;
-  state.rosters[t].push({number:playerNum.value,name:playerName.value,position:playerPos.value,pim:0});
+  state.rosters[t].push({
+    number:playerNum.value,
+    name:playerName.value,
+    position:playerPos.value,
+    pim:0
+  });
   playerNum.value=playerName.value="";
   save(); renderRoster();
 };
@@ -294,20 +312,25 @@ startGame.onclick=()=>{
   state.game={
     home:ngHome.value,
     away:ngAway.value,
+    homeGoalie: ngHomeG.value || "",
+    awayGoalie: ngAwayG.value || "",
     score:{home:0,away:0},
     shots:{home:0,away:0},
     faceoffs:{home:{wins:0,losses:0},away:{wins:0,losses:0}},
-    goals: [],
     penalties:[],
+    goals:[],
     period:1,
     notes:"",
     final:false
   };
+
   state.clock.seconds=1200;
   state.clock.running=false;
   clearInterval(state.clock.timer);
+
   gameNotes.value="";
   eventLog.innerHTML="";
+
   save();
   updateScore();
   setupGameSelectors();
@@ -328,7 +351,10 @@ clockToggle.onclick=()=>{
   state.clock.running=!state.clock.running;
   if(state.clock.running){
     state.clock.timer=setInterval(()=>{
-      if(state.clock.seconds>0){state.clock.seconds--;renderClock();}
+      if(state.clock.seconds>0){
+        state.clock.seconds--;
+        renderClock();
+      }
     },1000);
   } else clearInterval(state.clock.timer);
 };
@@ -338,50 +364,20 @@ clockMinus.onclick=()=>{
   renderClock();
 };
 
-function getPeriodLabel(per){
-  if(per===4) return "OT";
-  return per;
-}
-
 advancePeriod.onclick=()=>{
   if(state.game?.final) return;
 
-  // If currently in Period 3, decide whether game ends or goes to OT
-  if(state.game.period===3){
-    if(state.game.score.home===state.game.score.away){
-      // Tied -> OT
-      state.game.period=4;
-      state.clock.seconds=1200;
-      renderClock();
-      gameStatus.textContent=`OT — ${state.game.away} @ ${state.game.home}`;
-      save();
-      return;
-    } else {
-      // Not tied -> Final
-      state.game.final=true;
-      state.clock.running=false;
-      clearInterval(state.clock.timer);
-      gameStatus.textContent=`FINAL — ${state.game.away} @ ${state.game.home}`;
-      save();
-      return;
-    }
-  }
-
-  // If already in OT, keep allowing more OT periods if needed
-  if(state.game.period>=4){
-    state.game.period++;
-    state.clock.seconds=1200;
-    renderClock();
-    gameStatus.textContent=`OT${state.game.period-3} — ${state.game.away} @ ${state.game.home}`;
-    save();
-    return;
-  }
-
-  // Normal regulation advance
   state.game.period++;
+
   state.clock.seconds=1200;
   renderClock();
-  gameStatus.textContent=`Period ${state.game.period} — ${state.game.away} @ ${state.game.home}`;
+
+  if(state.game.period===4){
+    gameStatus.textContent=`Overtime — ${state.game.away} @ ${state.game.home}`;
+  } else {
+    gameStatus.textContent=`Period ${state.game.period} — ${state.game.away} @ ${state.game.home}`;
+  }
+
   save();
 };
 
@@ -393,7 +389,7 @@ endGame.onclick=()=>{
   save();
 };
 
-/* ---------- GAME SELECTORS (FIXED) ---------- */
+/* ---------- GAME SELECTORS ---------- */
 function setupGameSelectors(){
   goalTeam.innerHTML = shotTeam.innerHTML = penTeam.innerHTML =
     '<option value="home">Home</option><option value="away">Away</option>';
@@ -434,43 +430,93 @@ function populatePlayersFor(context){
   }
 }
 
+/* ---------- SKATER STAT HELPERS ---------- */
+function getSkater(teamName, playerName){
+  return (state.rosters[teamName]||[]).find(p=>p.name===playerName);
+}
+
+function ensureSkaterStats(p){
+  if(!p) return;
+  if(p.goals==null) p.goals=0;
+  if(p.assists==null) p.assists=0;
+  if(p.points==null) p.points=0;
+  if(p.shots==null) p.shots=0;
+  if(p.foWins==null) p.foWins=0;
+  if(p.foLosses==null) p.foLosses=0;
+}
+
 /* ---------- RECORD EVENTS ---------- */
 recordGoal.onclick=()=>{
   if(state.game.final) return;
 
-  const key = goalTeam.value;
+  const key=goalTeam.value;
   const teamName = state.game[key];
+
+  state.game.score[key]++;
+  updateScore();
 
   const goalObj = {
     team: teamName,
     scorer: goalScorer.value || "",
-    a1: goalA1.value || "",
-    a2: goalA2.value || "",
-    type: goalType.value || "",
+    assist1: goalA1.value || "",
+    assist2: goalA2.value || "",
+    type: goalType.value,
     period: state.game.period,
     time: clock.textContent
   };
 
   state.game.goals.push(goalObj);
 
-  state.game.score[key]++;
-  updateScore();
+  // Update scorer stats
+  const scorer = getSkater(teamName, goalScorer.value);
+  ensureSkaterStats(scorer);
+  if(scorer){
+    scorer.goals++;
+    scorer.points++;
+  }
 
-  eventLog.innerHTML+=`${clock.textContent} PER ${getPeriodLabel(state.game.period)} GOAL ${goalScorer.value} ${goalType.value}<br>`;
+  // Update assists
+  if(goalA1.value){
+    const a1 = getSkater(teamName, goalA1.value);
+    ensureSkaterStats(a1);
+    if(a1){
+      a1.assists++;
+      a1.points++;
+    }
+  }
+  if(goalA2.value){
+    const a2 = getSkater(teamName, goalA2.value);
+    ensureSkaterStats(a2);
+    if(a2){
+      a2.assists++;
+      a2.points++;
+    }
+  }
+
+  eventLog.innerHTML+=`${clock.textContent} PER ${state.game.period} GOAL ${goalScorer.value} (${goalType.value})<br>`;
   save();
 };
 
 recordShot.onclick=()=>{
   if(state.game.final) return;
+
   const key=shotTeam.value;
+  const teamName = state.game[key];
+
   state.game.shots[key]++;
   updateScore();
-  eventLog.innerHTML+=`${clock.textContent} PER ${getPeriodLabel(state.game.period)} SHOT ${shotPlayer.value}<br>`;
+
+  const shooter = getSkater(teamName, shotPlayer.value);
+  ensureSkaterStats(shooter);
+  if(shooter) shooter.shots++;
+
+  eventLog.innerHTML+=`${clock.textContent} PER ${state.game.period} SHOT ${shotPlayer.value}<br>`;
   save();
 };
 
 recordPenalty.onclick=()=>{
   if(state.game.final) return;
+
   const teamKey=penTeam.value;
   const team=state.game[teamKey];
 
@@ -485,22 +531,33 @@ recordPenalty.onclick=()=>{
 
   state.game.penalties.push(entry);
 
-  const p=state.rosters[team].find(x=>x.name===penPlayer.value);
-  if(p) p.pim+=Number(penMinutes.value);
+  const p=getSkater(team, penPlayer.value);
+  if(p){
+    if(p.pim==null) p.pim=0;
+    p.pim+=Number(penMinutes.value);
+  }
 
-  eventLog.innerHTML+=`${clock.textContent} PER ${getPeriodLabel(state.game.period)} PEN ${penPlayer.value} ${penType.value} ${penMinutes.value}m<br>`;
+  eventLog.innerHTML+=`${clock.textContent} PER ${state.game.period} PEN ${penPlayer.value} ${penType.value} ${penMinutes.value}m<br>`;
   save();
 };
 
 recordFaceoff.onclick=()=>{
   if(state.game.final) return;
+
   const key=foTeam.value==="Away"?"away":"home";
   state.game.faceoffs[key][foResult.value==="Win"?"wins":"losses"]++;
-  eventLog.innerHTML+=`${clock.textContent} PER ${getPeriodLabel(state.game.period)} FO ${foResult.value} — ${foTeam.value}<br>`;
+
+  // For now we don't track which player took the faceoff (future feature)
+  eventLog.innerHTML+=`${clock.textContent} PER ${state.game.period} FO ${foResult.value} — ${foTeam.value}<br>`;
   save();
 };
 
-gameNotes.oninput=()=>{ if(state.game){ state.game.notes=gameNotes.value; save(); }};
+gameNotes.oninput=()=>{
+  if(state.game){
+    state.game.notes=gameNotes.value;
+    save();
+  }
+};
 
 function updateScore(){
   scoreHome.textContent=state.game.score.home;
@@ -519,6 +576,7 @@ function renderBoxScore(){
     Shots: ${state.game.shots.away} – ${state.game.shots.home}<br>
   `;
 
+  // GOAL SUMMARY TABLE
   if(state.game.goals && state.game.goals.length){
     html += `
       <h4>Goal Summary</h4>
@@ -539,10 +597,10 @@ function renderBoxScore(){
         <tr>
           <td>${g.team}</td>
           <td>${g.scorer}</td>
-          <td>${g.a1}</td>
-          <td>${g.a2}</td>
+          <td>${g.assist1 || ""}</td>
+          <td>${g.assist2 || ""}</td>
           <td>${g.type}</td>
-          <td>${getPeriodLabel(g.period)}</td>
+          <td>${g.period}</td>
           <td>${g.time}</td>
         </tr>
       `;
@@ -551,6 +609,7 @@ function renderBoxScore(){
     html += `</table>`;
   }
 
+  // PENALTY SUMMARY TABLE
   if(state.game.penalties && state.game.penalties.length){
     html += `
       <h4>Penalty Summary</h4>
@@ -572,7 +631,7 @@ function renderBoxScore(){
           <td>${p.player}</td>
           <td>${p.type}</td>
           <td>${p.minutes}</td>
-          <td>${getPeriodLabel(p.period)}</td>
+          <td>${p.period}</td>
           <td>${p.time}</td>
         </tr>
       `;
@@ -581,8 +640,57 @@ function renderBoxScore(){
     html += `</table>`;
   }
 
+  // SKATER STATS TABLES
+  html += `<h4>Skater Stats</h4>`;
+
+  function renderSkaterTable(teamName){
+    const roster = state.rosters[teamName] || [];
+    const skaters = roster.filter(p=>p.position!=="G");
+
+    if(!skaters.length){
+      return `<strong>${teamName}</strong><br>No skaters found.<br>`;
+    }
+
+    let table = `
+      <strong>${teamName}</strong>
+      <table>
+        <tr>
+          <th>#</th>
+          <th>Player</th>
+          <th>G</th>
+          <th>A</th>
+          <th>PTS</th>
+          <th>SOG</th>
+          <th>PIM</th>
+        </tr>
+    `;
+
+    skaters.forEach(p=>{
+      ensureSkaterStats(p);
+
+      table += `
+        <tr>
+          <td>${p.number || ""}</td>
+          <td>${p.name}</td>
+          <td>${p.goals}</td>
+          <td>${p.assists}</td>
+          <td>${p.points}</td>
+          <td>${p.shots}</td>
+          <td>${p.pim || 0}</td>
+        </tr>
+      `;
+    });
+
+    table += `</table><br>`;
+    return table;
+  }
+
+  html += renderSkaterTable(state.game.away);
+  html += renderSkaterTable(state.game.home);
+
   html += `
-    <br><strong>Notes</strong><br>${state.game.notes||"None"}
+    <h4>Notes</h4>
+    ${state.game.notes || "None"}
   `;
 
   boxScore.innerHTML = html;
@@ -601,7 +709,7 @@ exportRosters.onclick = ()=>{
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = "hockey_rosters_v1.09.json";
+  a.download = "hockey_rosters_v1.10.json";
   document.body.appendChild(a);
   a.click();
   a.remove();
