@@ -112,6 +112,20 @@ th { background:#f0f0f0; }
     </div>
   </div>
 
+  <!-- CSV IMPORT TOOLBOX -->
+  <div class="tools-box">
+    <strong>Import CSV Roster (to selected team below)</strong>
+    <button id="importCSVBtn">Import CSV Roster</button>
+    <input type="file" id="csvFileInput" accept=".csv" style="display:none;">
+    <div class="small-note">
+      CSV format examples:<br>
+      number,name,position<br>
+      12,John Smith,F<br>
+      30,Bob Goalie,G<br><br>
+      Position must be F, D, or G.
+    </div>
+  </div>
+
   <select id="rosterTeam"></select>
   <input id="playerNum" placeholder="#">
   <input id="playerName" placeholder="Player name">
@@ -339,6 +353,148 @@ function renderRoster(){
   });
 }
 rosterTeam.onchange=renderRoster;
+
+/* ---------- CSV ROSTER IMPORT (NEW FEATURE) ---------- */
+function parseCSV(text){
+  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length);
+  if(lines.length === 0) return [];
+
+  function splitCSVLine(line){
+    const result = [];
+    let cur = "";
+    let inQuotes = false;
+
+    for(let i=0;i<line.length;i++){
+      const ch = line[i];
+
+      if(ch === '"'){
+        if(inQuotes && line[i+1] === '"'){
+          cur += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if(ch === "," && !inQuotes){
+        result.push(cur.trim());
+        cur = "";
+      } else {
+        cur += ch;
+      }
+    }
+    result.push(cur.trim());
+    return result;
+  }
+
+  let startIndex = 0;
+  let header = splitCSVLine(lines[0]).map(h=>h.toLowerCase());
+
+  const hasHeader =
+    header.includes("name") ||
+    header.includes("player") ||
+    header.includes("number") ||
+    header.includes("#") ||
+    header.includes("pos") ||
+    header.includes("position");
+
+  let colMap = { number:0, name:1, position:2 };
+
+  if(hasHeader){
+    startIndex = 1;
+
+    colMap = { number:null, name:null, position:null };
+
+    header.forEach((h, idx)=>{
+      if(h === "#" || h.includes("num")) colMap.number = idx;
+      if(h.includes("name") || h.includes("player")) colMap.name = idx;
+      if(h.includes("pos")) colMap.position = idx;
+    });
+  }
+
+  const players = [];
+
+  for(let i=startIndex;i<lines.length;i++){
+    const cols = splitCSVLine(lines[i]);
+    if(cols.length < 2) continue;
+
+    const num = colMap.number !== null ? (cols[colMap.number] || "") : (cols[0] || "");
+    const name = colMap.name !== null ? (cols[colMap.name] || "") : (cols[1] || "");
+    const pos = colMap.position !== null ? (cols[colMap.position] || "") : (cols[2] || "");
+
+    if(!name.trim()) continue;
+
+    let position = (pos || "").toUpperCase().trim();
+    if(position !== "F" && position !== "D" && position !== "G") position = "F";
+
+    players.push({
+      number: (num || "").trim(),
+      name: name.trim(),
+      position: position
+    });
+  }
+
+  return players;
+}
+
+importCSVBtn.onclick = ()=>{
+  if(!rosterTeam.value){
+    alert("Please select a team first.");
+    return;
+  }
+  csvFileInput.value = "";
+  csvFileInput.click();
+};
+
+csvFileInput.onchange = (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const team = rosterTeam.value;
+  if(!team){
+    alert("Please select a team first.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const text = reader.result;
+      const importedPlayers = parseCSV(text);
+
+      if(importedPlayers.length === 0){
+        alert("No valid players found in CSV.");
+        return;
+      }
+
+      const ok = confirm(`Import ${importedPlayers.length} players into ${team}?`);
+      if(!ok) return;
+
+      if(!state.rosters[team]) state.rosters[team] = [];
+
+      let added = 0;
+
+      importedPlayers.forEach(p=>{
+        const exists = state.rosters[team].some(x =>
+          (String(x.number||"").trim() === String(p.number||"").trim()) &&
+          (String(x.name||"").trim().toLowerCase() === String(p.name||"").trim().toLowerCase())
+        );
+
+        if(!exists){
+          state.rosters[team].push(p);
+          added++;
+        }
+      });
+
+      save();
+      renderRoster();
+      alert(`Imported ${added} new players into ${team}.`);
+
+    }catch(err){
+      alert("CSV import failed.");
+    }
+  };
+
+  reader.readAsText(file);
+};
 
 /* ---------- GOALIES ---------- */
 function populateGoalies(team, sel){
@@ -845,7 +1001,6 @@ window.editEventUI = function(id){
 
   container.innerHTML = inner;
 
-  // Populate player dropdowns based on selected team
   populateEditPlayers(id, ev.type);
 
   document.getElementById("editTeam-" + id).onchange = ()=>{
@@ -1052,16 +1207,13 @@ function renderBoxScore(){
     return;
   }
 
-  // NHL style shootout final display
   const hasShootoutGoals = (state.game.goals || []).some(g=>g.type==="SO");
   const finalLabel = hasShootoutGoals ? "FINAL (SO)" : "FINAL";
 
-  // NHL style score display: if shootout exists, show winning team +1
   let displayAway = state.game.score.away;
   let displayHome = state.game.score.home;
 
   if(hasShootoutGoals){
-    // determine winner by SO goals count
     let awaySO = 0;
     let homeSO = 0;
 
@@ -1083,7 +1235,6 @@ function renderBoxScore(){
     <br>
   `;
 
-  /* GOAL SUMMARY */
   if(state.game.goals && state.game.goals.length){
     html += `
       <h4>Goal Summary</h4>
@@ -1116,7 +1267,6 @@ function renderBoxScore(){
     html += `</table>`;
   }
 
-  /* PENALTY SUMMARY */
   if(state.game.penalties && state.game.penalties.length){
     html += `
       <h4>Penalty Summary</h4>
@@ -1196,7 +1346,6 @@ function renderBoxScore(){
   html += skaterTable(state.game.away);
   html += skaterTable(state.game.home);
 
-  /* GOALIE STATS TABLE */
   html += `<h4>Goalie Stats</h4>`;
   html += `
     <table>
