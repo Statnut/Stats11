@@ -108,12 +108,15 @@ th { background:#f0f0f0; }
     <button id="importRosters">Import Rosters (JSON)</button>
     <input type="file" id="importFile" accept=".json" style="display:none;">
 
-    <button id="importRosterCSV">Import Roster CSV into Selected Team</button>
+    <button id="importRosterCSV">Import Roster CSV (Selected Team)</button>
     <input type="file" id="importCSVFile" accept=".csv,text/csv" style="display:none;">
 
     <div class="small-note">
-      JSON Import replaces existing seasons/teams/rosters.<br>
-      CSV Import adds players to the currently selected roster team.
+      JSON Import replaces all seasons/teams/rosters. CSV import only adds players to the selected roster team.
+      <br><br>
+      CSV formats supported:
+      <br>1) 14,Esa Tikkanen,F
+      <br>2) "14, Esa Tikkanen, F"
     </div>
   </div>
 
@@ -394,6 +397,7 @@ function applyEvent(ev){
 
   const teamName = ev.teamKey === "home" ? homeName : awayName;
   const otherKey = ev.teamKey === "home" ? "away" : "home";
+  const otherTeamName = otherKey === "home" ? homeName : awayName;
 
   if(ev.type === "goal"){
     if(ev.goalType !== "SO"){
@@ -459,7 +463,6 @@ function applyEvent(ev){
     }
   }
 
-  // Recalculate goalie saves
   ["home","away"].forEach(k=>{
     const gs = state.game.goalieStats[k];
     gs.saves = (gs.shotsAgainst||0) - (gs.goalsAgainst||0);
@@ -477,11 +480,9 @@ function resetGameDerivedStats(){
     away:{shotsAgainst:0,goalsAgainst:0,saves:0}
   };
 
-  // reset player stats
   state.game.playerStats[state.game.home] = initPlayerStats(state.game.home);
   state.game.playerStats[state.game.away] = initPlayerStats(state.game.away);
 
-  // clear summary arrays
   state.game.goals = [];
   state.game.penalties = [];
   state.game.faceoffs = [];
@@ -496,7 +497,6 @@ function rebuildFromEvents(){
   state.game.events.forEach(ev=>{
     applyEvent(ev);
 
-    // goals array is separate for goal summary
     if(ev.type === "goal"){
       const teamName = ev.teamKey === "home" ? state.game.home : state.game.away;
 
@@ -771,16 +771,37 @@ window.editEventUI = function(id){
     </select>
   `;
 
-  const periodInput = `<input id="editPeriod-${id}" type="number" value="${ev.period || 1}">`;
-  const timeInput = `<input id="editTime-${id}" value="${ev.time || "00:00"}">`;
+  const periodInput = `<input id="editPeriod-${id}" type="number" value="${ev.period}" min="1">`;
+  const timeInput = `<input id="editTime-${id}" value="${ev.time}">`;
 
   let extra = "";
 
+  const homeName = state.game.home;
+  const awayName = state.game.away;
+
+  const allOptions =
+    `<option></option>` +
+    [...(state.rosters[homeName]||[]), ...(state.rosters[awayName]||[])]
+      .map(p=>`<option>${p.name}</option>`).join("");
+
+  const skaterOptions =
+    `<option></option>` +
+    [...(state.rosters[homeName]||[]), ...(state.rosters[awayName]||[])]
+      .filter(p=>p.position!=="G")
+      .map(p=>`<option>${p.name}</option>`).join("");
+
   if(ev.type==="goal"){
     extra = `
+      <label>Scorer</label>
       <select id="editScorer-${id}"></select>
+
+      <label>A1</label>
       <select id="editA1-${id}"></select>
+
+      <label>A2</label>
       <select id="editA2-${id}"></select>
+
+      <label>Goal Type</label>
       <select id="editGoalType-${id}">
         <option ${ev.goalType==="EV"?"selected":""}>EV</option>
         <option ${ev.goalType==="PP"?"selected":""}>PP</option>
@@ -793,22 +814,33 @@ window.editEventUI = function(id){
   }
 
   if(ev.type==="shot"){
-    extra = `<select id="editPlayer-${id}"></select>`;
+    extra = `
+      <label>Player</label>
+      <select id="editPlayer-${id}"></select>
+    `;
   }
 
   if(ev.type==="penalty"){
     extra = `
+      <label>Player</label>
       <select id="editPlayer-${id}"></select>
+
+      <label>Penalty</label>
       <select id="editPenType-${id}">
         ${Object.keys(penaltyTypes).map(p=>`<option ${ev.penType===p?"selected":""}>${p}</option>`).join("")}
       </select>
+
+      <label>Minutes</label>
       <input id="editMinutes-${id}" type="number" value="${ev.minutes || 0}">
     `;
   }
 
   if(ev.type==="faceoff"){
     extra = `
+      <label>Player</label>
       <select id="editPlayer-${id}"></select>
+
+      <label>Result</label>
       <select id="editResult-${id}">
         <option ${ev.result==="Win"?"selected":""}>Win</option>
         <option ${ev.result==="Loss"?"selected":""}>Loss</option>
@@ -817,31 +849,22 @@ window.editEventUI = function(id){
   }
 
   container.innerHTML = `
-    <div><strong>Edit ${ev.type.toUpperCase()}</strong></div>
-    <label>Team</label>${teamSelect}
-    <label>Period</label>${periodInput}
-    <label>Time</label>${timeInput}
+    <label>Team</label>
+    ${teamSelect}
+
+    <label>Period</label>
+    ${periodInput}
+
+    <label>Time</label>
+    ${timeInput}
+
     ${extra}
+
     <button class="smallbtn" onclick="saveEventEdit('${id}')">Save</button>
     <button class="smallbtn" onclick="cancelEventEdit('${id}')">Cancel</button>
   `;
 
-  // populate player dropdowns based on team
-  populateEditPlayers(id, ev.type);
-};
-
-function populateEditPlayers(id, type){
-  const teamKey = document.getElementById("editTeam-" + id).value;
-  const teamName = state.game[teamKey];
-  const roster = state.rosters[teamName] || [];
-
-  const allOptions = `<option></option>` + roster.map(p=>`<option>${p.name}</option>`).join("");
-  const skaterOptions = `<option></option>` + roster.filter(p=>p.position!=="G").map(p=>`<option>${p.name}</option>`).join("");
-
-  const ev = state.game.events.find(e=>e.id===id);
-  if(!ev) return;
-
-  if(type==="goal"){
+  if(ev.type==="goal"){
     const s = document.getElementById("editScorer-" + id);
     const a1 = document.getElementById("editA1-" + id);
     const a2 = document.getElementById("editA2-" + id);
@@ -855,14 +878,14 @@ function populateEditPlayers(id, type){
     a2.value = ev.a2 || "";
   }
 
-  if(type==="shot" || type==="penalty" || type==="faceoff"){
+  if(ev.type==="shot" || ev.type==="penalty" || ev.type==="faceoff"){
     const p = document.getElementById("editPlayer-" + id);
     if(p){
-      p.innerHTML = (type==="faceoff") ? skaterOptions : allOptions;
+      p.innerHTML = (ev.type==="faceoff") ? skaterOptions : allOptions;
       p.value = ev.player || "";
     }
   }
-}
+};
 
 window.cancelEventEdit = function(id){
   const container = document.getElementById("edit-" + id);
@@ -1025,16 +1048,13 @@ function renderBoxScore(){
     return;
   }
 
-  // NHL style shootout final display
   const hasShootoutGoals = (state.game.goals || []).some(g=>g.type==="SO");
   const finalLabel = hasShootoutGoals ? "FINAL (SO)" : "FINAL";
 
-  // NHL style score display: if shootout exists, show winning team +1
   let displayAway = state.game.score.away;
   let displayHome = state.game.score.home;
 
   if(hasShootoutGoals){
-    // determine winner by SO goals count
     let awaySO = 0;
     let homeSO = 0;
 
@@ -1056,7 +1076,6 @@ function renderBoxScore(){
     <br>
   `;
 
-  /* GOAL SUMMARY */
   if(state.game.goals && state.game.goals.length){
     html += `
       <h4>Goal Summary</h4>
@@ -1089,7 +1108,6 @@ function renderBoxScore(){
     html += `</table>`;
   }
 
-  /* PENALTY SUMMARY */
   if(state.game.penalties && state.game.penalties.length){
     html += `
       <h4>Penalty Summary</h4>
@@ -1169,7 +1187,6 @@ function renderBoxScore(){
   html += skaterTable(state.game.away);
   html += skaterTable(state.game.home);
 
-  /* GOALIE STATS TABLE */
   html += `<h4>Goalie Stats</h4>`;
   html += `
     <table>
@@ -1220,7 +1237,7 @@ function renderBoxScore(){
   boxScore.innerHTML = html;
 }
 
-/* ---------- EXPORT / IMPORT ROSTERS (JSON) ---------- */
+/* ---------- JSON EXPORT / IMPORT ROSTERS ---------- */
 exportRosters.onclick = ()=>{
   const exportData = {
     seasons: state.seasons,
@@ -1279,31 +1296,66 @@ importFile.onchange = (e)=>{
   reader.readAsText(file);
 };
 
-/* ---------- CSV ROSTER IMPORT (v1.17 FIXED TRIM LOGIC) ---------- */
-const importRosterCSV = $("importRosterCSV");
-const importCSVFile = $("importCSVFile");
-
+/* ---------- CSV IMPORT (FIXED FOR QUOTED SINGLE-COLUMN ROWS) ---------- */
 importRosterCSV.onclick = ()=>{
   if(!rosterTeam.value){
-    alert("Please select a team first.");
+    alert("Please select a roster team first.");
     return;
   }
   importCSVFile.value = "";
   importCSVFile.click();
 };
 
-function normalizePos(posRaw){
-  let p = (posRaw || "").toString().trim().toUpperCase();
+function cleanCSVValue(v){
+  return (v||"")
+    .replace(/\r/g,"")
+    .replace(/^"+|"+$/g,"")
+    .trim();
+}
 
-  if(p === "FORWARD") return "F";
-  if(p === "DEFENSE") return "D";
-  if(p === "DEFENCE") return "D";
-  if(p === "GOALIE") return "G";
-  if(p === "GOALTENDER") return "G";
+function parseCSVLine(line){
+  // If the entire line is quoted like: "14, Esa Tikkanen, F"
+  // remove outer quotes then split by comma
+  let cleaned = line.trim();
 
-  if(p === "F" || p === "D" || p === "G") return p;
+  // ignore blank lines
+  if(!cleaned) return null;
 
-  return "";
+  // remove wrapping quotes if the whole line is quoted
+  cleaned = cleaned.replace(/^"+|"+$/g,"");
+
+  // split by comma
+  let parts = cleaned.split(",");
+
+  // if still only one part but contains commas inside quotes (rare), split again
+  if(parts.length === 1 && cleaned.includes(",")){
+    parts = cleaned.split(",");
+  }
+
+  parts = parts.map(p=>p.trim()).filter(p=>p!=="" || p==="0");
+
+  if(parts.length < 2) return null;
+
+  let number = parts[0] || "";
+  let name = parts[1] || "";
+  let position = parts[2] || "F";
+
+  number = cleanCSVValue(number);
+  name = cleanCSVValue(name);
+  position = cleanCSVValue(position).toUpperCase();
+
+  if(position === "FORWARD") position = "F";
+  if(position === "DEFENSE") position = "D";
+  if(position === "DEFENCE") position = "D";
+  if(position === "GOALIE") position = "G";
+
+  if(position !== "F" && position !== "D" && position !== "G"){
+    position = "F";
+  }
+
+  if(!name) return null;
+
+  return { number, name, position };
 }
 
 importCSVFile.onchange = (e)=>{
@@ -1312,48 +1364,42 @@ importCSVFile.onchange = (e)=>{
 
   const team = rosterTeam.value;
   if(!team){
-    alert("No team selected.");
+    alert("No roster team selected.");
     return;
   }
 
   const reader = new FileReader();
   reader.onload = ()=>{
     const text = reader.result || "";
-    const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length);
+    const lines = text.split("\n").map(l=>l.trim()).filter(l=>l);
 
     if(lines.length === 0){
-      alert("CSV is empty.");
+      alert("CSV file is empty.");
       return;
     }
 
     let added = 0;
+    let skipped = 0;
 
     lines.forEach(line=>{
-      // ignore header rows
+      // skip header line if present
       const lower = line.toLowerCase();
-      if(lower.includes("number") && lower.includes("name") && lower.includes("position")) return;
+      if(lower.includes("number") && lower.includes("name")) return;
 
-      // split by comma
-      const parts = line.split(",").map(x=>x.trim());
-      if(parts.length < 2) return;
+      const player = parseCSVLine(line);
+      if(!player){
+        skipped++;
+        return;
+      }
 
-      const number = (parts[0] || "").trim();
-      const name = (parts[1] || "").trim();
-      const pos = normalizePos(parts[2] || "F");
+      // prevent duplicates
+      const exists = (state.rosters[team]||[]).some(p=>p.name.toLowerCase() === player.name.toLowerCase());
+      if(exists){
+        skipped++;
+        return;
+      }
 
-      if(!name) return;
-      if(!pos) return;
-
-      // prevent duplicates (same name)
-      const exists = (state.rosters[team] || []).some(p=>p.name.trim().toLowerCase() === name.toLowerCase());
-      if(exists) return;
-
-      state.rosters[team].push({
-        number: number,
-        name: name,
-        position: pos
-      });
-
+      state.rosters[team].push(player);
       added++;
     });
 
@@ -1364,7 +1410,7 @@ importCSVFile.onchange = (e)=>{
 
     save();
     renderRoster();
-    alert(`Imported ${added} players into ${team}.`);
+    alert(`Imported ${added} player(s) into ${team}. Skipped ${skipped}.`);
   };
 
   reader.readAsText(file);
