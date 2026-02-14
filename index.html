@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hockey Stat Sheet v1.18</title>
+<title>Hockey Stat Sheet v1.19</title>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 
@@ -81,6 +81,25 @@ th { background:#f0f0f0; }
   width:auto;
   padding: 4px 8px;
   font-size: 12px;
+}
+
+.inline-edit-row {
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin: 6px 0;
+}
+.inline-edit-row input {
+  width: 100%;
+}
+
+.edit-pill {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #eee;
+  display:inline-block;
+  margin-left: 6px;
 }
 </style>
 </head>
@@ -377,7 +396,8 @@ function initPlayerStats(teamName){
       shots:0,
       pim:0,
       fow:0,
-      fol:0
+      fol:0,
+      manual:false
     };
   });
   return stats;
@@ -407,7 +427,6 @@ function applyEvent(ev){
 
   const teamName = ev.teamKey === "home" ? homeName : awayName;
   const otherKey = ev.teamKey === "home" ? "away" : "home";
-  const otherTeamName = otherKey === "home" ? homeName : awayName;
 
   if(ev.type === "goal"){
     if(ev.goalType !== "SO"){
@@ -416,15 +435,15 @@ function applyEvent(ev){
 
       if(ev.scorer){
         const s = statObj(teamName, ev.scorer);
-        if(s) s.goals++;
+        if(s && !s.manual) s.goals++;
       }
       if(ev.a1){
         const a1 = statObj(teamName, ev.a1);
-        if(a1) a1.assists++;
+        if(a1 && !a1.manual) a1.assists++;
       }
       if(ev.a2){
         const a2 = statObj(teamName, ev.a2);
-        if(a2) a2.assists++;
+        if(a2 && !a2.manual) a2.assists++;
       }
     }
   }
@@ -435,7 +454,7 @@ function applyEvent(ev){
 
     if(ev.player){
       const s = statObj(teamName, ev.player);
-      if(s) s.shots++;
+      if(s && !s.manual) s.shots++;
     }
   }
 
@@ -446,12 +465,13 @@ function applyEvent(ev){
       type: ev.penType || "",
       minutes: Number(ev.minutes || 0),
       period: ev.period,
-      time: ev.time
+      time: ev.time,
+      eventId: ev.id
     });
 
     if(ev.player){
       const p = statObj(teamName, ev.player);
-      if(p) p.pim += Number(ev.minutes || 0);
+      if(p && !p.manual) p.pim += Number(ev.minutes || 0);
     }
   }
 
@@ -461,12 +481,13 @@ function applyEvent(ev){
       player: ev.player || "",
       result: ev.result || "",
       period: ev.period,
-      time: ev.time
+      time: ev.time,
+      eventId: ev.id
     });
 
     if(ev.player){
       const ps = statObj(teamName, ev.player);
-      if(ps){
+      if(ps && !ps.manual){
         if(ev.result === "Win") ps.fow++;
         if(ev.result === "Loss") ps.fol++;
       }
@@ -490,8 +511,20 @@ function resetGameDerivedStats(){
     away:{shotsAgainst:0,goalsAgainst:0,saves:0}
   };
 
+  const prevManual = state.game.manualPlayerStats || {};
+
   state.game.playerStats[state.game.home] = initPlayerStats(state.game.home);
   state.game.playerStats[state.game.away] = initPlayerStats(state.game.away);
+
+  [state.game.home, state.game.away].forEach(team=>{
+    Object.keys(prevManual[team] || {}).forEach(player=>{
+      state.game.playerStats[team][player] = {
+        ...state.game.playerStats[team][player],
+        ...prevManual[team][player],
+        manual:true
+      };
+    });
+  });
 
   state.game.goals = [];
   state.game.penalties = [];
@@ -551,6 +584,8 @@ startGame.onclick=()=>{
       [ngHome.value]: initPlayerStats(ngHome.value),
       [ngAway.value]: initPlayerStats(ngAway.value)
     },
+
+    manualPlayerStats: {},
 
     penalties:[],
     goals:[],
@@ -1054,7 +1089,7 @@ gameNotes.oninput=()=>{
   }
 };
 
-/* ---------- BOX SCORE (EDITABLE) ---------- */
+/* ---------- BOX SCORE EDIT HELPERS ---------- */
 function boxEditButtons(eventId){
   if(!eventId) return "";
   return `
@@ -1076,6 +1111,70 @@ window.editFromBox = function(eventId){
 
 window.deleteFromBox = function(eventId){
   deleteEvent(eventId);
+};
+
+window.saveShotTotals = function(){
+  if(!state.game) return;
+
+  const away = Number(document.getElementById("editShotsAway").value || 0);
+  const home = Number(document.getElementById("editShotsHome").value || 0);
+
+  state.game.shots.away = away;
+  state.game.shots.home = home;
+
+  state.game.goalieStats.home.shotsAgainst = away;
+  state.game.goalieStats.away.shotsAgainst = home;
+
+  ["home","away"].forEach(k=>{
+    const gs = state.game.goalieStats[k];
+    gs.saves = (gs.shotsAgainst||0) - (gs.goalsAgainst||0);
+  });
+
+  save();
+  renderBoxScore();
+  updateScore();
+};
+
+window.saveSkaterEdit = function(teamName, playerName){
+  if(!state.game) return;
+
+  const id = `${teamName}-${playerName}`.replace(/[^a-zA-Z0-9]/g,"_");
+
+  const g = Number(document.getElementById("g_"+id).value || 0);
+  const a = Number(document.getElementById("a_"+id).value || 0);
+  const sog = Number(document.getElementById("sog_"+id).value || 0);
+  const pim = Number(document.getElementById("pim_"+id).value || 0);
+  const fow = Number(document.getElementById("fow_"+id).value || 0);
+  const fol = Number(document.getElementById("fol_"+id).value || 0);
+
+  if(!state.game.manualPlayerStats) state.game.manualPlayerStats = {};
+  if(!state.game.manualPlayerStats[teamName]) state.game.manualPlayerStats[teamName] = {};
+
+  state.game.manualPlayerStats[teamName][playerName] = {
+    goals:g,
+    assists:a,
+    shots:sog,
+    pim:pim,
+    fow:fow,
+    fol:fol,
+    manual:true
+  };
+
+  rebuildFromEvents();
+  save();
+  renderBoxScore();
+};
+
+window.clearSkaterManual = function(teamName, playerName){
+  if(!state.game) return;
+
+  if(state.game.manualPlayerStats?.[teamName]?.[playerName]){
+    delete state.game.manualPlayerStats[teamName][playerName];
+  }
+
+  rebuildFromEvents();
+  save();
+  renderBoxScore();
 };
 
 function renderBoxScore(){
@@ -1108,7 +1207,14 @@ function renderBoxScore(){
   let html = `
     <strong>${state.game.away} @ ${state.game.home}</strong><br>
     ${finalLabel}: ${displayAway} – ${displayHome}<br>
-    Shots: ${state.game.shots.away} – ${state.game.shots.home}<br>
+    <br>
+
+    <h4>Shots (Editable)</h4>
+    <div class="inline-edit-row">
+      <input id="editShotsAway" type="number" value="${state.game.shots.away}">
+      <input id="editShotsHome" type="number" value="${state.game.shots.home}">
+    </div>
+    <button onclick="saveShotTotals()">Save Shot Totals</button>
     <br>
   `;
 
@@ -1161,16 +1267,7 @@ function renderBoxScore(){
         </tr>
     `;
 
-    state.game.penalties.forEach((p, idx)=>{
-      const match = (state.game.events||[]).find(e=>
-        e.type==="penalty" &&
-        (e.player||"") === (p.player||"") &&
-        (e.penType||"") === (p.type||"") &&
-        Number(e.minutes||0) === Number(p.minutes||0) &&
-        Number(e.period||0) === Number(p.period||0) &&
-        (e.time||"") === (p.time||"")
-      );
-
+    state.game.penalties.forEach(p=>{
       html += `
         <tr>
           <td>${p.team}</td>
@@ -1179,45 +1276,7 @@ function renderBoxScore(){
           <td>${p.minutes}</td>
           <td>${p.period}</td>
           <td>${p.time}</td>
-          <td>${boxEditButtons(match ? match.id : "")}</td>
-        </tr>
-      `;
-    });
-
-    html += `</table>`;
-  }
-
-  if(state.game.faceoffs && state.game.faceoffs.length){
-    html += `
-      <h4>Faceoff Summary</h4>
-      <table>
-        <tr>
-          <th>Team</th>
-          <th>Player</th>
-          <th>Result</th>
-          <th>PER</th>
-          <th>Time</th>
-          <th>Actions</th>
-        </tr>
-    `;
-
-    state.game.faceoffs.forEach(f=>{
-      const match = (state.game.events||[]).find(e=>
-        e.type==="faceoff" &&
-        (e.player||"") === (f.player||"") &&
-        (e.result||"") === (f.result||"") &&
-        Number(e.period||0) === Number(f.period||0) &&
-        (e.time||"") === (f.time||"")
-      );
-
-      html += `
-        <tr>
-          <td>${f.team}</td>
-          <td>${f.player}</td>
-          <td>${f.result}</td>
-          <td>${f.period}</td>
-          <td>${f.time}</td>
-          <td>${boxEditButtons(match ? match.id : "")}</td>
+          <td>${boxEditButtons(p.eventId)}</td>
         </tr>
       `;
     });
@@ -1226,7 +1285,7 @@ function renderBoxScore(){
   }
 
   function skaterTable(teamName){
-    let t = `<h4>Skater Stats — ${teamName}</h4>`;
+    let t = `<h4>Skater Stats (Editable) — ${teamName}</h4>`;
     t += `
       <table>
         <tr>
@@ -1239,11 +1298,12 @@ function renderBoxScore(){
           <th>FOW</th>
           <th>FOL</th>
           <th>FO%</th>
+          <th>Actions</th>
         </tr>
     `;
 
     (state.rosters[teamName]||[]).filter(p=>p.position!=="G").forEach(p=>{
-      const ps = state.game.playerStats?.[teamName]?.[p.name] || {goals:0,assists:0,shots:0,pim:0,fow:0,fol:0};
+      const ps = state.game.playerStats?.[teamName]?.[p.name] || {goals:0,assists:0,shots:0,pim:0,fow:0,fol:0,manual:false};
       const pts = (ps.goals||0) + (ps.assists||0);
       const totalFO = (ps.fow||0) + (ps.fol||0);
 
@@ -1252,17 +1312,26 @@ function renderBoxScore(){
         foPct = ((ps.fow / totalFO) * 100).toFixed(1);
       }
 
+      const safeId = `${teamName}-${p.name}`.replace(/[^a-zA-Z0-9]/g,"_");
+      const manualBadge = ps.manual ? `<span class="edit-pill">Manual</span>` : "";
+
       t += `
         <tr>
-          <td>${p.name}</td>
-          <td>${ps.goals||0}</td>
-          <td>${ps.assists||0}</td>
+          <td>${p.name} ${manualBadge}</td>
+          <td><input id="g_${safeId}" type="number" value="${ps.goals||0}"></td>
+          <td><input id="a_${safeId}" type="number" value="${ps.assists||0}"></td>
           <td>${pts}</td>
-          <td>${ps.shots||0}</td>
-          <td>${ps.pim||0}</td>
-          <td>${ps.fow||0}</td>
-          <td>${ps.fol||0}</td>
+          <td><input id="sog_${safeId}" type="number" value="${ps.shots||0}"></td>
+          <td><input id="pim_${safeId}" type="number" value="${ps.pim||0}"></td>
+          <td><input id="fow_${safeId}" type="number" value="${ps.fow||0}"></td>
+          <td><input id="fol_${safeId}" type="number" value="${ps.fol||0}"></td>
           <td>${foPct}</td>
+          <td>
+            <div class="action-btns">
+              <button onclick="saveSkaterEdit('${teamName}','${p.name}')">Save</button>
+              <button onclick="clearSkaterManual('${teamName}','${p.name}')">Reset</button>
+            </div>
+          </td>
         </tr>
       `;
     });
@@ -1337,7 +1406,7 @@ exportRosters.onclick = ()=>{
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = "hockey_rosters_v1.18.json";
+  a.download = "hockey_rosters_v1.19.json";
   document.body.appendChild(a);
   a.click();
   a.remove();
