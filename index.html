@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hockey Stat Sheet v1.17</title>
+<title>Hockey Stat Sheet v1.18</title>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 
@@ -71,6 +71,16 @@ th { background:#f0f0f0; }
 }
 .smallbtn {
   width:auto !important;
+}
+
+.action-btns {
+  display:flex;
+  gap:6px;
+}
+.action-btns button {
+  width:auto;
+  padding: 4px 8px;
+  font-size: 12px;
 }
 </style>
 </head>
@@ -507,7 +517,8 @@ function rebuildFromEvents(){
         a2: ev.a2 || "",
         type: ev.goalType || "",
         period: ev.period,
-        time: ev.time
+        time: ev.time,
+        eventId: ev.id
       });
     }
   });
@@ -742,6 +753,7 @@ window.deleteEvent = function(id){
 
   rebuildFromEvents();
   renderEventLog();
+  renderBoxScore();
   save();
 };
 
@@ -930,6 +942,7 @@ window.saveEventEdit = function(id){
 
   rebuildFromEvents();
   renderEventLog();
+  renderBoxScore();
   save();
 
   cancelEventEdit(id);
@@ -1041,7 +1054,30 @@ gameNotes.oninput=()=>{
   }
 };
 
-/* ---------- BOX SCORE ---------- */
+/* ---------- BOX SCORE (EDITABLE) ---------- */
+function boxEditButtons(eventId){
+  if(!eventId) return "";
+  return `
+    <div class="action-btns">
+      <button onclick="editFromBox('${eventId}')">Edit</button>
+      <button onclick="deleteFromBox('${eventId}')">Delete</button>
+    </div>
+  `;
+}
+
+window.editFromBox = function(eventId){
+  document.querySelector('[data-tab="game"]').click();
+  setTimeout(()=>{
+    editEventUI(eventId);
+    const el = document.querySelector('[data-id="'+eventId+'"]');
+    if(el) el.scrollIntoView({behavior:"smooth", block:"center"});
+  },50);
+};
+
+window.deleteFromBox = function(eventId){
+  deleteEvent(eventId);
+};
+
 function renderBoxScore(){
   if(!state.game){
     boxScore.innerHTML="No game";
@@ -1088,6 +1124,7 @@ function renderBoxScore(){
           <th>Type</th>
           <th>PER</th>
           <th>Time</th>
+          <th>Actions</th>
         </tr>
     `;
 
@@ -1101,6 +1138,7 @@ function renderBoxScore(){
           <td>${g.type}</td>
           <td>${g.period}</td>
           <td>${g.time}</td>
+          <td>${boxEditButtons(g.eventId)}</td>
         </tr>
       `;
     });
@@ -1119,10 +1157,20 @@ function renderBoxScore(){
           <th>Min</th>
           <th>PER</th>
           <th>Time</th>
+          <th>Actions</th>
         </tr>
     `;
 
-    state.game.penalties.forEach(p=>{
+    state.game.penalties.forEach((p, idx)=>{
+      const match = (state.game.events||[]).find(e=>
+        e.type==="penalty" &&
+        (e.player||"") === (p.player||"") &&
+        (e.penType||"") === (p.type||"") &&
+        Number(e.minutes||0) === Number(p.minutes||0) &&
+        Number(e.period||0) === Number(p.period||0) &&
+        (e.time||"") === (p.time||"")
+      );
+
       html += `
         <tr>
           <td>${p.team}</td>
@@ -1131,6 +1179,45 @@ function renderBoxScore(){
           <td>${p.minutes}</td>
           <td>${p.period}</td>
           <td>${p.time}</td>
+          <td>${boxEditButtons(match ? match.id : "")}</td>
+        </tr>
+      `;
+    });
+
+    html += `</table>`;
+  }
+
+  if(state.game.faceoffs && state.game.faceoffs.length){
+    html += `
+      <h4>Faceoff Summary</h4>
+      <table>
+        <tr>
+          <th>Team</th>
+          <th>Player</th>
+          <th>Result</th>
+          <th>PER</th>
+          <th>Time</th>
+          <th>Actions</th>
+        </tr>
+    `;
+
+    state.game.faceoffs.forEach(f=>{
+      const match = (state.game.events||[]).find(e=>
+        e.type==="faceoff" &&
+        (e.player||"") === (f.player||"") &&
+        (e.result||"") === (f.result||"") &&
+        Number(e.period||0) === Number(f.period||0) &&
+        (e.time||"") === (f.time||"")
+      );
+
+      html += `
+        <tr>
+          <td>${f.team}</td>
+          <td>${f.player}</td>
+          <td>${f.result}</td>
+          <td>${f.period}</td>
+          <td>${f.time}</td>
+          <td>${boxEditButtons(match ? match.id : "")}</td>
         </tr>
       `;
     });
@@ -1250,7 +1337,7 @@ exportRosters.onclick = ()=>{
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = "hockey_rosters_v1.17.json";
+  a.download = "hockey_rosters_v1.18.json";
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -1314,20 +1401,13 @@ function cleanCSVValue(v){
 }
 
 function parseCSVLine(line){
-  // If the entire line is quoted like: "14, Esa Tikkanen, F"
-  // remove outer quotes then split by comma
   let cleaned = line.trim();
-
-  // ignore blank lines
   if(!cleaned) return null;
 
-  // remove wrapping quotes if the whole line is quoted
   cleaned = cleaned.replace(/^"+|"+$/g,"");
 
-  // split by comma
   let parts = cleaned.split(",");
 
-  // if still only one part but contains commas inside quotes (rare), split again
   if(parts.length === 1 && cleaned.includes(",")){
     parts = cleaned.split(",");
   }
@@ -1382,7 +1462,6 @@ importCSVFile.onchange = (e)=>{
     let skipped = 0;
 
     lines.forEach(line=>{
-      // skip header line if present
       const lower = line.toLowerCase();
       if(lower.includes("number") && lower.includes("name")) return;
 
@@ -1392,7 +1471,6 @@ importCSVFile.onchange = (e)=>{
         return;
       }
 
-      // prevent duplicates
       const exists = (state.rosters[team]||[]).some(p=>p.name.toLowerCase() === player.name.toLowerCase());
       if(exists){
         skipped++;
