@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hockey Stat Sheet v1.20</title>
+<title>Hockey Stat Sheet v1.19</title>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 
@@ -206,66 +206,47 @@ th { background:#f0f0f0; }
   .box-wrap { max-width: 700px; margin:0 auto; }
 }
 
-.nhl-box {
-  border:1px solid #ddd;
-  border-radius:10px;
-  background:#fff;
-  overflow:hidden;
+/* --- v1.21 Box Score Enhancements --- */
+.bs-header {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fafafa;
+  margin-bottom: 10px;
 }
-.nhl-header {
-  background:#111;
-  color:#fff;
-  padding:10px 12px;
-  font-weight:800;
-  font-size:15px;
+.bs-scoreline {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
 }
-.nhl-subheader {
-  padding:10px 12px;
-  border-bottom:1px solid #eee;
-  font-size:14px;
-  line-height:1.5;
+.bs-subline {
+  font-size: 14px;
+  color: #333;
 }
-.nhl-subheader .row {
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  flex-wrap:wrap;
+.bs-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
-.nhl-subheader .row div { flex:1; min-width:140px; }
-.nhl-table-wrap { overflow-x:auto; -webkit-overflow-scrolling: touch; }
-.nhl-table {
-  width:100%;
-  border-collapse:collapse;
-  min-width:640px;
+.bs-table-wrap table {
+  min-width: 680px;
 }
-.nhl-table th, .nhl-table td {
-  border:1px solid #ddd;
-  padding:6px 8px;
-  font-size:13px;
-  text-align:left;
-  white-space:nowrap;
+.bs-mini table {
+  min-width: 0px;
 }
-.nhl-table th { background:#f2f2f2; font-weight:800; }
-.nhl-table td.num { text-align:center; }
-.nhl-actions { display:flex; gap:6px; flex-wrap:wrap; }
-.nhl-actions button { width:auto; padding:6px 10px; font-size:12px; }
-.edit-inline {
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  align-items:center;
+.bs-edit-input {
+  width: 70px !important;
+  padding: 4px !important;
+  font-size: 14px !important;
 }
-.edit-inline input {
+.bs-actions button{
   width:auto;
-  min-width:80px;
-  padding:8px;
-  font-size:14px;
+  padding: 4px 8px;
+  font-size: 12px;
 }
-.edit-inline button { width:auto; padding:8px 10px; font-size:13px; }
-.small-linkbtn {
-  width:auto !important;
-  padding:6px 10px;
-  font-size:12px;
+.locked-note {
+  font-size: 12px;
+  color: #a00;
+  margin-top: 8px;
 }
 
 </style>
@@ -746,8 +727,7 @@ startGame.onclick=()=>{
     period:1,
     notes:"",
     final:false,
-    boxFinal:false,
-    boxEdits:{ shotsOverride:null, playerOverrides:{} }
+    boxFinal:false
   };
 
   state.clock.seconds=1200;
@@ -1321,138 +1301,12 @@ window.deleteFromBox = function(eventId){
   deleteEvent(eventId);
 };
 
-
-/* ---------- BOX SCORE EDITING (SHOTS + SKATER STATS) ---------- */
-function ensureBoxEdits(){
-  if(!state.game) return;
-  if(!state.game.boxEdits) state.game.boxEdits = { shotsOverride:null, playerOverrides:{} };
-  if(!state.game.boxEdits.playerOverrides) state.game.boxEdits.playerOverrides = {};
-}
-
-function getDisplayShots(){
-  if(!state.game) return {home:0,away:0};
-  ensureBoxEdits();
-  if(state.game.boxEdits.shotsOverride){
-    return {
-      away: Number(state.game.boxEdits.shotsOverride.away || 0),
-      home: Number(state.game.boxEdits.shotsOverride.home || 0)
-    };
-  }
-  return { away: state.game.shots.away, home: state.game.shots.home };
-}
-
-function getDisplayPlayerStats(teamName, playerName){
-  ensureBoxEdits();
-  const base = state.game.playerStats?.[teamName]?.[playerName] || {goals:0,assists:0,shots:0,pim:0,fow:0,fol:0};
-  const key = teamName + "||" + playerName;
-  const o = state.game.boxEdits.playerOverrides[key];
-  if(!o) return {...base};
-  return {
-    goals: Number(o.goals ?? base.goals),
-    assists: Number(o.assists ?? base.assists),
-    shots: Number(o.shots ?? base.shots),
-    pim: Number(o.pim ?? base.pim),
-    fow: Number(o.fow ?? base.fow),
-    fol: Number(o.fol ?? base.fol)
-  };
-}
-
-window.toggleEditShots = function(){
-  if(!state.game) return;
-  if(state.game.boxFinal){
-    alert("Box Score is finalized and locked. No edits allowed.");
-    return;
-  }
-  const panel = document.getElementById("editShotsPanel");
-  if(!panel) return;
-  panel.style.display = (panel.style.display==="none" || panel.style.display==="") ? "block" : "none";
-};
-
-window.saveShotsOverride = function(){
-  if(!state.game) return;
-  if(state.game.boxFinal){
-    alert("Box Score is finalized and locked. No edits allowed.");
-    return;
-  }
-  ensureBoxEdits();
-
-  const away = Number(document.getElementById("editShotsAway").value || 0);
-  const home = Number(document.getElementById("editShotsHome").value || 0);
-
-  state.game.boxEdits.shotsOverride = {away, home};
-  save();
-  renderBoxScore();
-};
-
-window.clearShotsOverride = function(){
-  if(!state.game) return;
-  if(state.game.boxFinal){
-    alert("Box Score is finalized and locked. No edits allowed.");
-    return;
-  }
-  ensureBoxEdits();
-  state.game.boxEdits.shotsOverride = null;
-  save();
-  renderBoxScore();
-};
-
-window.toggleEditPlayerStats = function(teamName, playerName){
-  if(state.game?.boxFinal){
-    alert("Box Score is finalized and locked. No edits allowed.");
-    return;
-  }
-  const id = "editPS-" + btoa(teamName + "||" + playerName).replace(/=/g,"");
-  const el = document.getElementById(id);
-  if(!el) return;
-  el.style.display = (el.style.display==="none" || el.style.display==="") ? "table-row" : "none";
-};
-
-window.savePlayerOverride = function(teamName, playerName){
-  if(!state.game) return;
-  if(state.game.boxFinal){
-    alert("Box Score is finalized and locked. No edits allowed.");
-    return;
-  }
-  ensureBoxEdits();
-
-  const key = teamName + "||" + playerName;
-  state.game.boxEdits.playerOverrides[key] = {
-    goals: Number(document.getElementById("ovG-"+key).value || 0),
-    assists: Number(document.getElementById("ovA-"+key).value || 0),
-    shots: Number(document.getElementById("ovS-"+key).value || 0),
-    pim: Number(document.getElementById("ovPIM-"+key).value || 0),
-    fow: Number(document.getElementById("ovFOW-"+key).value || 0),
-    fol: Number(document.getElementById("ovFOL-"+key).value || 0)
-  };
-
-  save();
-  renderBoxScore();
-};
-
-window.clearPlayerOverride = function(teamName, playerName){
-  if(!state.game) return;
-  if(state.game.boxFinal){
-    alert("Box Score is finalized and locked. No edits allowed.");
-    return;
-  }
-  ensureBoxEdits();
-
-  const key = teamName + "||" + playerName;
-  delete state.game.boxEdits.playerOverrides[key];
-
-  save();
-  renderBoxScore();
-};
-
 /* ---------- BOX SCORE (MOBILE FRIENDLY CLEAN LAYOUT) ---------- */
-
 function renderBoxScore(){
   if(!state.game){
     boxScore.innerHTML="No game";
     return;
   }
-
-  ensureBoxEdits();
 
   const hasShootoutGoals = (state.game.goals || []).some(g=>g.type==="SO");
   const finalLabel = hasShootoutGoals ? "FINAL (SO)" : "FINAL";
@@ -1475,8 +1329,6 @@ function renderBoxScore(){
     if(homeSO > awaySO) displayHome = state.game.score.home + 1;
   }
 
-  const shotsDisplay = getDisplayShots();
-
   let lockedBanner = "";
   if(state.game.boxFinal){
     lockedBanner = `<div class="locked-banner">BOX SCORE FINALIZED — EDITING LOCKED</div>`;
@@ -1485,97 +1337,50 @@ function renderBoxScore(){
   let finalizeBtn = "";
   if(!state.game.boxFinal){
     finalizeBtn = `
-      <div class="nhl-actions" style="margin-top:10px;">
+      <div class="top-edit-row">
         <button onclick="finalizeBoxScore()">Finalize Box Score (LOCK)</button>
-        <button onclick="toggleEditShots()">Edit Shots</button>
-      </div>
-      <div id="editShotsPanel" style="display:none; margin-top:10px;">
-        <div class="edit-inline">
-          <div style="flex:1; min-width:140px;">
-            <label style="font-size:12px; font-weight:700;">Away Shots</label>
-            <input id="editShotsAway" type="number" value="${shotsDisplay.away}" min="0">
-          </div>
-          <div style="flex:1; min-width:140px;">
-            <label style="font-size:12px; font-weight:700;">Home Shots</label>
-            <input id="editShotsHome" type="number" value="${shotsDisplay.home}" min="0">
-          </div>
-        </div>
-        <div class="nhl-actions" style="margin-top:8px;">
-          <button onclick="saveShotsOverride()">Save Shots</button>
-          <button onclick="clearShotsOverride()">Reset Shots</button>
-        </div>
       </div>
     `;
   }
 
   let html = `
-    ${lockedBanner}
-    <div class="nhl-box">
-      <div class="nhl-header">${state.game.away} @ ${state.game.home}</div>
-      <div class="nhl-subheader">
-        <div><strong>${finalLabel}:</strong> ${displayAway} – ${displayHome}</div>
-        <div class="row">
-          <div><strong>Shots:</strong> ${shotsDisplay.away} – ${shotsDisplay.home}</div>
+    <div class="box-wrap">
+      ${lockedBanner}
+
+      <div class="box-card">
+        <div class="box-title">${state.game.away} @ ${state.game.home}</div>
+        <div class="box-sub">
+          <strong>${finalLabel}:</strong> ${displayAway} – ${displayHome}<br>
+          <strong>Shots:</strong> ${state.game.shots.away} – ${state.game.shots.home}<br>
         </div>
         ${finalizeBtn}
       </div>
-    </div>
   `;
 
-  /* GOAL SUMMARY */
   if(state.game.goals && state.game.goals.length){
-    html += `
-      <h4>Goal Summary</h4>
-      <div class="nhl-table-wrap">
-        <table class="nhl-table">
-          <tr>
-            <th>Team</th>
-            <th>Scorer</th>
-            <th>A1</th>
-            <th>A2</th>
-            <th>Type</th>
-            <th class="num">PER</th>
-            <th class="num">Time</th>
-            <th>Edit</th>
-          </tr>
-    `;
+    html += `<div class="box-card"><div class="box-title">Goal Summary</div>`;
 
     state.game.goals.forEach(g=>{
       html += `
-        <tr>
-          <td>${g.team}</td>
-          <td>${g.scorer}</td>
-          <td>${g.a1 || ""}</td>
-          <td>${g.a2 || ""}</td>
-          <td>${g.type}</td>
-          <td class="num">${g.period}</td>
-          <td class="num">${g.time}</td>
-          <td>${boxEditButtons(g.eventId)}</td>
-        </tr>
+        <div class="mini-row">
+          <div>
+            <span class="pill goal">${g.type}</span>
+            <strong>${g.team}</strong><br>
+            ${g.scorer || ""}${g.a1 ? " (A: "+g.a1+")" : ""}${g.a2 ? ", "+g.a2 : ""}
+            <div class="small-note">PER ${g.period} — ${g.time}</div>
+          </div>
+          <div class="box-actions">${boxEditButtons(g.eventId)}</div>
+        </div>
       `;
     });
 
-    html += `</table></div>`;
+    html += `</div>`;
   }
 
-  /* PENALTY SUMMARY */
   if(state.game.penalties && state.game.penalties.length){
-    html += `
-      <h4>Penalty Summary</h4>
-      <div class="nhl-table-wrap">
-        <table class="nhl-table">
-          <tr>
-            <th>Team</th>
-            <th>Player</th>
-            <th>Penalty</th>
-            <th class="num">Min</th>
-            <th class="num">PER</th>
-            <th class="num">Time</th>
-            <th>Edit</th>
-          </tr>
-    `;
+    html += `<div class="box-card"><div class="box-title">Penalty Summary</div>`;
 
-    state.game.penalties.forEach(p=>{
+    state.game.penalties.forEach((p)=>{
       const match = (state.game.events||[]).find(e=>
         e.type==="penalty" &&
         (e.player||"") === (p.player||"") &&
@@ -1586,43 +1391,55 @@ function renderBoxScore(){
       );
 
       html += `
-        <tr>
-          <td>${p.team}</td>
-          <td>${p.player}</td>
-          <td>${p.type}</td>
-          <td class="num">${p.minutes}</td>
-          <td class="num">${p.period}</td>
-          <td class="num">${p.time}</td>
-          <td>${boxEditButtons(match ? match.id : "")}</td>
-        </tr>
+        <div class="mini-row">
+          <div>
+            <span class="pill pen">${p.minutes}m</span>
+            <strong>${p.team}</strong><br>
+            ${p.player || ""} — ${p.type || ""}
+            <div class="small-note">PER ${p.period} — ${p.time}</div>
+          </div>
+          <div class="box-actions">${boxEditButtons(match ? match.id : "")}</div>
+        </div>
       `;
     });
 
-    html += `</table></div>`;
+    html += `</div>`;
   }
 
-  /* SKATER STATS */
-  function skaterTable(teamName){
-    let t = `
-      <h4>Skater Stats — ${teamName}</h4>
-      <div class="nhl-table-wrap">
-        <table class="nhl-table">
-          <tr>
-            <th>Player</th>
-            <th class="num">G</th>
-            <th class="num">A</th>
-            <th class="num">PTS</th>
-            <th class="num">SOG</th>
-            <th class="num">PIM</th>
-            <th class="num">FOW</th>
-            <th class="num">FOL</th>
-            <th class="num">FO%</th>
-            <th>Edit</th>
-          </tr>
-    `;
+  if(state.game.faceoffs && state.game.faceoffs.length){
+    html += `<div class="box-card"><div class="box-title">Faceoff Summary</div>`;
+
+    state.game.faceoffs.forEach(f=>{
+      const match = (state.game.events||[]).find(e=>
+        e.type==="faceoff" &&
+        (e.player||"") === (f.player||"") &&
+        (e.result||"") === (f.result||"") &&
+        Number(e.period||0) === Number(f.period||0) &&
+        (e.time||"") === (f.time||"")
+      );
+
+      html += `
+        <div class="mini-row">
+          <div>
+            <span class="pill fo">${f.result}</span>
+            <strong>${f.team}</strong><br>
+            ${f.player || ""}
+            <div class="small-note">PER ${f.period} — ${f.time}</div>
+          </div>
+          <div class="box-actions">${boxEditButtons(match ? match.id : "")}</div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+  }
+
+  function skaterCards(teamName){
+    let t = `<div class="box-card"><div class="box-title">Skater Stats — ${teamName}</div>`;
+    t += `<div class="stat-grid">`;
 
     (state.rosters[teamName]||[]).filter(p=>p.position!=="G").forEach(p=>{
-      const ps = getDisplayPlayerStats(teamName, p.name);
+      const ps = state.game.playerStats?.[teamName]?.[p.name] || {goals:0,assists:0,shots:0,pim:0,fow:0,fol:0};
       const pts = (ps.goals||0) + (ps.assists||0);
       const totalFO = (ps.fow||0) + (ps.fol||0);
 
@@ -1631,71 +1448,36 @@ function renderBoxScore(){
         foPct = ((ps.fow / totalFO) * 100).toFixed(1);
       }
 
-      const key = teamName + "||" + p.name;
-      const rowId = "editPS-" + btoa(key).replace(/=/g,"");
-
-      let editCell = "";
-      if(state.game.boxFinal){
-        editCell = `<span class="small-note">Locked</span>`;
-      } else {
-        editCell = `<button class="small-linkbtn" onclick="toggleEditPlayerStats('${teamName}','${p.name}')">Edit</button>`;
-      }
-
       t += `
-        <tr>
-          <td>${p.name}</td>
-          <td class="num">${ps.goals||0}</td>
-          <td class="num">${ps.assists||0}</td>
-          <td class="num">${pts}</td>
-          <td class="num">${ps.shots||0}</td>
-          <td class="num">${ps.pim||0}</td>
-          <td class="num">${ps.fow||0}</td>
-          <td class="num">${ps.fol||0}</td>
-          <td class="num">${foPct}</td>
-          <td>${editCell}</td>
-        </tr>
-        <tr id="${rowId}" style="display:none;">
-          <td colspan="10">
-            <div class="edit-inline">
-              <div><label style="font-size:12px; font-weight:700;">G</label><input id="ovG-${key}" type="number" value="${ps.goals||0}" min="0"></div>
-              <div><label style="font-size:12px; font-weight:700;">A</label><input id="ovA-${key}" type="number" value="${ps.assists||0}" min="0"></div>
-              <div><label style="font-size:12px; font-weight:700;">SOG</label><input id="ovS-${key}" type="number" value="${ps.shots||0}" min="0"></div>
-              <div><label style="font-size:12px; font-weight:700;">PIM</label><input id="ovPIM-${key}" type="number" value="${ps.pim||0}" min="0"></div>
-              <div><label style="font-size:12px; font-weight:700;">FOW</label><input id="ovFOW-${key}" type="number" value="${ps.fow||0}" min="0"></div>
-              <div><label style="font-size:12px; font-weight:700;">FOL</label><input id="ovFOL-${key}" type="number" value="${ps.fol||0}" min="0"></div>
-            </div>
-            <div class="nhl-actions" style="margin-top:8px;">
-              <button onclick="savePlayerOverride('${teamName}','${p.name}')">Save</button>
-              <button onclick="clearPlayerOverride('${teamName}','${p.name}')">Reset</button>
-            </div>
-          </td>
-        </tr>
+        <div class="player-line">
+          <div class="player-name">${p.name}</div>
+          <div class="player-stats">
+            <div>${ps.goals||0}<span>G</span></div>
+            <div>${ps.assists||0}<span>A</span></div>
+            <div>${pts}<span>PTS</span></div>
+            <div>${ps.shots||0}<span>SOG</span></div>
+            <div>${ps.pim||0}<span>PIM</span></div>
+            <div>${ps.fow||0}<span>FOW</span></div>
+            <div>${ps.fol||0}<span>FOL</span></div>
+            <div>${foPct}<span>FO%</span></div>
+          </div>
+        </div>
       `;
     });
 
-    t += `</table></div>`;
+    t += `</div></div>`;
     return t;
   }
 
-  html += skaterTable(state.game.away);
-  html += skaterTable(state.game.home);
+  html += skaterCards(state.game.away);
+  html += skaterCards(state.game.home);
 
-  /* GOALIE STATS */
   html += `
-    <h4>Goalie Stats</h4>
-    <div class="nhl-table-wrap">
-      <table class="nhl-table">
-        <tr>
-          <th>Team</th>
-          <th>Goalie</th>
-          <th class="num">SA</th>
-          <th class="num">GA</th>
-          <th class="num">Saves</th>
-          <th class="num">SV%</th>
-        </tr>
+    <div class="box-card">
+      <div class="box-title">Goalie Stats</div>
   `;
 
-  function goalieRow(teamKey){
+  function goalieCard(teamKey){
     const goalieName = teamKey==="home" ? state.game.homeGoalie : state.game.awayGoalie;
     const gs = state.game.goalieStats[teamKey];
 
@@ -1709,30 +1491,32 @@ function renderBoxScore(){
     }
 
     return `
-      <tr>
-        <td>${state.game[teamKey]}</td>
-        <td>${goalieName || "N/A"}</td>
-        <td class="num">${sa}</td>
-        <td class="num">${ga}</td>
-        <td class="num">${saves}</td>
-        <td class="num">${svpct}</td>
-      </tr>
+      <div class="mini-row">
+        <div>
+          <strong>${state.game[teamKey]}</strong><br>
+          ${goalieName || "N/A"}
+          <div class="small-note">SA ${sa} — GA ${ga} — Saves ${saves} — SV% ${svpct}</div>
+        </div>
+      </div>
     `;
   }
 
-  html += goalieRow("away");
-  html += goalieRow("home");
+  html += goalieCard("away");
+  html += goalieCard("home");
 
-  html += `</table></div>`;
+  html += `</div>`;
 
   html += `
-    <h4>Notes</h4>
-    <div class="tools-box">${state.game.notes||"None"}</div>
+    <div class="box-card">
+      <div class="box-title">Notes</div>
+      <div class="box-sub">${state.game.notes||"None"}</div>
+    </div>
   `;
+
+  html += `</div>`;
 
   boxScore.innerHTML = html;
 }
-
 
 /* ---------- JSON EXPORT / IMPORT ROSTERS ---------- */
 exportRosters.onclick = ()=>{
