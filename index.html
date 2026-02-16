@@ -3,44 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hockey Stat Sheet v1.23</title>
+<title>Hockey Stat Sheet v1.24</title>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 
 <style>
-body { font-family: system-ui; margin: 0; background:#fff; }
-nav { display: flex; background: #111; color: white; position:sticky; top:0; z-index:50; }
-nav button { flex: 1; padding: 12px; border: none; background: none; color: white; font-size:14px; }
+body { font-family: system-ui; margin: 0; }
+nav { display: flex; background: #111; color: white; }
+nav button { flex: 1; padding: 12px; border: none; background: none; color: white; }
 nav button.active { background: #333; }
 section { display: none; padding: 12px; }
 section.active { display: block; }
-input, select, button, textarea { margin: 4px 0; padding: 10px; width: 100%; font-size:16px; }
-.list-item { display:flex; justify-content:space-between; align-items:center; gap:10px; }
-.scoreline { font-size: 16px; margin: 8px 0; line-height:1.4; }
+input, select, button, textarea { margin: 4px 0; padding: 6px; width: 100%; }
+.list-item { display:flex; justify-content:space-between; align-items:center; }
+.scoreline { font-size: 18px; margin: 8px 0; }
 .log { border-top: 1px solid #ccc; margin-top: 10px; padding-top: 10px; }
 textarea { min-height: 80px; }
 h4 { margin-top: 16px; }
 
 table { width:100%; border-collapse: collapse; margin-top:8px; }
-th, td { border:1px solid #ccc; padding:6px; font-size:14px; text-align:left; }
+th, td { border:1px solid #ccc; padding:4px; font-size:14px; text-align:left; }
 th { background:#f0f0f0; }
 
 .tools-box {
   border: 1px solid #ccc;
-  padding: 10px;
+  padding: 8px;
   margin: 8px 0 12px 0;
-  border-radius: 8px;
+  border-radius: 6px;
   background: #fafafa;
 }
 .tools-box strong { display:block; margin-bottom:6px; }
 .tools-box button { margin-top: 6px; }
-.small-note { font-size: 12px; color: #555; margin-top: 6px; line-height:1.4; }
+.small-note { font-size: 12px; color: #555; margin-top: 6px; }
 
 .event-item {
   border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 10px;
-  margin: 8px 0;
+  border-radius: 6px;
+  padding: 8px;
+  margin: 6px 0;
   background: #fff;
 }
 .event-row {
@@ -59,235 +59,101 @@ th { background:#f0f0f0; }
 }
 .event-row button {
   width: auto;
-  padding: 8px 10px;
-  font-size: 13px;
+  padding: 6px 10px;
 }
 .event-edit {
-  margin-top: 10px;
-  padding-top: 10px;
+  margin-top: 8px;
+  padding-top: 8px;
   border-top: 1px dashed #ccc;
 }
 .event-edit select, .event-edit input {
   width: 100%;
 }
-.smallbtn { width:auto !important; }
+.smallbtn {
+  width:auto !important;
+}
 
 .action-btns {
   display:flex;
   gap:6px;
-  flex-wrap:wrap;
 }
 .action-btns button {
-  width:auto;
-  padding: 6px 10px;
-  font-size: 12px;
-}
-
-.locked-banner {
-  background:#ffe9e9;
-  border:1px solid #e9bcbc;
-  color:#7a1f1f;
-  padding:10px;
-  border-radius:8px;
-  margin:10px 0;
-  font-size:14px;
-  font-weight:600;
-}
-
-.box-wrap {
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-}
-
-.box-card {
-  border:1px solid #ddd;
-  border-radius:10px;
-  padding:12px;
-  background:#fff;
-}
-
-.box-title {
-  font-weight:800;
-  font-size:16px;
-  margin-bottom:6px;
-}
-
-.box-sub {
-  font-size:14px;
-  color:#333;
-  margin-bottom:10px;
-  line-height:1.4;
-}
-
-.mini-row {
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  font-size:14px;
-  padding:6px 0;
-  border-bottom:1px dashed #eee;
-}
-
-.mini-row:last-child { border-bottom:none; }
-
-.mini-row strong { font-weight:700; }
-
-.pill {
-  display:inline-block;
-  padding:3px 8px;
-  border-radius:999px;
-  background:#f2f2f2;
-  font-size:12px;
-  font-weight:700;
-}
-
-.pill.goal { background:#eaffea; border:1px solid #bfe7bf; }
-.pill.pen { background:#fff5e6; border:1px solid #f0d1a8; }
-.pill.fo { background:#eef4ff; border:1px solid #c9d9ff; }
-
-.box-actions {
-  margin-top:8px;
-}
-
-.stat-grid {
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
-.player-line {
-  border:1px solid #eee;
-  border-radius:10px;
-  padding:10px;
-  background:#fafafa;
-}
-
-.player-name {
-  font-weight:800;
-  margin-bottom:6px;
-}
-
-.player-stats {
-  display:grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap:6px;
-  font-size:13px;
-}
-
-.player-stats div {
-  background:#fff;
-  border:1px solid #ddd;
-  border-radius:8px;
-  padding:8px;
-  text-align:center;
-}
-
-.player-stats div span {
-  display:block;
-  font-size:11px;
-  color:#666;
-  margin-top:2px;
-}
-
-.top-edit-row {
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
-.top-edit-row button {
-  width:auto;
-  flex:1;
-  min-width:140px;
-}
-
-@media (min-width: 700px){
-  .box-wrap { max-width: 700px; margin:0 auto; }
-}
-
-/* --- v1.21 Box Score Enhancements --- */
-.bs-header {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 10px;
-  background: #fafafa;
-  margin-bottom: 10px;
-}
-.bs-scoreline {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-.bs-subline {
-  font-size: 14px;
-  color: #333;
-}
-.bs-table-wrap {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-.bs-table-wrap table {
-  min-width: 680px;
-}
-.bs-mini table {
-  min-width: 0px;
-}
-.bs-edit-input {
-  width: 70px !important;
-  padding: 4px !important;
-  font-size: 14px !important;
-}
-.bs-actions button{
   width:auto;
   padding: 4px 8px;
   font-size: 12px;
 }
-.locked-note {
-  font-size: 12px;
-  color: #a00;
-  margin-top: 8px;
+
+/* ---------- GAME TAB CLEAN LAYOUT (v1.24) ---------- */
+.game-tabs {
+  display:flex;
+  gap:6px;
+  margin: 10px 0;
+}
+.game-tabs button {
+  flex:1;
+  width:auto;
+  padding:10px;
+  border:1px solid #ccc;
+  background:#f8f8f8;
+  border-radius:6px;
+}
+.game-tabs button.active {
+  background:#222;
+  color:white;
+  border-color:#222;
 }
 
+.entry-panel {
+  border:1px solid #ddd;
+  border-radius:8px;
+  padding:10px;
+  background:#fafafa;
+  margin-top:10px;
+}
 
-/* ---------- v1.22 COMPACT GAME UI ---------- */
-.compact-grid{
+.grid-2 {
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap:10px;
 }
-.compact-card{
-  border:1px solid #ddd;
-  border-radius:8px;
-  padding:10px;
-  background:#fff;
+
+.grid-3 {
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap:10px;
 }
-.compact-card h4{
-  margin:0 0 8px 0;
+
+.grid-2 > div, .grid-3 > div {
+  display:flex;
+  flex-direction:column;
 }
-.clock-controls{
+
+@media (max-width: 650px){
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+
+.compact-btn-row {
   display:flex;
   gap:8px;
   flex-wrap:wrap;
+  margin-top:8px;
 }
-.clock-controls button{
+.compact-btn-row button {
   width:auto;
   flex:1;
   min-width:120px;
 }
-.compact-card select,
-.compact-card input{
-  padding:8px;
-  font-size:14px;
-}
-.compact-card button{
-  padding:10px;
-  font-size:14px;
-}
-@media (max-width:520px){
-  .compact-grid{ grid-template-columns: 1fr; }
-}
 
+.clock-row {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.clock-row button {
+  width:auto;
+  flex:1;
+  min-width:120px;
+}
 </style>
 </head>
 
@@ -373,74 +239,150 @@ th { background:#f0f0f0; }
     Shots: <span id="shotsAway">0</span> – <span id="shotsHome">0</span>
   </div>
 
-  <div class="compact-card" style="margin-bottom:12px;">
-    <h4>Clock</h4>
-    <h2 id="clock" style="margin:6px 0;">20:00</h2>
-    <div class="clock-controls">
-      <button id="clockToggle">Start / Stop</button>
-      <button id="clockMinus">−1 min</button>
-      <button id="advancePeriod">Advance Period</button>
-      <button id="endGame">End Game</button>
+  <h2 id="clock">20:00</h2>
+
+  <div class="clock-row">
+    <button id="clockToggle">Start / Stop</button>
+    <button id="clockMinus">−1 min</button>
+    <button id="advancePeriod">Advance Period</button>
+    <button id="endGame">End Game</button>
+  </div>
+
+  <!-- GAME ENTRY TABS -->
+  <div class="game-tabs">
+    <button id="tabGoal" class="active">Goal</button>
+    <button id="tabShot">Shot</button>
+    <button id="tabPenalty">Penalty</button>
+    <button id="tabFaceoff">Faceoff</button>
+  </div>
+
+  <!-- GOAL PANEL -->
+  <div id="panelGoal" class="entry-panel">
+    <h4>Add Goal</h4>
+
+    <div class="grid-2">
+      <div>
+        <label>Team</label>
+        <select id="goalTeam"></select>
+      </div>
+      <div>
+        <label>Type</label>
+        <select id="goalType">
+          <option>EV</option>
+          <option>PP</option>
+          <option>SH</option>
+          <option>EN</option>
+          <option>PS</option>
+          <option>SO</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <label>Scorer</label>
+        <select id="goalScorer"></select>
+      </div>
+      <div>
+        <label>A1</label>
+        <select id="goalA1"></select>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <label>A2</label>
+        <select id="goalA2"></select>
+      </div>
+      <div style="display:flex; flex-direction:column; justify-content:flex-end;">
+        <button id="recordGoal">Record Goal</button>
+      </div>
     </div>
   </div>
 
-  <div class="compact-grid">
+  <!-- SHOT PANEL -->
+  <div id="panelShot" class="entry-panel" style="display:none;">
+    <h4>Add Shot</h4>
 
-    <div class="compact-card">
-      <h4>Add Goal</h4>
-      <select id="goalTeam"></select>
-      <select id="goalScorer"></select>
-      <select id="goalA1"></select>
-      <select id="goalA2"></select>
-      <select id="goalType">
-        <option>EV</option>
-        <option>PP</option>
-        <option>SH</option>
-        <option>EN</option>
-        <option>PS</option>
-        <option>SO</option>
-      </select>
-      <button id="recordGoal">Record Goal</button>
+    <div class="grid-2">
+      <div>
+        <label>Team</label>
+        <select id="shotTeam"></select>
+      </div>
+      <div>
+        <label>Player</label>
+        <select id="shotPlayer"></select>
+      </div>
     </div>
 
-    <div class="compact-card">
-      <h4>Add Shot</h4>
-      <select id="shotTeam"></select>
-      <select id="shotPlayer"></select>
-      <button id="recordShot">Record Shot</button>
-    </div>
-
-    <div class="compact-card">
-      <h4>Add Penalty</h4>
-      <select id="penTeam"></select>
-      <select id="penPlayer"></select>
-      <select id="penType"></select>
-      <input id="penMinutes" type="number">
-      <button id="recordPenalty">Record Penalty</button>
-    </div>
-
-    <div class="compact-card">
-      <h4>Faceoff</h4>
-      <select id="foTeam">
-        <option>Home</option>
-        <option>Away</option>
-      </select>
-      <select id="foPlayer"></select>
-      <select id="foResult">
-        <option>Win</option>
-        <option>Loss</option>
-      </select>
-      <button id="recordFaceoff">Record Faceoff</button>
-    </div>
-
+    <button id="recordShot">Record Shot</button>
   </div>
 
-  <div class="compact-card" style="margin-top:12px;">
-    <h4>Game Notes</h4>
-    <textarea id="gameNotes"></textarea>
+  <!-- PENALTY PANEL -->
+  <div id="panelPenalty" class="entry-panel" style="display:none;">
+    <h4>Add Penalty</h4>
+
+    <div class="grid-2">
+      <div>
+        <label>Team</label>
+        <select id="penTeam"></select>
+      </div>
+      <div>
+        <label>Player</label>
+        <select id="penPlayer"></select>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <label>Penalty</label>
+        <select id="penType"></select>
+      </div>
+      <div>
+        <label>Minutes</label>
+        <input id="penMinutes" type="number">
+      </div>
+    </div>
+
+    <button id="recordPenalty">Record Penalty</button>
   </div>
 
-  <h4 style="margin-top:16px;">Event Log (Tap Edit/Delete)</h4>
+  <!-- FACEOFF PANEL -->
+  <div id="panelFaceoff" class="entry-panel" style="display:none;">
+    <h4>Faceoff</h4>
+
+    <div class="grid-2">
+      <div>
+        <label>Team</label>
+        <select id="foTeam">
+          <option>Home</option>
+          <option>Away</option>
+        </select>
+      </div>
+      <div>
+        <label>Result</label>
+        <select id="foResult">
+          <option>Win</option>
+          <option>Loss</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <label>Player</label>
+        <select id="foPlayer"></select>
+      </div>
+      <div style="display:flex; flex-direction:column; justify-content:flex-end;">
+        <button id="recordFaceoff">Record Faceoff</button>
+      </div>
+    </div>
+  </div>
+
+  <h4>Game Notes</h4>
+  <textarea id="gameNotes"></textarea>
+
+  <h4>Event Log (Tap Edit/Delete)</h4>
   <div class="log" id="eventLog"></div>
 </section>
 
@@ -482,6 +424,27 @@ document.querySelectorAll("nav button").forEach(b=>{
     if(b.dataset.tab==="boxscore") renderBoxScore();
   };
 });
+
+/* ---------- GAME TAB TABS (v1.24) ---------- */
+function showGamePanel(panel){
+  ["panelGoal","panelShot","panelPenalty","panelFaceoff"].forEach(id=>{
+    $(id).style.display = (id===panel) ? "block" : "none";
+  });
+
+  ["tabGoal","tabShot","tabPenalty","tabFaceoff"].forEach(id=>{
+    $(id).classList.remove("active");
+  });
+
+  if(panel==="panelGoal") tabGoal.classList.add("active");
+  if(panel==="panelShot") tabShot.classList.add("active");
+  if(panel==="panelPenalty") tabPenalty.classList.add("active");
+  if(panel==="panelFaceoff") tabFaceoff.classList.add("active");
+}
+
+tabGoal.onclick = ()=>showGamePanel("panelGoal");
+tabShot.onclick = ()=>showGamePanel("panelShot");
+tabPenalty.onclick = ()=>showGamePanel("panelPenalty");
+tabFaceoff.onclick = ()=>showGamePanel("panelFaceoff");
 
 /* ---------- SEASONS ---------- */
 addSeason.onclick=()=>{
@@ -784,8 +747,7 @@ startGame.onclick=()=>{
 
     period:1,
     notes:"",
-    final:false,
-    boxFinal:false
+    final:false
   };
 
   state.clock.seconds=1200;
@@ -832,35 +794,40 @@ clockMinus.onclick=()=>{
   renderClock();
 };
 
-
+/* ---------- ADVANCE PERIOD LOGIC (FIXED) ---------- */
 advancePeriod.onclick=()=>{
-  if(state.game?.final) return;
+  if(!state.game || state.game.final) return;
 
-  // Regulation: Periods 1-3
-  // If tied after 3 -> OT (period 4)
-  // If not tied after 3 -> game ends (no Period 4)
+  const homeScore = state.game.score.home;
+  const awayScore = state.game.score.away;
 
   if(state.game.period === 3){
-    if(state.game.score.home === state.game.score.away){
-      state.game.period = 4; // OT
-      state.clock.seconds = 300; // 5:00 OT
-      renderClock();
+    if(homeScore === awayScore){
+      state.game.period = 4;
+      state.clock.seconds = 300;
       gameStatus.textContent=`Overtime — ${state.game.away} @ ${state.game.home}`;
+      renderClock();
       save();
       return;
     } else {
-      endGame.onclick();
+      state.game.final = true;
+      state.clock.running = false;
+      clearInterval(state.clock.timer);
+      gameStatus.textContent=`FINAL — ${state.game.away} @ ${state.game.home}`;
+      save();
       return;
     }
   }
 
-  // If already in OT, advancing ends game
-  if(state.game.period >= 4){
-    endGame.onclick();
+  if(state.game.period === 4){
+    state.game.final = true;
+    state.clock.running = false;
+    clearInterval(state.clock.timer);
+    gameStatus.textContent=`FINAL — ${state.game.away} @ ${state.game.home}`;
+    save();
     return;
   }
 
-  // Normal advance
   state.game.period++;
   state.clock.seconds=1200;
   renderClock();
@@ -868,7 +835,6 @@ advancePeriod.onclick=()=>{
   gameStatus.textContent=`Period ${state.game.period} — ${state.game.away} @ ${state.game.home}`;
   save();
 };
-
 
 endGame.onclick=()=>{
   if(!state.game) return;
@@ -938,6 +904,7 @@ function populateFaceoffPlayers(){
 
 /* ---------- HELPERS ---------- */
 function updateScore(){
+  if(!state.game) return;
   scoreHome.textContent=state.game.score.home;
   scoreAway.textContent=state.game.score.away;
   shotsHome.textContent=state.game.shots.home;
@@ -997,11 +964,6 @@ function renderEventLog(){
 /* ---------- EVENT EDIT/DELETE ---------- */
 window.deleteEvent = function(id){
   if(!state.game) return;
-  if(state.game.boxFinal){
-    alert("Box Score is finalized and locked. No edits allowed.");
-    return;
-  }
-
   ensureEvents();
 
   const ok = confirm("Delete this event?");
@@ -1017,11 +979,6 @@ window.deleteEvent = function(id){
 
 window.editEventUI = function(id){
   if(!state.game) return;
-  if(state.game.boxFinal){
-    alert("Box Score is finalized and locked. No edits allowed.");
-    return;
-  }
-
   ensureEvents();
 
   const ev = state.game.events.find(e=>e.id===id);
@@ -1172,11 +1129,6 @@ window.cancelEventEdit = function(id){
 
 window.saveEventEdit = function(id){
   if(!state.game) return;
-  if(state.game.boxFinal){
-    alert("Box Score is finalized and locked. No edits allowed.");
-    return;
-  }
-
   ensureEvents();
 
   const ev = state.game.events.find(e=>e.id===id);
@@ -1219,10 +1171,6 @@ window.saveEventEdit = function(id){
 /* ---------- RECORD EVENTS ---------- */
 recordGoal.onclick=()=>{
   if(!state.game || state.game.final) return;
-  if(state.game.boxFinal){
-    alert("Box Score is finalized and locked. No edits allowed.");
-    return;
-  }
 
   ensureEvents();
 
@@ -1247,10 +1195,6 @@ recordGoal.onclick=()=>{
 
 recordShot.onclick=()=>{
   if(!state.game || state.game.final) return;
-  if(state.game.boxFinal){
-    alert("Box Score is finalized and locked. No edits allowed.");
-    return;
-  }
 
   ensureEvents();
 
@@ -1272,10 +1216,6 @@ recordShot.onclick=()=>{
 
 recordPenalty.onclick=()=>{
   if(!state.game || state.game.final) return;
-  if(state.game.boxFinal){
-    alert("Box Score is finalized and locked. No edits allowed.");
-    return;
-  }
 
   ensureEvents();
 
@@ -1299,10 +1239,6 @@ recordPenalty.onclick=()=>{
 
 recordFaceoff.onclick=()=>{
   if(!state.game || state.game.final) return;
-  if(state.game.boxFinal){
-    alert("Box Score is finalized and locked. No edits allowed.");
-    return;
-  }
 
   ensureEvents();
 
@@ -1338,28 +1274,9 @@ gameNotes.oninput=()=>{
   }
 };
 
-/* ---------- BOX SCORE FINALIZE ---------- */
-window.finalizeBoxScore = function(){
-  if(!state.game) return;
-  if(state.game.boxFinal){
-    alert("Box Score is already finalized.");
-    return;
-  }
-
-  const ok = confirm("Finalize Box Score? This will LOCK all edits permanently for this game.");
-  if(!ok) return;
-
-  state.game.boxFinal = true;
-  save();
-  renderBoxScore();
-  alert("Box Score Finalized and Locked.");
-};
-
-/* ---------- BOX SCORE BUTTON HELPERS ---------- */
+/* ---------- BOX SCORE (NHL STYLE + EDITABLE) ---------- */
 function boxEditButtons(eventId){
   if(!eventId) return "";
-  if(state.game?.boxFinal) return `<span class="small-note">Locked</span>`;
-
   return `
     <div class="action-btns">
       <button onclick="editFromBox('${eventId}')">Edit</button>
@@ -1369,11 +1286,6 @@ function boxEditButtons(eventId){
 }
 
 window.editFromBox = function(eventId){
-  if(state.game?.boxFinal){
-    alert("Box Score is finalized and locked. No edits allowed.");
-    return;
-  }
-
   document.querySelector('[data-tab="game"]').click();
   setTimeout(()=>{
     editEventUI(eventId);
@@ -1386,11 +1298,27 @@ window.deleteFromBox = function(eventId){
   deleteEvent(eventId);
 };
 
-/* ---------- BOX SCORE (MOBILE FRIENDLY CLEAN LAYOUT) ---------- */
+function periodGoalCounts(){
+  const counts = {
+    away:[0,0,0,0],
+    home:[0,0,0,0]
+  };
+
+  (state.game.goals||[]).forEach(g=>{
+    if(g.type==="SO") return;
+    const idx = Math.max(1, Number(g.period||1));
+    if(idx >= 1 && idx <= 4){
+      if(g.team === state.game.away) counts.away[idx-1]++;
+      if(g.team === state.game.home) counts.home[idx-1]++;
+    }
+  });
+
+  return counts;
+}
 
 function renderBoxScore(){
   if(!state.game){
-    boxScore.innerHTML = "No game";
+    boxScore.innerHTML="No game";
     return;
   }
 
@@ -1415,70 +1343,46 @@ function renderBoxScore(){
     if(homeSO > awaySO) displayHome = state.game.score.home + 1;
   }
 
-  // Period-by-period tally
-  function periodTally(){
-    const periods = {};
-    (state.game.goals||[]).forEach(g=>{
-      if(g.type==="SO") return; // not in regulation scoring totals
-      const p = g.period || 1;
-      if(!periods[p]) periods[p] = {home:0, away:0};
-      if(g.team === state.game.home) periods[p].home++;
-      if(g.team === state.game.away) periods[p].away++;
-    });
-
-    const maxP = Math.max(3, ...Object.keys(periods).map(x=>Number(x)||0));
-    const cols = [];
-    for(let p=1;p<=maxP;p++) cols.push(p);
-
-    let h = `<h4>Scoring by Period</h4>`;
-    h += `<table>
-      <tr>
-        <th>Team</th>
-        ${cols.map(p=>`<th>P${p}</th>`).join("")}
-        <th>T</th>
-      </tr>
-    `;
-
-    const awayRow = cols.map(p=> (periods[p]?.away||0));
-    const homeRow = cols.map(p=> (periods[p]?.home||0));
-
-    const awayTotal = awayRow.reduce((a,b)=>a+b,0);
-    const homeTotal = homeRow.reduce((a,b)=>a+b,0);
-
-    h += `<tr>
-      <td>${state.game.away}</td>
-      ${awayRow.map(v=>`<td>${v}</td>`).join("")}
-      <td>${awayTotal}</td>
-    </tr>`;
-
-    h += `<tr>
-      <td>${state.game.home}</td>
-      ${homeRow.map(v=>`<td>${v}</td>`).join("")}
-      <td>${homeTotal}</td>
-    </tr>`;
-
-    h += `</table>`;
-    return h;
-  }
+  const perGoals = periodGoalCounts();
 
   let html = `
-    <div style="margin-bottom:10px;">
-      <strong>${state.game.away} @ ${state.game.home}</strong><br>
-      ${finalLabel}: ${displayAway} – ${displayHome}<br>
-      Shots: 
-        <span contenteditable="true" class="editable" data-edit="shotsAway">${state.game.shots.away}</span>
-        –
-        <span contenteditable="true" class="editable" data-edit="shotsHome">${state.game.shots.home}</span>
-      <div class="small-note">Tap a number to edit. Changes save automatically.</div>
-    </div>
+    <strong>${state.game.away} @ ${state.game.home}</strong><br>
+    ${finalLabel}: ${displayAway} – ${displayHome}<br>
+    Shots: ${state.game.shots.away} – ${state.game.shots.home}<br>
+    <br>
+
+    <h4>Scoring by Period</h4>
+    <table>
+      <tr>
+        <th>Team</th>
+        <th>1</th>
+        <th>2</th>
+        <th>3</th>
+        <th>OT</th>
+        <th>Total</th>
+      </tr>
+      <tr>
+        <td>${state.game.away}</td>
+        <td>${perGoals.away[0]}</td>
+        <td>${perGoals.away[1]}</td>
+        <td>${perGoals.away[2]}</td>
+        <td>${perGoals.away[3]}</td>
+        <td>${state.game.score.away}</td>
+      </tr>
+      <tr>
+        <td>${state.game.home}</td>
+        <td>${perGoals.home[0]}</td>
+        <td>${perGoals.home[1]}</td>
+        <td>${perGoals.home[2]}</td>
+        <td>${perGoals.home[3]}</td>
+        <td>${state.game.score.home}</td>
+      </tr>
+    </table>
   `;
 
-  html += periodTally();
-
-  // Goal Summary
-  html += `<h4>Goal Summary</h4>`;
   if(state.game.goals && state.game.goals.length){
     html += `
+      <h4>Goal Summary</h4>
       <table>
         <tr>
           <th>Team</th>
@@ -1508,14 +1412,11 @@ function renderBoxScore(){
     });
 
     html += `</table>`;
-  } else {
-    html += `<div class="small-note">No goals recorded.</div>`;
   }
 
-  // Penalty Summary
-  html += `<h4>Penalty Summary</h4>`;
   if(state.game.penalties && state.game.penalties.length){
     html += `
+      <h4>Penalty Summary</h4>
       <table>
         <tr>
           <th>Team</th>
@@ -1528,7 +1429,7 @@ function renderBoxScore(){
         </tr>
     `;
 
-    state.game.penalties.forEach((p)=>{
+    state.game.penalties.forEach(p=>{
       const match = (state.game.events||[]).find(e=>
         e.type==="penalty" &&
         (e.player||"") === (p.player||"") &&
@@ -1552,49 +1453,6 @@ function renderBoxScore(){
     });
 
     html += `</table>`;
-  } else {
-    html += `<div class="small-note">No penalties recorded.</div>`;
-  }
-
-  // Faceoff Summary
-  html += `<h4>Faceoff Summary</h4>`;
-  if(state.game.faceoffs && state.game.faceoffs.length){
-    html += `
-      <table>
-        <tr>
-          <th>Team</th>
-          <th>Player</th>
-          <th>Result</th>
-          <th>PER</th>
-          <th>Time</th>
-          <th>Actions</th>
-        </tr>
-    `;
-
-    state.game.faceoffs.forEach(f=>{
-      const match = (state.game.events||[]).find(e=>
-        e.type==="faceoff" &&
-        (e.player||"") === (f.player||"") &&
-        (e.result||"") === (f.result||"") &&
-        Number(e.period||0) === Number(f.period||0) &&
-        (e.time||"") === (f.time||"")
-      );
-
-      html += `
-        <tr>
-          <td>${f.team}</td>
-          <td>${f.player}</td>
-          <td>${f.result}</td>
-          <td>${f.period}</td>
-          <td>${f.time}</td>
-          <td>${boxEditButtons(match ? match.id : "")}</td>
-        </tr>
-      `;
-    });
-
-    html += `</table>`;
-  } else {
-    html += `<div class="small-note">No faceoffs recorded.</div>`;
   }
 
   function skaterTable(teamName){
@@ -1625,15 +1483,15 @@ function renderBoxScore(){
       }
 
       t += `
-        <tr data-player="${p.name}" data-team="${teamName}">
+        <tr>
           <td>${p.name}</td>
-          <td contenteditable="true" class="editable" data-stat="goals">${ps.goals||0}</td>
-          <td contenteditable="true" class="editable" data-stat="assists">${ps.assists||0}</td>
+          <td>${ps.goals||0}</td>
+          <td>${ps.assists||0}</td>
           <td>${pts}</td>
-          <td contenteditable="true" class="editable" data-stat="shots">${ps.shots||0}</td>
-          <td contenteditable="true" class="editable" data-stat="pim">${ps.pim||0}</td>
-          <td contenteditable="true" class="editable" data-stat="fow">${ps.fow||0}</td>
-          <td contenteditable="true" class="editable" data-stat="fol">${ps.fol||0}</td>
+          <td>${ps.shots||0}</td>
+          <td>${ps.pim||0}</td>
+          <td>${ps.fow||0}</td>
+          <td>${ps.fol||0}</td>
           <td>${foPct}</td>
         </tr>
       `;
@@ -1646,7 +1504,6 @@ function renderBoxScore(){
   html += skaterTable(state.game.away);
   html += skaterTable(state.game.home);
 
-  // Editable goalie stats
   html += `<h4>Goalie Stats</h4>`;
   html += `
     <table>
@@ -1677,8 +1534,8 @@ function renderBoxScore(){
       <tr>
         <td>${state.game[teamKey]}</td>
         <td>${goalieName || "N/A"}</td>
-        <td contenteditable="true" class="editable" data-goalie="${teamKey}" data-gstat="shotsAgainst">${sa}</td>
-        <td contenteditable="true" class="editable" data-goalie="${teamKey}" data-gstat="goalsAgainst">${ga}</td>
+        <td>${sa}</td>
+        <td>${ga}</td>
         <td>${saves}</td>
         <td>${svpct}</td>
       </tr>
@@ -1695,61 +1552,7 @@ function renderBoxScore(){
   `;
 
   boxScore.innerHTML = html;
-
-  // Wire editable fields
-  boxScore.querySelectorAll(".editable").forEach(el=>{
-    el.onblur = ()=>{
-      if(!state.game) return;
-
-      // shots totals
-      const editKey = el.dataset.edit;
-      if(editKey === "shotsAway"){
-        const val = Number(el.textContent.trim() || 0);
-        state.game.shots.away = Math.max(0, val);
-        save();
-        renderBoxScore();
-        return;
-      }
-      if(editKey === "shotsHome"){
-        const val = Number(el.textContent.trim() || 0);
-        state.game.shots.home = Math.max(0, val);
-        save();
-        renderBoxScore();
-        return;
-      }
-
-      // goalie stats
-      if(el.dataset.goalie && el.dataset.gstat){
-        const teamKey = el.dataset.goalie;
-        const gstat = el.dataset.gstat;
-        const val = Number(el.textContent.trim() || 0);
-
-        if(state.game.goalieStats?.[teamKey]){
-          state.game.goalieStats[teamKey][gstat] = Math.max(0, val);
-          save();
-          renderBoxScore();
-        }
-        return;
-      }
-
-      // skater stats
-      const stat = el.dataset.stat;
-      const tr = el.closest("tr");
-      if(stat && tr){
-        const team = tr.dataset.team;
-        const player = tr.dataset.player;
-        const val = Number(el.textContent.trim() || 0);
-
-        if(state.game.playerStats?.[team]?.[player]){
-          state.game.playerStats[team][player][stat] = Math.max(0, val);
-          save();
-          renderBoxScore();
-        }
-      }
-    };
-  });
 }
-
 
 /* ---------- JSON EXPORT / IMPORT ROSTERS ---------- */
 exportRosters.onclick = ()=>{
@@ -1764,7 +1567,7 @@ exportRosters.onclick = ()=>{
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = "hockey_rosters_v1.22.json";
+  a.download = "hockey_rosters_v1.24.json";
   document.body.appendChild(a);
   a.click();
   a.remove();
