@@ -1785,65 +1785,60 @@ function renderBoxScore(){
   boxScore.innerHTML = html;
 }
 
+//
 // ================================
-// v1.26 PATCH - Restore Box Edits
+// v1.26 HOTFIX - Editable Box Score Fix
 // ================================
 
-// Some versions call editSkaterStat() but file uses editSkaterStats()
+// Fix broken alias function (wrong argument passed)
 window.editSkaterStat = function(teamKey, playerName){
-  if(!state.game) return;
-
-  const teamName = (teamKey==="home") ? state.game.home :
-                   (teamKey==="away") ? state.game.away :
-                   teamKey;
-
   if(typeof window.editSkaterStats === "function"){
-    window.editSkaterStats(teamName, playerName);
+    window.editSkaterStats(teamKey, playerName);
     return;
   }
-
-  alert("editSkaterStats() missing in this file.");
+  alert("editSkaterStats() missing.");
 };
 
-// Ensure goalie edit works globally
-window.editGoalieStats = window.editGoalieStats || function(teamKey){
+// Fix team shots editor (was calling missing updateGameUI)
+window.editTeamShots = function(){
   if(!state.game) return;
+  ensureBoxOverrides();
 
-  const gs = state.game.goalieStats?.[teamKey];
-  if(!gs){
-    alert("Goalie stat record not found.");
-    return;
-  }
+  const away = prompt("Enter Away Shots:", state.game.shots.away);
+  if(away === null) return;
 
-  const teamName = (teamKey==="home") ? state.game.home : state.game.away;
-  const goalieName = (teamKey==="home") ? state.game.homeGoalie : state.game.awayGoalie;
+  const home = prompt("Enter Home Shots:", state.game.shots.home);
+  if(home === null) return;
 
-  const sa = prompt(`${teamName} (${goalieName||"Goalie"}) Shots Against:`, gs.shotsAgainst || 0);
-  if(sa===null) return;
+  state.game.boxOverrides.teamShots.away = Number(away);
+  state.game.boxOverrides.teamShots.home = Number(home);
 
-  const ga = prompt(`${teamName} (${goalieName||"Goalie"}) Goals Against:`, gs.goalsAgainst || 0);
-  if(ga===null) return;
-
-  gs.shotsAgainst = Number(sa)||0;
-  gs.goalsAgainst = Number(ga)||0;
-
-  save();
+  applyBoxOverrides();
+  updateScore();
   renderBoxScore();
+  save();
 };
 
-// Ensure team shots edit works globally
-window.editTeamShots = window.editTeamShots || function(teamKey){
+// Fix goalie edit override so it uses overrides (not raw goalieStats)
+window.editGoalieStats = function(teamKey){
   if(!state.game) return;
+  ensureBoxOverrides();
 
-  const current = state.game.shots?.[teamKey] || 0;
-  const val = prompt(`Enter total shots for ${teamKey.toUpperCase()}:`, current);
-  if(val===null) return;
+  const gs = state.game.goalieStats[teamKey];
 
-  state.game.shots[teamKey] = Number(val)||0;
+  const sa = prompt(`Enter ${teamKey.toUpperCase()} Goalie Shots Against:`, gs.shotsAgainst);
+  if(sa === null) return;
 
-  save();
-  updateGameUI();
+  const ga = prompt(`Enter ${teamKey.toUpperCase()} Goalie Goals Against:`, gs.goalsAgainst);
+  if(ga === null) return;
+
+  state.game.boxOverrides.goalie[teamKey].sa = Number(sa);
+  state.game.boxOverrides.goalie[teamKey].ga = Number(ga);
+
+  applyBoxOverrides();
+  updateScore();
   renderBoxScore();
+  save();
 };
 
 /* ---------- INIT ---------- */
