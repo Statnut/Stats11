@@ -506,7 +506,7 @@ function renderTeams(){
 teamSeason.onchange=renderTeams;
 
 /* ---------- ROSTER ---------- */
-$("addPlayer").onclick=()=>{
+$("addPlayer").onclick = () => {
   const t=rosterTeam.value;
   if(!t||!playerName.value) return;
 
@@ -715,7 +715,7 @@ function rebuildFromEvents(){
 }
 
 /* ---------- GAME ---------- */
-$("startGame").onclick=()=>{
+$("startGame").onclick = () => {
   if(!ngHome.value || !ngAway.value){
     alert("Please select Home and Away teams.");
     return;
@@ -773,7 +773,7 @@ function renderClock(){
 }
 renderClock();
 
-$("clockToggle").onclick=()=>{
+$("clockToggle").onclick = () => {
   if(state.game?.final) return;
   state.clock.running=!state.clock.running;
 
@@ -789,13 +789,14 @@ $("clockToggle").onclick=()=>{
   }
 };
 
-$("clockMinus").onclick=()=>{
+$("clockMinus").onclick = () => {
   state.clock.seconds=Math.max(0,state.clock.seconds-60);
   renderClock();
 };
 
 /* ---------- ADVANCE PERIOD LOGIC (FIXED) ---------- */
-$("advancePeriod").onclick=()=>{
+
+$("advancePeriod").onclick = () => {
   if(state.game?.final) return;
 
   // If in regulation periods (1-3)
@@ -861,7 +862,7 @@ $("advancePeriod").onclick=()=>{
   }
 };
 
-$("endGame").onclick=()=>{
+$("endGame").onclick = () => {
   if(!state.game) return;
 
   state.game.final=true;
@@ -1199,7 +1200,7 @@ window.saveEventEdit = function(id){
 };
 
 /* ---------- RECORD EVENTS ---------- */
-$("recordGoal").onclick=()=>{
+$("recordGoal").onclick = () => {
   if(!state.game || state.game.final) return;
 
   ensureEvents();
@@ -1225,7 +1226,7 @@ $("recordGoal").onclick=()=>{
   save();
 };
 
-$("recordShot").onclick=()=>{
+$("recordShot").onclick = () => {
   if(!state.game || state.game.final) return;
 
   ensureEvents();
@@ -1248,7 +1249,7 @@ $("recordShot").onclick=()=>{
   save();
 };
 
-$("recordPenalty").onclick=()=>{
+$("recordPenalty").onclick = () => {
   if(!state.game || state.game.final) return;
 
   ensureEvents();
@@ -1273,7 +1274,7 @@ $("recordPenalty").onclick=()=>{
   save();
 };
 
-$("recordFaceoff").onclick=()=>{
+$("recordFaceoff").onclick = () => {
   if(!state.game || state.game.final) return;
 
   ensureEvents();
