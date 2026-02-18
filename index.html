@@ -286,10 +286,10 @@ th { background:#f0f0f0; }
   <div class="scoreboard">
     <strong>Scoreboard</strong>
     <div class="line">
-      Score: <span id="scoreAway">0</span> â <span id="scoreHome">0</span>
+      Score: <span id="scoreAway">0</span> - <span id="scoreHome">0</span>
     </div>
     <div class="line">
-      Shots: <span id="shotsAway">0</span> â <span id="shotsHome">0</span>
+      Shots: <span id="shotsAway">0</span> - <span id="shotsHome">0</span>
     </div>
   </div>
 
@@ -751,7 +751,7 @@ $("startGame").onclick = () => {
   updateScore();
   setupGameSelectors();
 
-  gameStatus.textContent=`Period 1 â ${state.game.away} @ ${state.game.home}`;
+  gameStatus.textContent=`Period 1 - ${state.game.away} @ ${state.game.home}`;
   document.querySelector('[data-tab="game"]').click();
   renderClock();
 };
@@ -794,7 +794,7 @@ $("advancePeriod").onclick = () => {
     state.game.period++;
     state.clock.seconds=1200;
     renderClock();
-    gameStatus.textContent=`Period ${state.game.period} â ${state.game.away} @ ${state.game.home}`;
+    gameStatus.textContent=`Period ${state.game.period} - ${state.game.away} @ ${state.game.home}`;
     save();
     return;
   }
@@ -806,7 +806,7 @@ $("advancePeriod").onclick = () => {
       state.game.period = 4;
       state.clock.seconds = 300; // 5 min OT default
       renderClock();
-      gameStatus.textContent=`Overtime â ${state.game.away} @ ${state.game.home}`;
+      gameStatus.textContent=`Overtime - ${state.game.away} @ ${state.game.home}`;
       save();
       return;
     }
@@ -815,7 +815,7 @@ $("advancePeriod").onclick = () => {
     state.game.final=true;
     state.clock.running=false;
     clearInterval(state.clock.timer);
-    gameStatus.textContent=`FINAL â ${state.game.away} @ ${state.game.home}`;
+    gameStatus.textContent=`FINAL - ${state.game.away} @ ${state.game.home}`;
     save();
     return;
   }
@@ -827,7 +827,7 @@ $("advancePeriod").onclick = () => {
       state.game.period = 5;
       state.clock.seconds = 0;
       renderClock();
-      gameStatus.textContent=`Shootout â ${state.game.away} @ ${state.game.home}`;
+      gameStatus.textContent=`Shootout - ${state.game.away} @ ${state.game.home}`;
       save();
       return;
     }
@@ -836,7 +836,7 @@ $("advancePeriod").onclick = () => {
     state.game.final=true;
     state.clock.running=false;
     clearInterval(state.clock.timer);
-    gameStatus.textContent=`FINAL â ${state.game.away} @ ${state.game.home}`;
+    gameStatus.textContent=`FINAL - ${state.game.away} @ ${state.game.home}`;
     save();
     return;
   }
@@ -846,7 +846,7 @@ $("advancePeriod").onclick = () => {
     state.game.final=true;
     state.clock.running=false;
     clearInterval(state.clock.timer);
-    gameStatus.textContent=`FINAL â ${state.game.away} @ ${state.game.home}`;
+    gameStatus.textContent=`FINAL - ${state.game.away} @ ${state.game.home}`;
     save();
     return;
   }
@@ -859,7 +859,7 @@ $("endGame").onclick = () => {
   state.clock.running=false;
   clearInterval(state.clock.timer);
 
-  gameStatus.textContent=`FINAL â ${state.game.away} @ ${state.game.home}`;
+  gameStatus.textContent=`FINAL - ${state.game.away} @ ${state.game.home}`;
   save();
 };
 
@@ -938,7 +938,7 @@ function eventLabel(ev){
   }
   if(ev.type==="faceoff"){
     const teamName = ev.teamKey==="home" ? state.game.home : state.game.away;
-    return `${ev.time} PER ${ev.period} FO ${ev.result} â ${teamName} (${ev.player || ""})`;
+    return `${ev.time} PER ${ev.period} FO ${ev.result} - ${teamName} (${ev.player || ""})`;
   }
   return "EVENT";
 }
@@ -1554,7 +1554,7 @@ function renderBoxScore(){
           ${state.game.away} @ ${state.game.home}
         </div>
         <div style="margin-top:4px;">
-          <strong>${finalLabel}:</strong> ${displayAway} â ${displayHome}
+          <strong>${finalLabel}:</strong> ${displayAway} - ${displayHome}
         </div>
       </div>
       <div style="text-align:right;">
@@ -1564,7 +1564,7 @@ function renderBoxScore(){
     </div>
 
     <div style="margin-top:10px;">
-      <strong>Shots:</strong> ${state.game.shots.away} â ${state.game.shots.home}
+      <strong>Shots:</strong> ${state.game.shots.away} â- ${state.game.shots.home}
       ${locked ? "" : ` <button class="smallbtn" onclick="editTeamShots()">Edit Shots</button>`}
     </div>
 
@@ -1675,7 +1675,7 @@ function renderBoxScore(){
   function skaterTable(teamKey){
     const teamName = state.game[teamKey];
 
-    let t = `<h4>Skater Stats â ${teamName}</h4>`;
+    let t = `<h4>Skater Stats - ${teamName}</h4>`;
     t += `
       <table>
         <tr>
