@@ -1869,6 +1869,13 @@ renderTeams();
   }
 })();
 
+// Safe dash fix
+document.body.innerHTML = document.body.innerHTML
+  .replace(/–/g,"-")
+  .replace(/—/g,"-")
+  .replace(/â€“/g,"-")
+  .replace(/â€”/g,"-");
+
 </script>
 </body>
 </html>
