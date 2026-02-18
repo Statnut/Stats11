@@ -1850,32 +1850,6 @@ initTabs();
 renderSeasons();
 renderTeams();
 
-/* ---------- ENCODING CLEANUP FIX ---------- */
-(function(){
-  try {
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-    let node;
-    while(node = walker.nextNode()){
-      node.nodeValue = node.nodeValue
-        .replace(/–/g, "-")
-        .replace(/—/g, "-")
-        .replace(/â€“/g, "-")
-        .replace(/â€”/g, "-")
-        .replace(/[“”]/g, '"')
-        .replace(/[‘’]/g, "'");
-    }
-  } catch(e){
-    console.log("Encoding cleanup skipped:", e);
-  }
-})();
-
-// Safe dash fix
-document.body.innerHTML = document.body.innerHTML
-  .replace(/–/g,"-")
-  .replace(/—/g,"-")
-  .replace(/â€“/g,"-")
-  .replace(/â€”/g,"-");
-
 </script>
 </body>
 </html>
