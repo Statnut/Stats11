@@ -990,35 +990,6 @@ function updateScore(){
   shotsHome.textContent = state.game.shots.home;
   shotsAway.textContent = state.game.shots.away;
 }
-
-function updateGameHeader(){
-  if(!state.game) return;
-
-  const awayObj = getTeamObject(state.game.away);
-  const homeObj = getTeamObject(state.game.home);
-
-  const awayLogo = awayObj?.logo ? 
-    `<img src="${awayObj.logo}" style="height:32px;vertical-align:middle;margin-right:6px;">`
-    : "";
-
-  const homeLogo = homeObj?.logo ? 
-    `<img src="${homeObj.logo}" style="height:32px;vertical-align:middle;margin-left:6px;">`
-    : "";
-
-  gameStatus.innerHTML = `
-    Period ${state.game.period} —
-    ${awayLogo}${state.game.away}
-    @
-    ${state.game.home}${homeLogo}
-  `;
-}
-
-  scoreHome.textContent=state.game.score.home;
-  scoreAway.textContent=state.game.score.away;
-  shotsHome.textContent=state.game.shots.home;
-  shotsAway.textContent=state.game.shots.away;
-}
-
 function eventLabel(ev){
   if(ev.type==="goal"){
     return `${ev.time} PER ${ev.period} GOAL (${ev.goalType}) ${ev.scorer || ""}`;
