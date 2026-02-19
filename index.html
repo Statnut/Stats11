@@ -461,7 +461,11 @@ function renderSeasons(){
 $("addTeam").onclick = () => {
   const s=teamSeason.value;
   if(!s||!teamName.value) return;
-  state.teams[s].push({name:teamName.value,abbr:teamAbbr.value});
+ state.teams[s].push({
+  name: teamName.value,
+  abbr: teamAbbr.value,
+  logo: null
+});
   state.rosters[teamName.value]=[];
   teamName.value=teamAbbr.value="";
   save(); renderTeams();
@@ -476,7 +480,10 @@ function renderTeams(){
   (state.teams[teamSeason.value]||[]).forEach(t=>{
     const d=document.createElement("div");
     d.className="list-item";
-    d.innerHTML=`<span>${t.name} (${t.abbr})</span>`;
+d.innerHTML = `
+  <span>${t.name} (${t.abbr})</span>
+  <button class="smallbtn" onclick="uploadTeamLogo('${teamSeason.value}','${t.name.replace(/'/g,"\\'")}')">Logo</button>
+`;
     const del=document.createElement("button");
     del.textContent="Delete";
     del.onclick=()=>{
@@ -495,6 +502,33 @@ function renderTeams(){
 }
 teamSeason.onchange=renderTeams;
 
+function uploadTeamLogo(season, teamName){
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+
+  input.onchange = function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(evt){
+      const base64 = evt.target.result;
+
+      const team = state.teams[season].find(t=>t.name===teamName);
+      if(team){
+        team.logo = base64;
+        save();
+        renderTeams();
+      }
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  input.click();
+}
 /* ---------- ROSTER ---------- */
 $("addPlayer").onclick = () => {
   const t=rosterTeam.value;
@@ -704,6 +738,37 @@ function rebuildFromEvents(){
   updateScore();
 }
 
+function getTeamObject(teamName){
+  const season = ngSeason.value;
+  return (state.teams[season] || []).find(t => t.name === teamName);
+}
+
+function updateGameHeader(){
+  if(!state.game) return;
+
+  const awayObj = getTeamObject(state.game.away);
+  const homeObj = getTeamObject(state.game.home);
+
+  const awayLogo = awayObj?.logo 
+    ? `<img src="${awayObj.logo}" class="team-logo">` 
+    : "";
+
+  const homeLogo = homeObj?.logo 
+    ? `<img src="${homeObj.logo}" class="team-logo">` 
+    : "";
+
+  gameStatus.innerHTML = `
+    Period ${state.game.period} —
+    <span class="team-header">
+      ${awayLogo} ${state.game.away}
+    </span>
+    @
+    <span class="team-header">
+      ${homeLogo} ${state.game.home}
+    </span>
+  `;
+}
+
 /* ---------- GAME ---------- */
 $("startGame").onclick = () => {
   if(!ngHome.value || !ngAway.value){
@@ -751,9 +816,7 @@ $("startGame").onclick = () => {
   updateScore();
   setupGameSelectors();
 
-  gameStatus.textContent=`Period 1 - ${state.game.away} @ ${state.game.home}`;
-  document.querySelector('[data-tab="game"]').click();
-  renderClock();
+updateGameHeader();
 };
 
 /* ---------- CLOCK ---------- */
@@ -794,7 +857,8 @@ $("advancePeriod").onclick = () => {
     state.game.period++;
     state.clock.seconds=1200;
     renderClock();
-    gameStatus.textContent=`Period ${state.game.period} - ${state.game.away} @ ${state.game.home}`;
+updateGameHeader();
+
     save();
     return;
   }
@@ -806,7 +870,8 @@ $("advancePeriod").onclick = () => {
       state.game.period = 4;
       state.clock.seconds = 300; // 5 min OT default
       renderClock();
-      gameStatus.textContent=`Overtime - ${state.game.away} @ ${state.game.home}`;
+     updateGameHeader();
+
       save();
       return;
     }
@@ -815,7 +880,7 @@ $("advancePeriod").onclick = () => {
     state.game.final=true;
     state.clock.running=false;
     clearInterval(state.clock.timer);
-    gameStatus.textContent=`FINAL - ${state.game.away} @ ${state.game.home}`;
+   updateGameHeader();
     save();
     return;
   }
@@ -827,7 +892,7 @@ $("advancePeriod").onclick = () => {
       state.game.period = 5;
       state.clock.seconds = 0;
       renderClock();
-      gameStatus.textContent=`Shootout - ${state.game.away} @ ${state.game.home}`;
+     updateGameHeader();
       save();
       return;
     }
@@ -836,7 +901,7 @@ $("advancePeriod").onclick = () => {
     state.game.final=true;
     state.clock.running=false;
     clearInterval(state.clock.timer);
-    gameStatus.textContent=`FINAL - ${state.game.away} @ ${state.game.home}`;
+   updateGameHeader();
     save();
     return;
   }
@@ -846,7 +911,7 @@ $("advancePeriod").onclick = () => {
     state.game.final=true;
     state.clock.running=false;
     clearInterval(state.clock.timer);
-    gameStatus.textContent=`FINAL - ${state.game.away} @ ${state.game.home}`;
+   updateGameHeader();
     save();
     return;
   }
@@ -859,7 +924,7 @@ $("endGame").onclick = () => {
   state.clock.running=false;
   clearInterval(state.clock.timer);
 
-  gameStatus.textContent=`FINAL - ${state.game.away} @ ${state.game.home}`;
+ updateGameHeader();
   save();
 };
 
@@ -920,6 +985,34 @@ function populateFaceoffPlayers(){
 
 /* ---------- HELPERS ---------- */
 function updateScore(){
+  scoreHome.textContent = state.game.score.home;
+  scoreAway.textContent = state.game.score.away;
+  shotsHome.textContent = state.game.shots.home;
+  shotsAway.textContent = state.game.shots.away;
+}
+
+function updateGameHeader(){
+  if(!state.game) return;
+
+  const awayObj = getTeamObject(state.game.away);
+  const homeObj = getTeamObject(state.game.home);
+
+  const awayLogo = awayObj?.logo ? 
+    `<img src="${awayObj.logo}" style="height:32px;vertical-align:middle;margin-right:6px;">`
+    : "";
+
+  const homeLogo = homeObj?.logo ? 
+    `<img src="${homeObj.logo}" style="height:32px;vertical-align:middle;margin-left:6px;">`
+    : "";
+
+  gameStatus.innerHTML = `
+    Period ${state.game.period} —
+    ${awayLogo}${state.game.away}
+    @
+    ${state.game.home}${homeLogo}
+  `;
+}
+
   scoreHome.textContent=state.game.score.home;
   scoreAway.textContent=state.game.score.away;
   shotsHome.textContent=state.game.shots.home;
