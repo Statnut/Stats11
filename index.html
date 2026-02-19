@@ -1849,17 +1849,14 @@ function initTabs(){
   });
 }
 
-/* ---------- EXPORT BOX SCORE (PRINT VERSION) ---------- */
-function exportBoxScore(){
+/* ---------- EXPORT BOX SCORE (HTML) ---------- */
+function exportBoxScoreHTML(){
   if(!state.game || !state.game.boxFinalized){
     alert("Finalize the box score before exporting.");
     return;
   }
 
-  // Clone current box score
   const box = document.getElementById("boxScore").cloneNode(true);
-
-  // Remove all buttons
   box.querySelectorAll("button").forEach(btn=>btn.remove());
 
   const fileName =
@@ -1898,35 +1895,12 @@ ${box.innerHTML}
   a.remove();
 
   URL.revokeObjectURL(url);
-
-function exportBoxScore(){
-  if(!state.game || !state.game.boxFinalized){
-    alert("Finalize the box score before exporting.");
-    return;
-  }
-
-  const format = prompt("Choose export format: HTML, PDF, or CSV");
-
-  if(!format) return;
-
-  const choice = format.toLowerCase();
-
-  if(choice === "html"){
-    exportBoxScoreHTML();
-  } 
-  else if(choice === "pdf"){
-    exportBoxScorePDF();
-  } 
-  else if(choice === "csv"){
-    exportBoxScoreCSV();
-  } 
-  else {
-    alert("Invalid format.");
-  }
 }
 
+
+/* ---------- EXPORT BOX SCORE (PDF) ---------- */
 function exportBoxScorePDF(){
-  if(!state.game) return;
+  if(!state.game || !state.game.boxFinalized) return;
 
   const box = document.getElementById("boxScore").cloneNode(true);
   box.querySelectorAll("button").forEach(btn=>btn.remove());
@@ -1934,20 +1908,19 @@ function exportBoxScorePDF(){
   const win = window.open("", "_blank");
 
   win.document.write(`
-    <html>
-      <head>
-        <title>Box Score - ${state.game.away} @ ${state.game.home}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-          th, td { border: 1px solid #000; padding: 6px; text-align: left; }
-          h4 { margin-top: 20px; }
-        </style>
-      </head>
-      <body>
-        ${box.innerHTML}
-      </body>
-    </html>
+  <html>
+    <head>
+      <title>Box Score - ${state.game.away} @ ${state.game.home}</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #000; padding: 6px; }
+      </style>
+    </head>
+    <body>
+      ${box.innerHTML}
+    </body>
+  </html>
   `);
 
   win.document.close();
@@ -1955,8 +1928,10 @@ function exportBoxScorePDF(){
   win.print();
 }
 
+
+/* ---------- EXPORT BOX SCORE (CSV) ---------- */
 function exportBoxScoreCSV(){
-  if(!state.game) return;
+  if(!state.game || !state.game.boxFinalized) return;
 
   let csv = "";
 
@@ -1987,26 +1962,33 @@ function exportBoxScoreCSV(){
       });
   });
 
-  csv += "\nGOALIE STATS\n";
-  csv += "Team,Goalie,SA,GA,Saves\n";
-
-  ["away","home"].forEach(teamKey=>{
-    const teamName = state.game[teamKey];
-    const goalieName = teamKey==="home" ? state.game.homeGoalie : state.game.awayGoalie;
-    const gs = state.game.goalieStats[teamKey] || {};
-    const saves = (gs.shotsAgainst||0) - (gs.goalsAgainst||0);
-
-    csv += `${teamName},${goalieName||"N/A"},${gs.shotsAgainst||0},${gs.goalsAgainst||0},${saves}\n`;
-  });
-
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
 
   link.href = URL.createObjectURL(blob);
-  link.download = `${state.game.away}_at_${state.game.home}_boxscore.csv`.replace(/\s+/g,"_");
+  link.download = `${state.game.away}_at_${state.game.home}_boxscore.csv`
+    .replace(/\s+/g,"_");
+
   link.click();
 }
 
+
+/* ---------- MASTER EXPORT BUTTON ---------- */
+function exportBoxScore(){
+  if(!state.game || !state.game.boxFinalized){
+    alert("Finalize the box score before exporting.");
+    return;
+  }
+
+  const format = prompt("Choose export format: HTML, PDF, or CSV");
+  if(!format) return;
+
+  const choice = format.toLowerCase();
+
+  if(choice === "html") exportBoxScoreHTML();
+  else if(choice === "pdf") exportBoxScorePDF();
+  else if(choice === "csv") exportBoxScoreCSV();
+  else alert("Invalid format.");
 }
 
 /* ---------- INIT ---------- */
