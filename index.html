@@ -227,6 +227,9 @@ th { background:#f0f0f0; }
   <button data-tab="newgame">New Game</button>
   <button data-tab="game">Game</button>
   <button data-tab="boxscore">Box Score</button>
+
+<button data-tab="standings">Standings</button>
+
 </nav>
 
 <section id="seasons" class="active">
@@ -401,6 +404,12 @@ th { background:#f0f0f0; }
   <div id="boxScore"></div>
 </section>
 
+<section id="standings">
+  <h3>Standings</h3>
+  <select id="standingsSeason"></select>
+  <div id="standingsTable"></div>
+</section>
+
 <script>
 const $ = id => document.getElementById(id);
 
@@ -468,14 +477,23 @@ function renderSeasons(){
     d.appendChild(del); seasonList.appendChild(d);
   });
 
-  teamSeason.innerHTML = ngSeason.innerHTML =
-    state.seasons.map(s=>`<option>${s}</option>`).join("");
+teamSeason.innerHTML = ngSeason.innerHTML =
+  state.seasons.map(s=>`<option>${s}</option>`).join("");
 
-  // ✅ ADD THESE 2 LINES
-  if(state.seasons.length){
-    teamSeason.value = ngSeason.value = state.seasons[0];
-  }
+$("standingsSeason").innerHTML =
+  state.seasons.map(s=>`<option>${s}</option>`).join("");
+
+// Set default selected season
+if(state.seasons.length){
+  teamSeason.value = ngSeason.value = state.seasons[0];
+  $("standingsSeason").value = state.seasons[0];
 }
+
+// Wire change event
+$("standingsSeason").onchange = renderStandings;
+
+// Initial render
+renderStandings();
 
 /* ---------- TEAMS ---------- */
 $("addTeam").onclick = () => {
@@ -990,6 +1008,8 @@ alert("Game Ended");
  updateGameHeader();
   save();
 };
+
+renderStandings();
 
 /* ---------- GAME SELECTORS ---------- */
 function setupGameSelectors(){
@@ -2308,6 +2328,126 @@ function clearActiveGame(){
 
   document.querySelector('[data-tab="newgame"]').click();
 }
+
+ngSeason.onchange = () => {
+  teamSeason.value = ngSeason.value;
+  renderTeams();
+};
+
+/* ---------- STANDINGS ENGINE ---------- */
+
+function calculateStandings(season){
+  const teams = state.teams[season] || [];
+
+  const table = {};
+
+  teams.forEach(t=>{
+    table[t.name] = {
+      team: t.name,
+      gp:0,
+      w:0,
+      l:0,
+      ot:0,
+      pts:0,
+      gf:0,
+      ga:0
+    };
+  });
+
+  if(state.game && state.game.final){
+    const home = state.game.home;
+    const away = state.game.away;
+
+    if(table[home] && table[away]){
+
+      const homeGoals = state.game.score.home;
+      const awayGoals = state.game.score.away;
+
+      table[home].gp++;
+      table[away].gp++;
+
+      table[home].gf += homeGoals;
+      table[home].ga += awayGoals;
+
+      table[away].gf += awayGoals;
+      table[away].ga += homeGoals;
+
+      const isOT = state.game.period >= 4;
+
+      if(homeGoals > awayGoals){
+        table[home].w++;
+        table[home].pts += 2;
+
+        if(isOT){
+          table[away].ot++;
+          table[away].pts += 1;
+        } else {
+          table[away].l++;
+        }
+      } else {
+        table[away].w++;
+        table[away].pts += 2;
+
+        if(isOT){
+          table[home].ot++;
+          table[home].pts += 1;
+        } else {
+          table[home].l++;
+        }
+      }
+    }
+  }
+
+  return Object.values(table)
+    .sort((a,b)=> b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga));
+}
+
+function renderStandings(){
+  const season = $("standingsSeason").value;
+  if(!season) return;
+
+  const standings = calculateStandings(season);
+
+  let html = `
+    <table>
+      <tr>
+        <th>Team</th>
+        <th>GP</th>
+        <th>W</th>
+        <th>L</th>
+        <th>OT</th>
+        <th>PTS</th>
+        <th>GF</th>
+        <th>GA</th>
+        <th>DIFF</th>
+      </tr>
+  `;
+
+  standings.forEach(t=>{
+    const diff = t.gf - t.ga;
+
+    html += `
+      <tr>
+        <td>${t.team}</td>
+        <td>${t.gp}</td>
+        <td>${t.w}</td>
+        <td>${t.l}</td>
+        <td>${t.ot}</td>
+        <td><strong>${t.pts}</strong></td>
+        <td>${t.gf}</td>
+        <td>${t.ga}</td>
+        <td>${diff}</td>
+      </tr>
+    `;
+  });
+
+  html += `</table>`;
+
+  $("standingsTable").innerHTML = html;
+}
+
+/* ---------- INIT ---------- */
+document.addEventListener("DOMContentLoaded", function(){
 
 /* ---------- INIT ---------- */
 
