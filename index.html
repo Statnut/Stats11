@@ -846,7 +846,12 @@ $("startGame").onclick = () => {
 updateGameHeader();
 };
 
-document.querySelector('[data-tab="game"]').click();
+// Manually activate Game tab
+document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
+
+document.querySelector('[data-tab="game"]').classList.add("active");
+document.getElementById("game").classList.add("active");
 
 /* ---------- CLOCK ---------- */
 function renderClock(){
