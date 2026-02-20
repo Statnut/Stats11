@@ -285,6 +285,12 @@ th { background:#f0f0f0; }
   <h3>New Game</h3>
   <select id="ngSeason"></select>
 
+<select id="ngGameType">
+  <option value="Regular">Regular Season</option>
+  <option value="Playoff">Playoff</option>
+  <option value="Exhibition">Exhibition</option>
+</select>
+
   <select id="ngAway"><option value="">Away Team</option></select>
   <select id="ngAwayG"></select>
 
@@ -926,6 +932,8 @@ $("startGame").onclick = () => {
     faceoffs:[],
     events:[],
 
+gameType: $("ngGameType").value || "Regular",
+
     period:1,
     notes:"",
     final:false,
@@ -1071,6 +1079,7 @@ boxClone.querySelectorAll("button").forEach(btn=>btn.remove());
 
 const snapshot = {
   season: $("ngSeason").value,
+  gameType: state.game.gameType,   // 👈 ADD THIS LINE
   home: state.game.home,
   away: state.game.away,
   score: {...state.game.score},
@@ -1078,6 +1087,7 @@ const snapshot = {
   date: new Date().toISOString(),
   boxHTML: boxClone.innerHTML
 };
+
   state.completedGames.push(snapshot);
 
   // mark this game as saved
