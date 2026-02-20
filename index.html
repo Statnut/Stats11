@@ -2584,25 +2584,6 @@ html += `
 
   $("historyList").innerHTML = html;
 
-html += `
-  <div class="event-item">
-    <div class="event-row">
-      <div class="left history-click"
-           data-date="${g.date}"
-           style="cursor:pointer;">
-        <strong>${g.away} @ ${g.home}</strong><br>
-        ${g.score.away} - ${g.score.home}${otLabel}<br>
-        <span class="small-note">${formattedDate}</span>
-      </div>
-      <div class="right">
-        <button class="smallbtn"
-                onclick="deleteHistoryGame('${g.date}')">
-          Delete
-        </button>
-      </div>
-    </div>
-  </div>
-`;
 }
 
 window.deleteHistoryGame = function(date){
@@ -2643,8 +2624,6 @@ window.viewHistoryGame = function(date){
     </div>
   `;
 }
-
-  $("historyBox").innerHTML = html;
 
   document.querySelectorAll("section").forEach(s=>{
     s.classList.remove("active");
