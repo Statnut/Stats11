@@ -846,6 +846,8 @@ $("startGame").onclick = () => {
 updateGameHeader();
 };
 
+document.querySelector('[data-tab="game"]').click();
+
 /* ---------- CLOCK ---------- */
 function renderClock(){
   clock.textContent=
