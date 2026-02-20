@@ -198,6 +198,19 @@ th { background:#f0f0f0; }
   font-size:12px;
 }
 
+/* ---------- TEAM LOGOS (INLINE NHL STYLE) ---------- */
+.team-logo {
+  height: 26px;
+  width: auto;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+.team-header {
+  display: inline-flex;
+  align-items: center;
+}
+
 /* Mobile tighten */
 @media(max-width:520px){
   th, td { font-size:12px; padding:5px; }
@@ -783,17 +796,22 @@ function updateGameHeader(){
     ? `<img src="${homeObj.logo}" class="team-logo">` 
     : "";
 
-  gameStatus.innerHTML = `
-    Period ${state.game.period} —
-    <span class="team-header">
-      ${awayLogo} ${state.game.away}
-    </span>
-    @
-    <span class="team-header">
-      ${homeLogo} ${state.game.home}
-    </span>
-  `;
-}
+const label = state.game.final
+  ? "FINAL"
+  : `Period ${state.game.period}`;
+
+gameStatus.innerHTML = `
+  ${label} —
+  <span class="team-header">
+    ${awayLogo} ${state.game.away}
+  </span>
+  @
+  <span class="team-header">
+    ${homeLogo} ${state.game.home}
+  </span>
+`;
+
+ }
 
 /* ---------- GAME ---------- */
 
