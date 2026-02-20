@@ -845,27 +845,7 @@ $("startGame").onclick = () => {
 updateGameHeader();
 };
 
-// Hide all sections
-document.querySelectorAll("section").forEach(s=>{
-  s.style.display = "none";
-});
-
-// Show game section
-document.getElementById("game").style.display = "block";
-
-// Update nav active state
-document.querySelectorAll("nav button").forEach(b=>{
-  b.classList.remove("active");
-});
-
-document.querySelector('[data-tab="game"]').classList.add("active");
-
-// Manually activate Game tab
-document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
-document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
-
-document.querySelector('[data-tab="game"]').classList.add("active");
-document.getElementById("game").classList.add("active");
+document.querySelector('[data-tab="game"]').click();
 
 /* ---------- CLOCK ---------- */
 function renderClock(){
