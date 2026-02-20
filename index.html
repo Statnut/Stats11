@@ -967,6 +967,8 @@ $("endGame").onclick = () => {
   state.clock.running=false;
   clearInterval(state.clock.timer);
 
+alert("Game Ended");
+
  updateGameHeader();
   save();
 };
@@ -2213,10 +2215,6 @@ document.addEventListener("DOMContentLoaded", function(){
   renderTeams();
 
 });
-
-initTabs();
-renderSeasons();
-renderTeams();
 
 </script>
 
