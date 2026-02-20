@@ -2579,6 +2579,17 @@ html += `
 
 window.deleteHistoryGame = function(date){
 
+  const ok = confirm("Delete this game? This will update standings.");
+  if(!ok) return;
+
+  state.completedGames =
+    state.completedGames.filter(g => g.date !== date);
+
+  save();
+  renderHistory();
+  renderStandings();
+};
+
 /* ---------- HISTORY VIEWER ---------- */
 
 window.viewHistoryGame = function(date){
