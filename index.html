@@ -2553,7 +2553,10 @@ function renderHistory(){
   }
 
   const games = state.completedGames
-    .filter(g => g.season === season)
+    .filter(g => 
+  g.season === season &&
+  g.gameType === "Regular"
+)
     .sort((a,b)=> new Date(b.date) - new Date(a.date));
 
   if(games.length === 0){
