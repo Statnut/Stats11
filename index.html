@@ -230,6 +230,8 @@ th { background:#f0f0f0; }
 
 <button data-tab="standings">Standings</button>
 
+<button data-tab="history">History</button>
+
 </nav>
 
 <section id="seasons" class="active">
@@ -410,6 +412,14 @@ th { background:#f0f0f0; }
   <div id="standingsTable"></div>
 </section>
 
+<section id="history">
+  <h3>Game History</h3>
+
+  <select id="historySeason"></select>
+
+  <div id="historyList"></div>
+</section>
+
 <script>
 const $ = id => document.getElementById(id);
 
@@ -502,6 +512,21 @@ if(ss && state.seasons.length){
   ss.onchange = renderStandings;
 
   renderStandings();
+}
+
+const hs = $("historySeason");
+
+if(hs && state.seasons.length){
+
+  hs.innerHTML = state.seasons
+    .map(s=>`<option>${s}</option>`)
+    .join("");
+
+  hs.value = state.seasons[0];
+
+  hs.onchange = renderHistory;
+
+  renderHistory();
 }
 
 }
@@ -2493,6 +2518,66 @@ function renderStandings(){
 
   $("standingsTable").innerHTML = html;
 }
+
+/* ---------- GAME HISTORY ---------- */
+
+function renderHistory(){
+
+  const season = $("historySeason").value;
+  if(!season){
+    $("historyList").innerHTML = "No season selected.";
+    return;
+  }
+
+  const games = state.completedGames
+    .filter(g => g.season === season)
+    .sort((a,b)=> new Date(b.date) - new Date(a.date));
+
+  if(games.length === 0){
+    $("historyList").innerHTML = "<div class='small-note'>No completed games yet.</div>";
+    return;
+  }
+
+  let html = "";
+
+  games.forEach((g,index)=>{
+
+    const isOT = g.period >= 4;
+    const otLabel = isOT ? " (OT)" : "";
+
+    const formattedDate = new Date(g.date).toLocaleDateString();
+
+    html += `
+      <div class="event-item">
+        <div class="event-row">
+          <div class="left">
+            <strong>${g.away} @ ${g.home}</strong><br>
+            ${g.score.away} - ${g.score.home}${otLabel}<br>
+            <span class="small-note">${formattedDate}</span>
+          </div>
+          <div class="right">
+            <button class="smallbtn" onclick="deleteHistoryGame('${g.date}')">Delete</button>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  $("historyList").innerHTML = html;
+}
+
+window.deleteHistoryGame = function(date){
+
+  const ok = confirm("Delete this game? This will update standings.");
+  if(!ok) return;
+
+  state.completedGames =
+    state.completedGames.filter(g => g.date !== date);
+
+  save();
+  renderHistory();
+  renderStandings();
+};
 
 /* ---------- INIT ---------- */
 document.addEventListener("DOMContentLoaded", function(){
