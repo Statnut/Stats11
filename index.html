@@ -486,8 +486,8 @@ d.innerHTML = `
     ${t.logo ? `<img src="${t.logo}" style="height:20px;vertical-align:middle;margin-right:6px;">` : ""}
     ${t.name} (${t.abbr})
   </span>
-  <button class="smallbtn" onclick="uploadTeamLogo '${$("teamSeason").value}','${t.name.replace(/'/g,"\\'")}')">Logo</button>
-`;
+
+<button class="smallbtn" onclick="uploadTeamLogo('${teamSeason.value}','${t.name.replace(/'/g,"\\'")}')">Logo</button>
 
     const del=document.createElement("button");
     del.textContent="Delete";
@@ -2153,9 +2153,6 @@ $("importCSVFile").onchange = (e) => {
 };
 
 /* ---------- INIT ---------- */
-
-console.log("SCRIPT LOADED FULLY");
-
 initTabs();
 renderSeasons();
 renderTeams();
