@@ -2563,8 +2563,9 @@ function renderHistory(){
 html += `
   <div class="event-item">
     <div class="event-row">
-      <div class="left" style="cursor:pointer;"
-          onclick="viewHistoryGame('${g.date}')"
+      <div class="left history-click"
+           data-date="${g.date}"
+           style="cursor:pointer;">
         <strong>${g.away} @ ${g.home}</strong><br>
         ${g.score.away} - ${g.score.home}${otLabel}<br>
         <span class="small-note">${formattedDate}</span>
@@ -2582,6 +2583,26 @@ html += `
   });
 
   $("historyList").innerHTML = html;
+
+html += `
+  <div class="event-item">
+    <div class="event-row">
+      <div class="left history-click"
+           data-date="${g.date}"
+           style="cursor:pointer;">
+        <strong>${g.away} @ ${g.home}</strong><br>
+        ${g.score.away} - ${g.score.home}${otLabel}<br>
+        <span class="small-note">${formattedDate}</span>
+      </div>
+      <div class="right">
+        <button class="smallbtn"
+                onclick="deleteHistoryGame('${g.date}')">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+`;
 }
 
 window.deleteHistoryGame = function(date){
