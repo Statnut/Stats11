@@ -428,8 +428,13 @@ let state = JSON.parse(localStorage.getItem("hockeyState")) || {
   teams: {},
   rosters: {},
   game: null,
+  completedGames: [],
   clock: { seconds:1200, running:false, timer:null }
 };
+
+if(!state.completedGames){
+  state.completedGames = [];
+}
 
 function save(){ localStorage.setItem("hockeyState",JSON.stringify(state)); }
 
@@ -1016,6 +1021,17 @@ $("endGame").onclick = () => {
   if(!state.game) return;
 
   state.game.final=true;
+
+// Save completed game snapshot
+state.completedGames.push({
+  season: $("ngSeason").value,
+  home: state.game.home,
+  away: state.game.away,
+  score: {...state.game.score},
+  period: state.game.period,
+  date: new Date().toISOString()
+});
+
   state.clock.running=false;
   clearInterval(state.clock.timer);
 
@@ -2348,6 +2364,7 @@ ngSeason.onchange = () => {
 /* ---------- STANDINGS ENGINE ---------- */
 
 function calculateStandings(season){
+
   const teams = state.teams[season] || [];
 
   const table = {};
@@ -2365,14 +2382,17 @@ function calculateStandings(season){
     };
   });
 
-  if(state.game && state.game.final){
-    const home = state.game.home;
-    const away = state.game.away;
+  state.completedGames
+    .filter(g => g.season === season)
+    .forEach(g=>{
 
-    if(table[home] && table[away]){
+      const home = g.home;
+      const away = g.away;
 
-      const homeGoals = state.game.score.home;
-      const awayGoals = state.game.score.away;
+      if(!table[home] || !table[away]) return;
+
+      const homeGoals = g.score.home;
+      const awayGoals = g.score.away;
 
       table[home].gp++;
       table[away].gp++;
@@ -2383,7 +2403,7 @@ function calculateStandings(season){
       table[away].gf += awayGoals;
       table[away].ga += homeGoals;
 
-      const isOT = state.game.period >= 4;
+      const isOT = g.period >= 4;
 
       if(homeGoals > awayGoals){
         table[home].w++;
@@ -2406,11 +2426,14 @@ function calculateStandings(season){
           table[home].l++;
         }
       }
-    }
-  }
+
+    });
 
   return Object.values(table)
-    .sort((a,b)=> b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga));
+    .sort((a,b)=> 
+      b.pts - a.pts || 
+      (b.gf - b.ga) - (a.gf - a.ga)
+    );
 }
 
 function renderStandings(){
