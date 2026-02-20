@@ -2584,6 +2584,12 @@ html += `
 
   $("historyList").innerHTML = html;
 
+document.querySelectorAll(".history-click").forEach(el=>{
+  el.onclick = function(){
+    const date = this.dataset.date;
+    viewHistoryGame(date);
+  };
+});
 }
 
 window.deleteHistoryGame = function(date){
