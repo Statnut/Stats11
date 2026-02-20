@@ -1062,15 +1062,22 @@ const alreadySaved = state.completedGames.some(g =>
 
 if(!alreadySaved){
 
-  const snapshot = {
-    season: $("ngSeason").value,
-    home: state.game.home,
-    away: state.game.away,
-    score: {...state.game.score},
-    period: state.game.period,
-    date: new Date().toISOString()
-  };
+ renderBoxScore(); // ensure latest version rendered
 
+const boxClone = document.getElementById("boxScore").cloneNode(true);
+
+// remove buttons so history is read-only
+boxClone.querySelectorAll("button").forEach(btn=>btn.remove());
+
+const snapshot = {
+  season: $("ngSeason").value,
+  home: state.game.home,
+  away: state.game.away,
+  score: {...state.game.score},
+  period: state.game.period,
+  date: new Date().toISOString(),
+  boxHTML: boxClone.innerHTML
+};
   state.completedGames.push(snapshot);
 
   // mark this game as saved
@@ -2602,7 +2609,10 @@ window.viewHistoryGame = function(date){
 
   const formattedDate = new Date(game.date).toLocaleString();
 
-  let html = `
+ if(game.boxHTML){
+  $("historyBox").innerHTML = game.boxHTML;
+} else {
+  $("historyBox").innerHTML = `
     <div class="bs-header">
       <strong>${game.away} @ ${game.home}</strong>
       <div class="row">
@@ -2611,6 +2621,7 @@ window.viewHistoryGame = function(date){
       </div>
     </div>
   `;
+}
 
   $("historyBox").innerHTML = html;
 
