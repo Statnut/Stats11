@@ -842,9 +842,11 @@ $("startGame").onclick = () => {
   save();
   updateScore();
   setupGameSelectors();
-
 updateGameHeader();
 };
+
+alert("Game object created");
+document.getElementById("game").style.background = "yellow";
 
 // Manually activate Game tab
 document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
