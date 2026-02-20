@@ -1022,15 +1022,29 @@ $("endGame").onclick = () => {
 
   state.game.final=true;
 
-// Save completed game snapshot
-state.completedGames.push({
-  season: $("ngSeason").value,
-  home: state.game.home,
-  away: state.game.away,
-  score: {...state.game.score},
-  period: state.game.period,
-  date: new Date().toISOString()
-});
+// Prevent duplicate save
+const alreadySaved = state.completedGames.some(g =>
+  g.home === state.game.home &&
+  g.away === state.game.away &&
+  g.date === state.game._savedDate
+);
+
+if(!alreadySaved){
+
+  const snapshot = {
+    season: $("ngSeason").value,
+    home: state.game.home,
+    away: state.game.away,
+    score: {...state.game.score},
+    period: state.game.period,
+    date: new Date().toISOString()
+  };
+
+  state.completedGames.push(snapshot);
+
+  // mark this game as saved
+  state.game._savedDate = snapshot.date;
+}
 
   state.clock.running=false;
   clearInterval(state.clock.timer);
