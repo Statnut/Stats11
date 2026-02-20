@@ -480,10 +480,15 @@ function renderTeams(){
   (state.teams[teamSeason.value]||[]).forEach(t=>{
     const d=document.createElement("div");
     d.className="list-item";
+
 d.innerHTML = `
-  <span>${t.name} (${t.abbr})</span>
+  <span>
+    ${t.logo ? `<img src="${t.logo}" style="height:20px;vertical-align:middle;margin-right:6px;">` : ""}
+    ${t.name} (${t.abbr})
+  </span>
   <button class="smallbtn" onclick="uploadTeamLogo('${teamSeason.value}','${t.name.replace(/'/g,"\\'")}')">Logo</button>
 `;
+
     const del=document.createElement("button");
     del.textContent="Delete";
     del.onclick=()=>{
@@ -521,6 +526,7 @@ function uploadTeamLogo(season, teamName){
         team.logo = base64;
         save();
         renderTeams();
+        alert("Logo uploaded successfully.");
       }
     };
 
@@ -529,6 +535,7 @@ function uploadTeamLogo(season, teamName){
 
   input.click();
 }
+
 /* ---------- ROSTER ---------- */
 $("addPlayer").onclick = () => {
   const t=rosterTeam.value;
@@ -739,8 +746,11 @@ function rebuildFromEvents(){
 }
 
 function getTeamObject(teamName){
-  const season = ngSeason.value;
-  return (state.teams[season] || []).find(t => t.name === teamName);
+  for(const season of state.seasons){
+    const found = (state.teams[season] || []).find(t => t.name === teamName);
+    if(found) return found;
+  }
+  return null;
 }
 
 function updateGameHeader(){
@@ -2059,6 +2069,88 @@ function handleExportChoice(type){
   if(type === "pdf") exportBoxScorePDF();
   if(type === "csv") exportBoxScoreCSV();
 }
+
+/* ---------- ROSTER IMPORT / EXPORT ---------- */
+
+$("exportRosters").onclick = () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "hockey_rosters_backup.json";
+  a.click();
+
+  URL.revokeObjectURL(url);
+};
+
+$("importRosters").onclick = () => {
+  $("importFile").click();
+};
+
+$("importFile").onchange = (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    try{
+      const imported = JSON.parse(evt.target.result);
+      state = imported;
+      save();
+      renderSeasons();
+      renderTeams();
+      alert("Rosters imported successfully.");
+    } catch(err){
+      alert("Invalid JSON file.");
+    }
+  };
+  reader.readAsText(file);
+};
+
+$("importRosterCSV").onclick = () => {
+  $("importCSVFile").click();
+};
+
+$("importCSVFile").onchange = (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const team = rosterTeam.value;
+  if(!team){
+    alert("Select a roster team first.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    const lines = evt.target.result.split("\n");
+
+    lines.forEach(line=>{
+      line = line.replace(/"/g,"").trim();
+      if(!line) return;
+
+      const parts = line.split(",");
+      if(parts.length >= 3){
+        const number = parts[0].trim();
+        const name = parts[1].trim();
+        const pos = parts[2].trim();
+
+        state.rosters[team].push({
+          number,
+          name,
+          position: pos
+        });
+      }
+    });
+
+    save();
+    renderRoster();
+    alert("CSV imported successfully.");
+  };
+
+  reader.readAsText(file);
+};
 
 /* ---------- INIT ---------- */
 initTabs();
