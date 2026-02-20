@@ -415,6 +415,9 @@ th { background:#f0f0f0; }
 <section id="standings">
   <h3>Standings</h3>
   <select id="standingsSeason"></select>
+
+<button onclick="resetCompletedGames()">Reset All Game History</button>
+
   <div id="standingsTable"></div>
 </section>
 
@@ -2540,6 +2543,19 @@ function renderStandings(){
   html += `</table>`;
 
   $("standingsTable").innerHTML = html;
+}
+
+function resetCompletedGames(){
+  const ok = confirm("This will delete ALL completed games and reset standings. Continue?");
+  if(!ok) return;
+
+  state.completedGames = [];
+  save();
+
+  renderStandings();
+  renderHistory();
+
+  alert("All completed games cleared.");
 }
 
 /* ---------- GAME HISTORY ---------- */
