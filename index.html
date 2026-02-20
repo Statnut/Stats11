@@ -2163,6 +2163,16 @@ $("importCSVFile").onchange = (e) => {
 };
 
 /* ---------- INIT ---------- */
+document.addEventListener("DOMContentLoaded", function(){
+
+  console.log("DOM FULLY READY");
+
+  initTabs();
+  renderSeasons();
+  renderTeams();
+
+});
+
 initTabs();
 renderSeasons();
 renderTeams();
