@@ -796,18 +796,29 @@ function updateGameHeader(){
 }
 
 /* ---------- GAME ---------- */
+
 $("startGame").onclick = () => {
- alert("START GAME CLICKED");
-  if(!ngHome.value || !ngAway.value){
+
+  const homeTeam = $("ngHome").value;
+  const awayTeam = $("ngAway").value;
+  const homeGoalie = $("ngHomeG").value;
+  const awayGoalie = $("ngAwayG").value;
+
+  if(!homeTeam || !awayTeam){
     alert("Please select Home and Away teams.");
     return;
   }
 
-  state.game={
-    home:ngHome.value,
-    away:ngAway.value,
-    homeGoalie: ngHomeG.value || "",
-    awayGoalie: ngAwayG.value || "",
+  if(homeTeam === awayTeam){
+    alert("Home and Away teams cannot be the same.");
+    return;
+  }
+
+  state.game = {
+    home: homeTeam,
+    away: awayTeam,
+    homeGoalie: homeGoalie || "",
+    awayGoalie: awayGoalie || "",
 
     score:{home:0,away:0},
     shots:{home:0,away:0},
@@ -817,32 +828,36 @@ $("startGame").onclick = () => {
       away:{shotsAgainst:0,goalsAgainst:0,saves:0}
     },
 
-    playerStats: {
-      [ngHome.value]: initPlayerStats(ngHome.value),
-      [ngAway.value]: initPlayerStats(ngAway.value)
+    playerStats:{
+      [homeTeam]: initPlayerStats(homeTeam),
+      [awayTeam]: initPlayerStats(awayTeam)
     },
 
     penalties:[],
     goals:[],
     faceoffs:[],
-    events: [],
+    events:[],
 
     period:1,
     notes:"",
-    final:false
+    final:false,
+    boxFinalized:false
   };
 
-  state.clock.seconds=1200;
-  state.clock.running=false;
+  state.clock.seconds = 1200;
+  state.clock.running = false;
   clearInterval(state.clock.timer);
 
-  gameNotes.value="";
-  eventLog.innerHTML="";
+  $("gameNotes").value = "";
+  $("eventLog").innerHTML = "";
 
   save();
   updateScore();
   setupGameSelectors();
-updateGameHeader();
+  updateGameHeader();
+  renderEventLog();
+
+  document.querySelector('[data-tab="game"]').click();
 };
 
 document.querySelector('[data-tab="game"]').click();
