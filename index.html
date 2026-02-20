@@ -486,8 +486,17 @@ d.innerHTML = `
     ${t.logo ? `<img src="${t.logo}" style="height:20px;vertical-align:middle;margin-right:6px;">` : ""}
     ${t.name} (${t.abbr})
   </span>
+`;
 
-<button class="smallbtn" onclick="uploadTeamLogo('${teamSeason.value}','${t.name.replace(/'/g,"\\'")}')">Logo</button>
+const logoBtn = document.createElement("button");
+logoBtn.textContent = "Logo";
+logoBtn.className = "smallbtn";
+
+logoBtn.onclick = () => {
+  uploadTeamLogo(teamSeason.value, t.name);
+};
+
+d.appendChild(logoBtn);
 
     const del=document.createElement("button");
     del.textContent="Delete";
