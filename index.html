@@ -1640,6 +1640,28 @@ function calcPeriodGoals(){
   return {away, home};
 }
 
+function calcPeriodShots(){
+  if(!state.game) return {away:[0,0,0,0], home:[0,0,0,0]};
+
+  const away = [0,0,0,0]; // P1,P2,P3,OT
+  const home = [0,0,0,0];
+
+  (state.game.events||[]).forEach(ev=>{
+    if(ev.type !== "shot") return;
+
+    let idx = 0;
+    if(ev.period === 1) idx = 0;
+    else if(ev.period === 2) idx = 1;
+    else if(ev.period === 3) idx = 2;
+    else idx = 3; // OT+
+
+    if(ev.teamKey === "away") away[idx]++;
+    if(ev.teamKey === "home") home[idx]++;
+  });
+
+  return {away, home};
+}
+
 function renderBoxScore(){
   if(!state.game){
     boxScore.innerHTML="No game";
@@ -1727,6 +1749,38 @@ function renderBoxScore(){
       </tr>
     </table>
   `;
+
+const periodShots = calcPeriodShots();
+
+html += `
+  <h4 style="margin-top:14px;">Shots by Period</h4>
+  <table>
+    <tr>
+      <th>Team</th>
+      <th>1</th>
+      <th>2</th>
+      <th>3</th>
+      <th>OT</th>
+      <th>T</th>
+    </tr>
+    <tr>
+      <td>${state.game.away}</td>
+      <td>${periodShots.away[0]}</td>
+      <td>${periodShots.away[1]}</td>
+      <td>${periodShots.away[2]}</td>
+      <td>${periodShots.away[3]}</td>
+      <td><strong>${state.game.shots.away}</strong></td>
+    </tr>
+    <tr>
+      <td>${state.game.home}</td>
+      <td>${periodShots.home[0]}</td>
+      <td>${periodShots.home[1]}</td>
+      <td>${periodShots.home[2]}</td>
+      <td>${periodShots.home[3]}</td>
+      <td><strong>${state.game.shots.home}</strong></td>
+    </tr>
+  </table>
+`;
 
   if(state.game.goals && state.game.goals.length){
     html += `
