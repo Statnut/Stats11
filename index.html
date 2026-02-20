@@ -2277,18 +2277,64 @@ ngSeason.onchange = () => {
   renderTeams();
 };
 
-/* ---------- INIT ---------- */
-document.addEventListener("DOMContentLoaded", function(){
+/* ---------- AUTO RESUME GAME ---------- */
 
-  console.log("DOM FULLY READY");
+function checkForActiveGame(){
+  if(state.game && !state.game.final){
+    const banner = document.getElementById("resumeBanner");
+    if(banner) banner.style.display = "block";
+  }
+}
+
+function resumeGame(){
+  document.getElementById("resumeBanner").style.display = "none";
+
+  updateScore();
+  setupGameSelectors();
+  updateGameHeader();
+  renderEventLog();
+
+  document.querySelector('[data-tab="game"]').click();
+}
+
+function clearActiveGame(){
+  const ok = confirm("End and clear the current game?");
+  if(!ok) return;
+
+  state.game = null;
+  save();
+
+  document.getElementById("resumeBanner").style.display = "none";
+
+  document.querySelector('[data-tab="newgame"]').click();
+}
+
+/* ---------- INIT ---------- */
+
+document.addEventListener("DOMContentLoaded", function(){
 
   initTabs();
   renderSeasons();
   renderTeams();
 
+  checkForActiveGame();   // ← ADD THIS LINE
+
 });
 
 </script>
+
+<!-- RESUME GAME BANNER -->
+<div id="resumeBanner" style="
+  display:none;
+  background:#fff3cd;
+  border-bottom:1px solid #f5c6cb;
+  padding:10px;
+  text-align:center;
+">
+  <strong>Resume In-Progress Game?</strong><br>
+  <button onclick="resumeGame()" style="margin:6px 6px 0 0;">Resume Game</button>
+  <button onclick="clearActiveGame()">End & Clear</button>
+</div>
 
 <!-- EXPORT MODAL -->
 <div id="exportModal" style="
