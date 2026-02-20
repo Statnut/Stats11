@@ -790,6 +790,7 @@ function updateGameHeader(){
 
 /* ---------- GAME ---------- */
 $("startGame").onclick = () => {
+  console.log("START GAME CLICKED");
   if(!ngHome.value || !ngAway.value){
     alert("Please select Home and Away teams.");
     return;
