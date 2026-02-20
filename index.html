@@ -420,6 +420,12 @@ th { background:#f0f0f0; }
   <div id="historyList"></div>
 </section>
 
+<section id="historyView">
+  <h3>Game Summary</h3>
+  <div id="historyBox"></div>
+  <button onclick="closeHistoryView()">Back to History</button>
+</section>
+
 <script>
 const $ = id => document.getElementById(id);
 
@@ -2547,26 +2553,70 @@ function renderHistory(){
 
     const formattedDate = new Date(g.date).toLocaleDateString();
 
-    html += `
-      <div class="event-item">
-        <div class="event-row">
-          <div class="left">
-            <strong>${g.away} @ ${g.home}</strong><br>
-            ${g.score.away} - ${g.score.home}${otLabel}<br>
-            <span class="small-note">${formattedDate}</span>
-          </div>
-          <div class="right">
-            <button class="smallbtn" onclick="deleteHistoryGame('${g.date}')">Delete</button>
-          </div>
-        </div>
+html += `
+  <div class="event-item">
+    <div class="event-row">
+      <div class="left" style="cursor:pointer;"
+           onclick="viewHistoryGame('${g.date}')">
+        <strong>${g.away} @ ${g.home}</strong><br>
+        ${g.score.away} - ${g.score.home}${otLabel}<br>
+        <span class="small-note">${formattedDate}</span>
       </div>
-    `;
+      <div class="right">
+        <button class="smallbtn"
+                onclick="deleteHistoryGame('${g.date}')">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+`;
+
   });
 
   $("historyList").innerHTML = html;
 }
 
 window.deleteHistoryGame = function(date){
+
+/* ---------- HISTORY VIEWER ---------- */
+
+window.viewHistoryGame = function(date){
+
+  const game = state.completedGames.find(g => g.date === date);
+  if(!game) return;
+
+  const isOT = game.period >= 4;
+  const otLabel = isOT ? " (OT)" : "";
+
+  const formattedDate = new Date(game.date).toLocaleString();
+
+  let html = `
+    <div class="bs-header">
+      <strong>${game.away} @ ${game.home}</strong>
+      <div class="row">
+        <span>${game.score.away} - ${game.score.home}${otLabel}</span>
+        <span>${formattedDate}</span>
+      </div>
+    </div>
+  `;
+
+  $("historyBox").innerHTML = html;
+
+  document.querySelectorAll("section").forEach(s=>{
+    s.classList.remove("active");
+  });
+
+  $("historyView").classList.add("active");
+};
+
+function closeHistoryView(){
+  document.querySelectorAll("section").forEach(s=>{
+    s.classList.remove("active");
+  });
+
+  $("history").classList.add("active");
+}
 
   const ok = confirm("Delete this game? This will update standings.");
   if(!ok) return;
