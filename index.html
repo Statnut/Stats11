@@ -739,6 +739,7 @@ function updateDivisionDropdown(){
 function renderTeams(){
 populateTeamStructureDropdowns();
   teamList.innerHTML="";
+  updateDivisionDropdown();
   rosterTeam.innerHTML="";
   ngHome.innerHTML='<option value="">Home Team</option>';
   ngAway.innerHTML='<option value="">Away Team</option>';
@@ -781,7 +782,7 @@ d.appendChild(logoBtn);
   renderRoster();
 }
 teamSeason.onchange=renderTeams;
-
+$("teamConference").onchange = updateDivisionDropdown;
 function uploadTeamLogo(season, teamName){
   const input = document.createElement("input");
   input.type = "file";
