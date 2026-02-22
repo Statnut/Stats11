@@ -264,9 +264,14 @@ th { background:#f0f0f0; }
 <section id="teams">
   <h3>Teams</h3>
   <select id="teamSeason"></select>
+
+  <select id="teamConference"></select>
+  <select id="teamDivision"></select>
+
   <input id="teamName" placeholder="Team name">
   <input id="teamAbbr" placeholder="Abbr">
   <button id="addTeam">Add Team</button>
+
   <div id="teamList"></div>
 
   <h4>Roster</h4>
@@ -596,20 +601,91 @@ $("standingsSeason").onchange = renderStandings;
 renderStandings();
 
 /* ---------- TEAMS ---------- */
+
 $("addTeam").onclick = () => {
-  const s=teamSeason.value;
-  if(!s||!teamName.value) return;
- state.teams[s].push({
-  name: teamName.value,
-  abbr: teamAbbr.value,
-  logo: null
-});
-  state.rosters[teamName.value]=[];
-  teamName.value=teamAbbr.value="";
-  save(); renderTeams();
+  const s = teamSeason.value;
+  if(!s || !teamName.value) return;
+
+  const conference = $("teamConference").value;
+  const division = $("teamDivision").value;
+
+  if(!conference || !division || division === "No Divisions"){
+    alert("Select a valid Conference and Division.");
+    return;
+  }
+
+  state.teams[s].push({
+    name: teamName.value,
+    abbr: teamAbbr.value,
+    logo: null,
+    conference: conference,
+    division: division
+  });
+
+  state.rosters[teamName.value] = [];
+  teamName.value = teamAbbr.value = "";
+
+  save();
+  renderTeams();
 };
 
+function populateTeamStructureDropdowns(){
+  const season = $("teamSeason").value;
+  const confSelect = $("teamConference");
+  const divSelect = $("teamDivision");
+
+  confSelect.innerHTML = "";
+  divSelect.innerHTML = "";
+
+  if(!season || !state.structure[season]){
+    confSelect.innerHTML = "<option>No Conferences</option>";
+    divSelect.innerHTML = "<option>No Divisions</option>";
+    return;
+  }
+
+  const confs = state.structure[season].conferences;
+
+  const confNames = Object.keys(confs);
+
+  if(confNames.length === 0){
+    confSelect.innerHTML = "<option>No Conferences</option>";
+    divSelect.innerHTML = "<option>No Divisions</option>";
+    return;
+  }
+
+  confSelect.innerHTML = confNames
+    .map(c=>`<option>${c}</option>`)
+    .join("");
+
+  updateDivisionDropdown();
+
+  confSelect.onchange = updateDivisionDropdown;
+}
+
+function updateDivisionDropdown(){
+  const season = $("teamSeason").value;
+  const conf = $("teamConference").value;
+  const divSelect = $("teamDivision");
+
+  divSelect.innerHTML = "";
+
+  if(!season || !conf) return;
+
+  const divisions =
+    state.structure[season]?.conferences[conf]?.divisions || [];
+
+  if(divisions.length === 0){
+    divSelect.innerHTML = "<option>No Divisions</option>";
+    return;
+  }
+
+  divSelect.innerHTML = divisions
+    .map(d=>`<option>${d}</option>`)
+    .join("");
+}
+
 function renderTeams(){
+populateTeamStructureDropdowns();
   teamList.innerHTML="";
   rosterTeam.innerHTML="";
   ngHome.innerHTML='<option value="">Home Team</option>';
@@ -2780,6 +2856,19 @@ function addDivision(){
 }
 
 function deleteDivision(season, conf, division){
+
+  const teamsInDivision =
+    (state.teams[season] || [])
+      .filter(t =>
+        t.conference === conf &&
+        t.division === division
+      );
+
+  if(teamsInDivision.length > 0){
+    alert("Cannot delete division. Teams are assigned to it.");
+    return;
+  }
+
   const ok = confirm("Delete this division?");
   if(!ok) return;
 
