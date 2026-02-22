@@ -251,6 +251,12 @@ th { background:#f0f0f0; }
   <button onclick="addConference()">Add Conference</button>
 </div>
 
+<div style="margin-top:8px;">
+  <select id="divisionConfSelect"></select>
+  <input id="divisionName" placeholder="Division name">
+  <button onclick="addDivision()">Add Division</button>
+</div>
+
 <div id="conferenceList" style="margin-top:10px;"></div>
 
 </section>
@@ -2749,6 +2755,44 @@ function deleteConference(season, name){
   renderConferences();
 }
 
+function addDivision(){
+  const season = $("structureSeason").value;
+  const conf = $("divisionConfSelect").value;
+  const name = $("divisionName").value.trim();
+
+  if(!season || !conf || !name) return;
+
+  ensureSeasonStructure(season);
+
+  const confObj = state.structure[season].conferences[conf];
+  if(!confObj) return;
+
+  if(confObj.divisions.includes(name)){
+    alert("Division already exists.");
+    return;
+  }
+
+  confObj.divisions.push(name);
+
+  $("divisionName").value = "";
+  save();
+  renderConferences();
+}
+
+function deleteDivision(season, conf, division){
+  const ok = confirm("Delete this division?");
+  if(!ok) return;
+
+  const confObj = state.structure[season].conferences[conf];
+  if(!confObj) return;
+
+  confObj.divisions =
+    confObj.divisions.filter(d => d !== division);
+
+  save();
+  renderConferences();
+}
+
 function renderConferences(){
   const season = $("structureSeason").value;
   if(!season){
@@ -2768,16 +2812,47 @@ function renderConferences(){
 
   let html = "";
 
-  Object.keys(confs).forEach(name=>{
-    html += `
+ Object.keys(confs).forEach(name=>{
+
+  const divisions = confs[name].divisions || [];
+
+  html += `
+    <div style="border:1px solid #ddd;padding:8px;margin-bottom:6px;border-radius:6px;">
       <div class="list-item">
-        <span>${name}</span>
+        <strong>${name}</strong>
         <button onclick="deleteConference('${season}','${name}')">
           Delete
         </button>
       </div>
-    `;
-  });
+  `;
+
+  if(divisions.length === 0){
+    html += `<div class="small-note" style="margin-top:4px;">No divisions yet.</div>`;
+  } else {
+    divisions.forEach(div=>{
+      html += `
+        <div style="display:flex;justify-content:space-between;margin-left:12px;margin-top:4px;">
+          <span>- ${div}</span>
+          <button class="smallbtn"
+            onclick="deleteDivision('${season}','${name}','${div}')">
+            Delete
+          </button>
+        </div>
+      `;
+    });
+  }
+
+  html += `</div>`;
+});
+
+// Populate division conference dropdown
+const confSelect = $("divisionConfSelect");
+
+if(confSelect){
+  confSelect.innerHTML = Object.keys(confs)
+    .map(c=>`<option>${c}</option>`)
+    .join("");
+}
 
   $("conferenceList").innerHTML = html;
 }
