@@ -259,6 +259,28 @@ th { background:#f0f0f0; }
 
 <div id="conferenceList" style="margin-top:10px;"></div>
 
+<hr>
+
+<h4>Playoff Settings</h4>
+
+<select id="playoffSeason"></select>
+
+<div style="margin-top:8px;">
+  <label>Teams Per Conference</label>
+  <input id="teamsPerConference" type="number" min="2" step="2" value="4">
+</div>
+
+<div style="margin-top:8px;">
+  <label>Series Length (Best Of)</label>
+  <input id="seriesLength" type="number" min="1" step="2" value="7">
+</div>
+
+<button onclick="savePlayoffSettings()" style="margin-top:8px;">
+  Save Playoff Settings
+</button>
+
+<div id="playoffSettingsStatus" class="small-note" style="margin-top:6px;"></div>
+
 </section>
 
 <section id="teams">
@@ -557,6 +579,20 @@ if(ss2){
   }
 
   ss2.onchange = renderConferences;
+}
+
+const ps = $("playoffSeason");
+
+if(ps){
+  ps.innerHTML = state.seasons
+    .map(s=>`<option>${s}</option>`)
+    .join("");
+
+  if(state.seasons.length){
+    ps.value = state.seasons[0];
+  }
+
+  ps.onchange = loadPlayoffSettings;
 }
 
 if(state.seasons.length){
@@ -2959,6 +2995,61 @@ if(confSelect){
   $("conferenceList").innerHTML = html;
 }
 
+/* ---------- PLAYOFF SETTINGS ENGINE ---------- */
+
+function ensurePlayoffSettings(season){
+  if(!state.playoffSettings[season]){
+    state.playoffSettings[season] = {
+      teamsPerConference: 4,
+      seriesLength: 7
+    };
+  }
+}
+
+function savePlayoffSettings(){
+
+  const season = $("playoffSeason").value;
+  if(!season) return;
+
+  const teams = Number($("teamsPerConference").value);
+  const series = Number($("seriesLength").value);
+
+  if(teams < 2 || teams % 2 !== 0){
+    alert("Teams per conference must be an even number (2,4,6,8...).");
+    return;
+  }
+
+  if(series < 1 || series % 2 === 0){
+    alert("Series length must be an odd number (1,3,5,7...).");
+    return;
+  }
+
+  state.playoffSettings[season] = {
+    teamsPerConference: teams,
+    seriesLength: series
+  };
+
+  save();
+
+  $("playoffSettingsStatus").textContent =
+    "Playoff settings saved.";
+}
+
+function loadPlayoffSettings(){
+
+  const season = $("playoffSeason").value;
+  if(!season) return;
+
+  ensurePlayoffSettings(season);
+
+  const settings = state.playoffSettings[season];
+
+  $("teamsPerConference").value = settings.teamsPerConference;
+  $("seriesLength").value = settings.seriesLength;
+
+  $("playoffSettingsStatus").textContent = "";
+}
+
 /* ---------- INIT ---------- */
 document.addEventListener("DOMContentLoaded", function(){
 
@@ -2967,7 +3058,7 @@ document.addEventListener("DOMContentLoaded", function(){
   renderTeams();
   checkForActiveGame();
   renderConferences();
-
+  loadPlayoffSettings();
 });
 
 </script>
