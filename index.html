@@ -478,6 +478,7 @@ let state = JSON.parse(localStorage.getItem("hockeyState")) || {
   teams: {},
   rosters: {},
   structure: {},
+  playoffSettings: {},
   game: null,
   completedGames: [],
   clock: { seconds:1200, running:false, timer:null }
@@ -489,6 +490,10 @@ if(!state.completedGames){
 
 if(!state.structure){
   state.structure = {};
+}
+
+if(!state.playoffSettings){
+  state.playoffSettings = {};
 }
 
 function save(){ localStorage.setItem("hockeyState",JSON.stringify(state)); }
