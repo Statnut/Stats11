@@ -279,6 +279,12 @@ th { background:#f0f0f0; }
   Save Playoff Settings
 </button>
 
+<button onclick="generatePlayoffs()" style="margin-top:8px;">
+  Generate Playoffs
+</button>
+
+<div id="playoffGenerationStatus" class="small-note" style="margin-top:6px;"></div>
+
 <div id="playoffSettingsStatus" class="small-note" style="margin-top:6px;"></div>
 
 </section>
@@ -3053,6 +3059,78 @@ function loadPlayoffSettings(){
   $("seriesLength").value = settings.seriesLength;
 
   $("playoffSettingsStatus").textContent = "";
+}
+
+/* ---------- PLAYOFF GENERATION ENGINE ---------- */
+
+function generatePlayoffs(){
+
+  const season = $("playoffSeason").value;
+  if(!season) return;
+
+  if(state.playoffBrackets[season]){
+    alert("Playoffs already generated for this season.");
+    return;
+  }
+
+  const settings = state.playoffSettings[season];
+  if(!settings){
+    alert("Save playoff settings first.");
+    return;
+  }
+
+  const structure = state.structure[season];
+  if(!structure || !structure.conferences){
+    alert("No league structure defined.");
+    return;
+  }
+
+  const standings = calculateStandings(season);
+
+  const bracket = {};
+
+  Object.keys(structure.conferences).forEach(confName => {
+
+    const teamsInConference = standings.filter(t => {
+      const teamObj = (state.teams[season] || [])
+        .find(team => team.name === t.team);
+
+      return teamObj &&
+             teamObj.conference === confName;
+    });
+
+    if(teamsInConference.length < settings.teamsPerConference){
+      alert(`Not enough teams in ${confName} to generate playoffs.`);
+      return;
+    }
+
+    const qualified = teamsInConference
+      .slice(0, settings.teamsPerConference);
+
+    const matchups = [];
+
+    for(let i = 0; i < qualified.length / 2; i++){
+
+      matchups.push({
+        seed1: qualified[i].team,
+        seed2: qualified[qualified.length - 1 - i].team,
+        wins1: 0,
+        wins2: 0,
+        seriesLength: settings.seriesLength
+      });
+
+    }
+
+    bracket[confName] = matchups;
+
+  });
+
+  state.playoffBrackets[season] = bracket;
+
+  save();
+
+  $("playoffGenerationStatus").textContent =
+    "Playoffs generated (snapshot locked).";
 }
 
 /* ---------- INIT ---------- */
