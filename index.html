@@ -474,11 +474,6 @@ th { background:#f0f0f0; }
   <div id="standingsTable"></div>
 </section>
 
-<section id="playoffs">
-  <h3>Playoffs</h3>
-  <select id="playoffViewSeason"></select>
-  <div id="playoffBracket"></div>
-</section>
 
 <section id="history">
   <h3>Game History</h3>
@@ -646,17 +641,17 @@ if(hs && state.seasons.length){
   renderHistory();
 }
 
-const ps = $("playoffViewSeason");
+const pvs = $("playoffViewSeason");
 
-if(ps && state.seasons.length){
+if(pvs && state.seasons.length){
 
-  ps.innerHTML = state.seasons
+  pvs.innerHTML = state.seasons
     .map(s=>`<option>${s}</option>`)
     .join("");
 
-  ps.value = state.seasons[0];
+  pvs.value = state.seasons[0];
 
-  ps.onchange = renderPlayoffs;
+  pvs.onchange = renderPlayoffs;
 
   renderPlayoffs();
 }
