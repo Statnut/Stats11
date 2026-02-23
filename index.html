@@ -230,6 +230,8 @@ th { background:#f0f0f0; }
 
 <button data-tab="standings">Standings</button>
 
+<button data-tab="playoffs">Playoffs</button>
+
 <button data-tab="history">History</button>
 
 </nav>
@@ -286,6 +288,14 @@ th { background:#f0f0f0; }
 <div id="playoffGenerationStatus" class="small-note" style="margin-top:6px;"></div>
 
 <div id="playoffSettingsStatus" class="small-note" style="margin-top:6px;"></div>
+
+<section id="playoffs">
+  <h3>Playoffs</h3>
+
+  <select id="playoffViewSeason"></select>
+
+  <div id="playoffBracket"></div>
+</section>
 
 </section>
 
@@ -638,6 +648,21 @@ if(hs && state.seasons.length){
   hs.onchange = renderHistory;
 
   renderHistory();
+}
+
+const ps = $("playoffViewSeason");
+
+if(ps && state.seasons.length){
+
+  ps.innerHTML = state.seasons
+    .map(s=>`<option>${s}</option>`)
+    .join("");
+
+  ps.value = state.seasons[0];
+
+  ps.onchange = renderPlayoffs;
+
+  renderPlayoffs();
 }
 
 }
@@ -3132,6 +3157,86 @@ function generatePlayoffs(){
 
   $("playoffGenerationStatus").textContent =
     "Playoffs generated (snapshot locked).";
+}
+
+/* ---------- PLAYOFF BRACKET RENDER ---------- */
+
+function renderPlayoffs(){
+
+  const season = $("playoffViewSeason").value;
+  if(!season){
+    $("playoffBracket").innerHTML = "No season selected.";
+    return;
+  }
+
+  const bracket = state.playoffBrackets[season];
+
+  if(!bracket){
+    $("playoffBracket").innerHTML =
+      "<div class='small-note'>Playoffs not generated.</div>";
+    return;
+  }
+
+  let html = "";
+
+  Object.keys(bracket).forEach(conf => {
+
+    html += `<h4>${conf}</h4>`;
+
+    bracket[conf].forEach((series, index)=>{
+
+      const winner =
+        series.wins1 >= series.seriesLength/2 + 0.1
+          ? series.seed1 :
+        series.wins2 >= series.seriesLength/2 + 0.1
+          ? series.seed2 :
+          null;
+
+      html += `
+        <div class="event-item">
+          <strong>
+            ${series.seed1}
+            (${series.wins1})
+            vs
+            ${series.seed2}
+            (${series.wins2})
+          </strong>
+          ${winner ? `<div class="small-note">Winner: ${winner}</div>` : ""}
+          <div style="margin-top:6px;">
+            <button class="smallbtn"
+              onclick="addSeriesWin('${season}','${conf}',${index},1)">
+              +1 ${series.seed1}
+            </button>
+            <button class="smallbtn"
+              onclick="addSeriesWin('${season}','${conf}',${index},2)">
+              +1 ${series.seed2}
+            </button>
+          </div>
+        </div>
+      `;
+    });
+
+  });
+
+  $("playoffBracket").innerHTML = html;
+}
+
+function addSeriesWin(season, conf, index, teamNumber){
+
+  const series = state.playoffBrackets[season][conf][index];
+
+  const needed = Math.ceil(series.seriesLength / 2);
+
+  if(series.wins1 >= needed || series.wins2 >= needed){
+    alert("Series already decided.");
+    return;
+  }
+
+  if(teamNumber === 1) series.wins1++;
+  if(teamNumber === 2) series.wins2++;
+
+  save();
+  renderPlayoffs();
 }
 
 /* ---------- INIT ---------- */
