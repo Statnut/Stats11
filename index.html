@@ -3239,17 +3239,18 @@ if(bracket.champion){
               (${series.wins2})
             </strong>
             ${winner ? `<div class="small-note">Winner: ${winner}</div>` : ""}
-            <div style="margin-top:6px;">
-              <button class="smallbtn"
-                onclick="addSeriesWin('${season}','${conf}',${roundIndex},${seriesIndex},1)">
-                +1 ${series.seed1}
-              </button>
-              <button class="smallbtn"
-                onclick="addSeriesWin('${season}','${conf}',${roundIndex},${seriesIndex},2)">
-                +1 ${series.seed2}
-              </button>
-            </div>
-          </div>
+          ${bracket.champion ? "" : `
+  <div style="margin-top:6px;">
+    <button class="smallbtn"
+      onclick="addSeriesWin('${season}','${conf}',${roundIndex},${seriesIndex},1)">
+      +1 ${series.seed1}
+    </button>
+    <button class="smallbtn"
+      onclick="addSeriesWin('${season}','${conf}',${roundIndex},${seriesIndex},2)">
+      +1 ${series.seed2}
+    </button>
+  </div>
+`}
         `;
       });
 
@@ -3261,6 +3262,10 @@ if(bracket.champion){
 }
 
 function addSeriesWin(season, conf, roundIndex, seriesIndex, teamNumber){
+
+if(state.playoffBrackets[season]?.champion){
+  return;
+}
 
   const series =
     state.playoffBrackets[season][conf].rounds[roundIndex][seriesIndex];
@@ -3377,6 +3382,9 @@ function checkForChampion(season){
 
   if(series.wins1 >= needed){
     state.playoffBrackets[season].champion = series.seed1;
+
+state.playoffBrackets[season].locked = true;
+
   }
   else if(series.wins2 >= needed){
     state.playoffBrackets[season].champion = series.seed2;
