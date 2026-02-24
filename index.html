@@ -3221,14 +3221,13 @@ function addSeriesWin(season, conf, index, teamNumber){
 }
 
 /* ---------- INIT ---------- */
+
 document.addEventListener("DOMContentLoaded", function(){
 
   initTabs();
-  renderSeasons();
-  renderTeams();
+  renderSeasons();   // this now drives everything
   checkForActiveGame();
-  renderConferences();
-  loadPlayoffSettings();
+
 });
 
 </script>
