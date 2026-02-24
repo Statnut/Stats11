@@ -3188,6 +3188,18 @@ function renderPlayoffs(){
 
   const bracket = state.playoffBrackets[season];
 
+if(bracket.champion){
+  $("playoffBracket").innerHTML = `
+    <h2 style="margin-top:20px;">
+      🏆 ${season} Champion
+    </h2>
+    <div style="font-size:20px; font-weight:700;">
+      ${bracket.champion}
+    </div>
+  `;
+  return;
+}
+
   if(!bracket){
     $("playoffBracket").innerHTML =
       "<div class='small-note'>Playoffs not generated.</div>";
@@ -3264,6 +3276,11 @@ function addSeriesWin(season, conf, roundIndex, seriesIndex, teamNumber){
   if(teamNumber === 2) series.wins2++;
 
  tryAdvanceRound(season, conf);
+
+if(conf === "Finals"){
+  checkForChampion(season);
+}
+
 save();
 renderPlayoffs();
 }
@@ -3272,11 +3289,9 @@ function tryAdvanceRound(season, conf){
 
   const confData = state.playoffBrackets[season][conf];
   const rounds = confData.rounds;
-
   const currentRound = rounds[rounds.length - 1];
 
   const neededWins = Math.ceil(currentRound[0].seriesLength / 2);
-
   const winners = [];
 
   // Check if every series has a winner
@@ -3289,17 +3304,16 @@ function tryAdvanceRound(season, conf){
       winners.push(series.seed2);
     }
     else{
-      return; // A series is not finished yet
+      return; // Series not finished
     }
   }
 
-  // If only one winner remains → conference champion
+  // If only one winner → conference champion
   if(winners.length === 1){
-    return; // Finals logic later
-  }
 
-  // Prevent duplicate next round creation
-  if(rounds.length > 1 && rounds[rounds.length - 1] !== currentRound){
+    confData.champion = winners[0];
+
+    tryCreateFinals(season);
     return;
   }
 
@@ -3317,6 +3331,56 @@ function tryAdvanceRound(season, conf){
   }
 
   rounds.push(nextRound);
+}
+
+function tryCreateFinals(season){
+
+  const bracket = state.playoffBrackets[season];
+
+  const conferences = Object.keys(bracket)
+    .filter(c => c !== "Finals");
+
+  // Ensure every conference has a champion
+  const champs = [];
+
+  for(const conf of conferences){
+    if(!bracket[conf].champion){
+      return;
+    }
+    champs.push(bracket[conf].champion);
+  }
+
+  // Already created?
+  if(bracket.Finals){
+    return;
+  }
+
+  // Create Finals
+  bracket.Finals = {
+    rounds: [[{
+      seed1: champs[0],
+      seed2: champs[1],
+      wins1: 0,
+      wins2: 0,
+      seriesLength: bracket[conferences[0]].rounds[0][0].seriesLength
+    }]]
+  };
+}
+
+function checkForChampion(season){
+
+  const finals = state.playoffBrackets[season].Finals;
+  if(!finals) return;
+
+  const series = finals.rounds[0][0];
+  const needed = Math.ceil(series.seriesLength / 2);
+
+  if(series.wins1 >= needed){
+    state.playoffBrackets[season].champion = series.seed1;
+  }
+  else if(series.wins2 >= needed){
+    state.playoffBrackets[season].champion = series.seed2;
+  }
 }
 
 /* ---------- INIT ---------- */
