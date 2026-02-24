@@ -4,12 +4,22 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hockey Stat Sheet v1.25</title>
+<title>Hockey Stat Sheet v1.30</title>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 
 <style>
-body { font-family: system-ui; margin: 0; background:#fff; }
+body {
+  font-family: system-ui;
+  margin: 0;
+  background: #eaf6ff; /* light ice blue */
+}
+section {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(2px);
+  border-radius: 8px;
+  margin: 8px;
+}
 nav { display: flex; background: #111; color: white; }
 nav button { flex: 1; padding: 12px; border: none; background: none; color: white; font-size:14px; }
 nav button.active { background: #333; }
@@ -209,6 +219,30 @@ th { background:#f0f0f0; }
 .team-header {
   display: inline-flex;
   align-items: center;
+}
+
+.bracket-container {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  padding: 12px 0;
+}
+
+.bracket-round {
+  min-width: 220px;
+}
+
+.bracket-series {
+  background: #ffffff;
+  border: 1px solid #cfd8dc;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.bracket-series strong {
+  display: block;
 }
 
 /* Mobile tighten */
@@ -3134,13 +3168,15 @@ if(
 
     for(let i = 0; i < qualified.length / 2; i++){
 
-      matchups.push({
-        seed1: qualified[i].team,
-        seed2: qualified[qualified.length - 1 - i].team,
-        wins1: 0,
-        wins2: 0,
-        seriesLength: settings.seriesLength
-      });
+     matchups.push({
+  seed1: qualified[i].team,
+  seed2: qualified[qualified.length - 1 - i].team,
+  seedNum1: i + 1,
+  seedNum2: qualified.length - i,
+  wins1: 0,
+  wins2: 0,
+  seriesLength: settings.seriesLength
+});
 
     }
 
@@ -3217,54 +3253,55 @@ if(bracket.champion){
     <h3 style="margin-top:0;">${conf}</h3>
 `;
 
-    const rounds = bracket[conf].rounds;
+   html += `<div class="bracket-container">`;
 
-    rounds.forEach((round, roundIndex)=>{
+rounds.forEach((round, roundIndex)=>{
 
+  html += `<div class="bracket-round">`;
+  html += `<h4>Round ${roundIndex + 1}</h4>`;
 
-      html += `<h4 style="margin-top:12px;">Round ${roundIndex + 1}</h4>`;
+  round.forEach((series, seriesIndex)=>{
 
-      round.forEach((series, seriesIndex)=>{
+    const needed = Math.ceil(series.seriesLength / 2);
 
-        const needed = Math.ceil(series.seriesLength / 2);
+    const winner =
+      series.wins1 >= needed
+        ? series.seed1 :
+      series.wins2 >= needed
+        ? series.seed2 :
+        null;
 
-        const winner =
-          series.wins1 >= needed
-            ? series.seed1 :
-          series.wins2 >= needed
-            ? series.seed2 :
-            null;
+    html += `
+      <div class="bracket-series">
+        <strong>
+          (${series.seedNum1}) ${series.seed1} (${series.wins1})
+        </strong>
+        <strong>
+          (${series.seedNum2}) ${series.seed2} (${series.wins2})
+        </strong>
 
-       html += `
-  <div class="event-item">
-    <strong>
-      ${series.seed1}
-      (${series.wins1})
-      vs
-      ${series.seed2}
-      (${series.wins2})
-    </strong>
+        ${winner ? `<div class="small-note">Winner: ${winner}</div>` : ""}
 
-    ${winner ? `<div class="small-note">Winner: ${winner}</div>` : ""}
-
-    ${bracket.champion ? "" : `
-      <div style="margin-top:6px;">
-        <button class="smallbtn"
-          onclick="addSeriesWin('${season}','${conf}',${roundIndex},${seriesIndex},1)">
-          +1 ${series.seed1}
-        </button>
-        <button class="smallbtn"
-          onclick="addSeriesWin('${season}','${conf}',${roundIndex},${seriesIndex},2)">
-          +1 ${series.seed2}
-        </button>
+        ${bracket.champion ? "" : `
+          <div style="margin-top:6px;">
+            <button class="smallbtn"
+              onclick="addSeriesWin('${season}','${conf}',${roundIndex},${seriesIndex},1)">
+              +1
+            </button>
+            <button class="smallbtn"
+              onclick="addSeriesWin('${season}','${conf}',${roundIndex},${seriesIndex},2)">
+              +1
+            </button>
+          </div>
+        `}
       </div>
-    `}
+    `;
+  });
 
-  </div>
-`;
-      });
+  html += `</div>`;
+});
 
-    });
+html += `</div>`;
 
 html += `</div>`;
 
