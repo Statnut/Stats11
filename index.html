@@ -3250,34 +3250,38 @@ function tryAdvanceRound(season, conf){
 
   const currentRound = rounds[rounds.length - 1];
 
+  const neededWins = Math.ceil(currentRound[0].seriesLength / 2);
+
   const winners = [];
 
-  const needed = series => Math.ceil(series.seriesLength / 2);
+  // Check if every series has a winner
+  for(const series of currentRound){
 
-  // Collect winners
-  currentRound.forEach(series => {
-    if(series.wins1 >= needed(series)){
+    if(series.wins1 >= neededWins){
       winners.push(series.seed1);
-    } else if(series.wins2 >= needed(series)){
+    }
+    else if(series.wins2 >= neededWins){
       winners.push(series.seed2);
     }
-  });
+    else{
+      return; // A series is not finished yet
+    }
+  }
 
-  // If not all series decided, stop
-  if(winners.length !== currentRound.length){
+  // If only one winner remains → conference champion
+  if(winners.length === 1){
+    return; // Finals logic later
+  }
+
+  // Prevent duplicate next round creation
+  if(rounds.length > 1 && rounds[rounds.length - 1] !== currentRound){
     return;
   }
 
-  // If only 1 winner left → Conference Champion
-  if(winners.length === 1){
-    return; // Finals logic comes next phase
-  }
-
-  // Create next round
+  // Build next round
   const nextRound = [];
 
   for(let i = 0; i < winners.length / 2; i++){
-
     nextRound.push({
       seed1: winners[i],
       seed2: winners[winners.length - 1 - i],
@@ -3285,12 +3289,9 @@ function tryAdvanceRound(season, conf){
       wins2: 0,
       seriesLength: currentRound[0].seriesLength
     });
-
   }
 
   rounds.push(nextRound);
-
-  save();
 }
 
 /* ---------- INIT ---------- */
