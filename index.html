@@ -3208,7 +3208,9 @@ if(bracket.champion){
 
   let html = "";
 
-  Object.keys(bracket).forEach(conf => {
+ Object.keys(bracket)
+  .filter(conf => bracket[conf]?.rounds)
+  .forEach(conf => {
 
     html += `<h3 style="margin-top:18px;">${conf}</h3>`;
 
