@@ -3238,8 +3238,59 @@ function addSeriesWin(season, conf, roundIndex, seriesIndex, teamNumber){
   if(teamNumber === 1) series.wins1++;
   if(teamNumber === 2) series.wins2++;
 
+ tryAdvanceRound(season, conf);
+save();
+renderPlayoffs();
+}
+
+function tryAdvanceRound(season, conf){
+
+  const confData = state.playoffBrackets[season][conf];
+  const rounds = confData.rounds;
+
+  const currentRound = rounds[rounds.length - 1];
+
+  const winners = [];
+
+  const needed = series => Math.ceil(series.seriesLength / 2);
+
+  // Collect winners
+  currentRound.forEach(series => {
+    if(series.wins1 >= needed(series)){
+      winners.push(series.seed1);
+    } else if(series.wins2 >= needed(series)){
+      winners.push(series.seed2);
+    }
+  });
+
+  // If not all series decided, stop
+  if(winners.length !== currentRound.length){
+    return;
+  }
+
+  // If only 1 winner left → Conference Champion
+  if(winners.length === 1){
+    return; // Finals logic comes next phase
+  }
+
+  // Create next round
+  const nextRound = [];
+
+  for(let i = 0; i < winners.length / 2; i++){
+
+    nextRound.push({
+      seed1: winners[i],
+      seed2: winners[winners.length - 1 - i],
+      wins1: 0,
+      wins2: 0,
+      seriesLength: currentRound[0].seriesLength
+    });
+
+  }
+
+  rounds.push(nextRound);
+
   save();
-  renderPlayoffs();
 }
 
 /* ---------- INIT ---------- */
