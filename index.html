@@ -3235,28 +3235,33 @@ if(bracket.champion){
             ? series.seed2 :
             null;
 
-        html += `
-          <div class="event-item">
-            <strong>
-              ${series.seed1}
-              (${series.wins1})
-              vs
-              ${series.seed2}
-              (${series.wins2})
-            </strong>
-            ${winner ? `<div class="small-note">Winner: ${winner}</div>` : ""}
-          ${bracket.champion ? "" : `
-  <div style="margin-top:6px;">
-    <button class="smallbtn"
-      onclick="addSeriesWin('${season}','${conf}',${roundIndex},${seriesIndex},1)">
-      +1 ${series.seed1}
-    </button>
-    <button class="smallbtn"
-      onclick="addSeriesWin('${season}','${conf}',${roundIndex},${seriesIndex},2)">
-      +1 ${series.seed2}
-    </button>
+       html += `
+  <div class="event-item">
+    <strong>
+      ${series.seed1}
+      (${series.wins1})
+      vs
+      ${series.seed2}
+      (${series.wins2})
+    </strong>
+
+    ${winner ? `<div class="small-note">Winner: ${winner}</div>` : ""}
+
+    ${bracket.champion ? "" : `
+      <div style="margin-top:6px;">
+        <button class="smallbtn"
+          onclick="addSeriesWin('${season}','${conf}',${roundIndex},${seriesIndex},1)">
+          +1 ${series.seed1}
+        </button>
+        <button class="smallbtn"
+          onclick="addSeriesWin('${season}','${conf}',${roundIndex},${seriesIndex},2)">
+          +1 ${series.seed2}
+        </button>
+      </div>
+    `}
+
   </div>
-`}
+`;
         `;
       });
 
