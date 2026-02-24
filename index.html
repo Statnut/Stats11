@@ -3212,11 +3212,16 @@ if(bracket.champion){
   .filter(conf => bracket[conf]?.rounds)
   .forEach(conf => {
 
-    html += `<h3 style="margin-top:18px;">${conf}</h3>`;
+   html += `
+  <div style="border:2px solid #ccc; padding:12px; margin-bottom:18px; border-radius:8px;">
+    <h3 style="margin-top:0;">${conf}</h3>
+`;
 
     const rounds = bracket[conf].rounds;
 
     rounds.forEach((round, roundIndex)=>{
+
+html += `</div>`;
 
       html += `<h4 style="margin-top:12px;">Round ${roundIndex + 1}</h4>`;
 
