@@ -285,6 +285,10 @@ th { background:#f0f0f0; }
   Generate Playoffs
 </button>
 
+<button onclick="resetPlayoffs()" style="margin-top:8px;">
+  Reset Playoffs
+</button>
+
 <div id="playoffGenerationStatus" class="small-note" style="margin-top:6px;"></div>
 
 <div id="playoffSettingsStatus" class="small-note" style="margin-top:6px;"></div>
@@ -3084,10 +3088,13 @@ function generatePlayoffs(){
   const season = $("playoffSeason").value;
   if(!season) return;
 
-  if(state.playoffBrackets[season]){
-    alert("Playoffs already generated for this season.");
-    return;
-  }
+if(
+  state.playoffBrackets[season] &&
+  Object.keys(state.playoffBrackets[season]).length > 0
+){
+  alert("Playoffs already generated for this season.");
+  return;
+}
 
   const settings = state.playoffSettings[season];
   if(!settings){
@@ -3149,6 +3156,24 @@ function generatePlayoffs(){
 
   $("playoffGenerationStatus").textContent =
     "Playoffs generated (snapshot locked).";
+}
+
+function resetPlayoffs(){
+
+  const season = $("playoffSeason").value;
+  if(!season) return;
+
+  const ok = confirm("Delete playoff bracket for this season?");
+  if(!ok) return;
+
+  delete state.playoffBrackets[season];
+
+  save();
+
+  $("playoffGenerationStatus").textContent =
+    "Playoffs reset.";
+
+  renderPlayoffs();
 }
 
 /* ---------- PLAYOFF BRACKET RENDER ---------- */
