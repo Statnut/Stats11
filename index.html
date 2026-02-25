@@ -333,6 +333,10 @@ th { background:#f0f0f0; }
   <h3>Teams</h3>
   <select id="teamSeason"></select>
 
+<button onclick="alert(JSON.stringify(state.seasonStats,null,2))">
+  Debug Season Stats
+</button>
+
   <select id="teamConference"></select>
   <select id="teamDivision"></select>
 
@@ -558,11 +562,16 @@ let state = JSON.parse(localStorage.getItem("hockeyState")) || {
   playoffBrackets: {},
   game: null,
   completedGames: [],
+  seasonStats: {},
   clock: { seconds:1200, running:false, timer:null }
 };
 
 if(!state.completedGames){
   state.completedGames = [];
+}
+
+if(!state.seasonStats){
+  state.seasonStats = {};
 }
 
 if(!state.structure){
@@ -1313,6 +1322,10 @@ const snapshot = {
 };
 
   state.completedGames.push(snapshot);
+
+if(state.game.gameType === "Regular"){
+  updateSeasonStatsFromGame(snapshot.season);
+}
 
   // mark this game as saved
   state.game._savedDate = snapshot.date;
@@ -2812,6 +2825,120 @@ function resetCompletedGames(){
   renderHistory();
 
   alert("All completed games cleared.");
+}
+
+function updateSeasonStatsFromGame(season){
+
+  if(!state.game) return;
+
+  if(!state.seasonStats[season]){
+    state.seasonStats[season] = {};
+  }
+
+  if(!state.seasonStats[season]._goalies){
+    state.seasonStats[season]._goalies = {};
+  }
+
+  const teams = ["home","away"];
+
+  teams.forEach(teamKey=>{
+
+    const teamName = state.game[teamKey];
+
+    if(!state.seasonStats[season][teamName]){
+      state.seasonStats[season][teamName] = {};
+    }
+
+    const teamStats = state.seasonStats[season][teamName];
+    const playerStats = state.game.playerStats[teamName];
+
+    // ---------------- SKATERS ----------------
+    Object.keys(playerStats).forEach(playerName=>{
+
+      if(!teamStats[playerName]){
+        teamStats[playerName] = {
+          gp:0,
+          goals:0,
+          assists:0,
+          points:0,
+          shots:0,
+          pim:0,
+          fow:0,
+          fol:0
+        };
+      }
+
+      const ps = playerStats[playerName];
+      const seasonPlayer = teamStats[playerName];
+
+      seasonPlayer.gp++;
+      seasonPlayer.goals += ps.goals || 0;
+      seasonPlayer.assists += ps.assists || 0;
+      seasonPlayer.points += (ps.goals||0)+(ps.assists||0);
+      seasonPlayer.shots += ps.shots || 0;
+      seasonPlayer.pim += ps.pim || 0;
+      seasonPlayer.fow += ps.fow || 0;
+      seasonPlayer.fol += ps.fol || 0;
+    });
+
+    // ---------------- GOALIES ----------------
+    const goalieName =
+      teamKey==="home"
+        ? state.game.homeGoalie
+        : state.game.awayGoalie;
+
+    if(goalieName){
+
+      if(!state.seasonStats[season]._goalies[goalieName]){
+        state.seasonStats[season]._goalies[goalieName] = {
+          team: teamName,
+          gp:0,
+          wins:0,
+          losses:0,
+          ot:0,
+          shotsAgainst:0,
+          goalsAgainst:0,
+          saves:0,
+          shutouts:0
+        };
+      }
+
+      const gsSeason =
+        state.seasonStats[season]._goalies[goalieName];
+
+      const gsGame =
+        state.game.goalieStats[teamKey];
+
+      gsSeason.gp++;
+      gsSeason.shotsAgainst += gsGame.shotsAgainst||0;
+      gsSeason.goalsAgainst += gsGame.goalsAgainst||0;
+      gsSeason.saves += gsGame.saves||0;
+
+      const homeScore = state.game.score.home;
+      const awayScore = state.game.score.away;
+      const isOT = state.game.period >= 4;
+
+      if(teamKey==="home"){
+        if(homeScore>awayScore) gsSeason.wins++;
+        else if(isOT) gsSeason.ot++;
+        else gsSeason.losses++;
+      } else {
+        if(awayScore>homeScore) gsSeason.wins++;
+        else if(isOT) gsSeason.ot++;
+        else gsSeason.losses++;
+      }
+
+      if(
+        (teamKey==="home" && awayScore===0) ||
+        (teamKey==="away" && homeScore===0)
+      ){
+        gsSeason.shutouts++;
+      }
+    }
+
+  });
+
+  save();
 }
 
 /* ---------- GAME HISTORY ---------- */
