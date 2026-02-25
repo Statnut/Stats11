@@ -376,6 +376,11 @@ th { background:#f0f0f0; }
   </select>
   <button id="addPlayer">Add Player</button>
   <div id="rosterList"></div>
+
+<hr>
+<h4>Season Totals</h4>
+<div id="teamSeasonStats"></div>
+
 </section>
 
 <section id="newgame">
@@ -843,7 +848,10 @@ d.appendChild(logoBtn);
 
   renderRoster();
 }
-teamSeason.onchange=renderTeams;
+teamSeason.onchange = () => {
+  renderTeams();
+  renderTeamSeasonStats();
+};
 $("teamConference").onchange = updateDivisionDropdown;
 function uploadTeamLogo(season, teamName){
   const input = document.createElement("input");
@@ -903,8 +911,13 @@ function renderRoster(){
     };
     d.appendChild(del); rosterList.appendChild(d);
   });
+renderTeamSeasonStats();
 }
-rosterTeam.onchange=renderRoster;
+
+rosterTeam.onchange = () => {
+  renderRoster();
+  renderTeamSeasonStats();
+};
 
 /* ---------- GOALIES ---------- */
 function populateGoalies(team, sel){
@@ -2664,6 +2677,123 @@ ngSeason.onchange = () => {
   teamSeason.value = ngSeason.value;
   renderTeams();
 };
+
+function renderTeamSeasonStats(){
+
+  const season = $("teamSeason").value;
+  const team = $("rosterTeam").value;
+
+  const container = $("teamSeasonStats");
+
+  if(!season || !team){
+    container.innerHTML = "";
+    return;
+  }
+
+  const seasonData = state.seasonStats?.[season]?.[team];
+
+  if(!seasonData){
+    container.innerHTML = "<div class='small-note'>No games recorded.</div>";
+    return;
+  }
+
+  let html = "";
+
+  // ---------- SKATERS ----------
+  html += `
+    <h4>Skaters</h4>
+    <table>
+      <tr>
+        <th>Player</th>
+        <th>GP</th>
+        <th>G</th>
+        <th>A</th>
+        <th>PTS</th>
+        <th>SOG</th>
+        <th>PIM</th>
+        <th>FOW</th>
+        <th>FOL</th>
+        <th>FO%</th>
+      </tr>
+  `;
+
+  Object.keys(seasonData).forEach(player=>{
+    if(player === "_goalies") return;
+
+    const p = seasonData[player];
+    const pts = p.goals + p.assists;
+    const totalFO = p.fow + p.fol;
+    const foPct = totalFO > 0 ? ((p.fow / totalFO) * 100).toFixed(1) : "0.0";
+
+    html += `
+      <tr>
+        <td>${player}</td>
+        <td>${p.gp}</td>
+        <td>${p.goals}</td>
+        <td>${p.assists}</td>
+        <td><strong>${pts}</strong></td>
+        <td>${p.shots}</td>
+        <td>${p.pim}</td>
+        <td>${p.fow}</td>
+        <td>${p.fol}</td>
+        <td>${foPct}</td>
+      </tr>
+    `;
+  });
+
+  html += `</table>`;
+
+  // ---------- GOALIES ----------
+  const goalies = state.seasonStats?.[season]?._goalies || {};
+
+  const teamGoalies = Object.values(goalies)
+    .filter(g => g.team === team);
+
+  if(teamGoalies.length){
+
+    html += `
+      <h4 style="margin-top:16px;">Goalies</h4>
+      <table>
+        <tr>
+          <th>Goalie</th>
+          <th>GP</th>
+          <th>W</th>
+          <th>L</th>
+          <th>OT</th>
+          <th>SA</th>
+          <th>GA</th>
+          <th>Saves</th>
+          <th>SV%</th>
+          <th>SO</th>
+        </tr>
+    `;
+
+    teamGoalies.forEach(g=>{
+      const svPct = g.shotsAgainst > 0
+        ? (g.saves / g.shotsAgainst).toFixed(3)
+        : "0.000";
+
+      html += `
+        <tr>
+          <td>${Object.keys(goalies).find(k=>goalies[k]===g)}</td>
+          <td>${g.gp}</td>
+          <td>${g.wins}</td>
+          <td>${g.losses}</td>
+          <td>${g.ot}</td>
+          <td>${g.shotsAgainst}</td>
+          <td>${g.goalsAgainst}</td>
+          <td>${g.saves}</td>
+          <td>${svPct}</td>
+          <td>${g.shutouts}</td>
+        </tr>
+      `;
+    });
+
+    html += `</table>`;
+  }
+
+  container.innerHTML = html;
+}
 
 /* ---------- STANDINGS ENGINE ---------- */
 
