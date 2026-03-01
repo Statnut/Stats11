@@ -556,6 +556,7 @@ const penaltyTypes = {
 
 let state = JSON.parse(localStorage.getItem("hockeyState")) || {
   seasons: [],
+  seasonRules: {},
   teams: {},
   rosters: {},
   structure: {},
@@ -587,6 +588,10 @@ if(!state.playoffBrackets){
   state.playoffBrackets = {};
 }
 
+if(!state.seasonRules){
+  state.seasonRules = {};
+}
+
 function save(){ localStorage.setItem("hockeyState",JSON.stringify(state)); }
 
 /* ---------- GAME SUBTABS ---------- */
@@ -611,6 +616,8 @@ $("addSeason").onclick = () => {
   if(!state.seasons.includes(seasonName.value)){
     state.seasons.push(seasonName.value);
     state.teams[seasonName.value]=[];
+createDefaultSeasonRules(seasonName.value);
+
   }
   seasonName.value="";
   save(); renderSeasons();
@@ -713,6 +720,29 @@ if(pvs && state.seasons.length){
   renderPlayoffs();
 }
 
+function createDefaultSeasonRules(season){
+
+  if(state.seasonRules[season]) return;
+
+  state.seasonRules[season] = {
+    regular: {
+      regulationMinutes: 20,
+      overtimeMinutes: 5,
+      overtimeType: "3v3",
+      shootoutEnabled: true,
+      otLossPoint: true
+    },
+    playoffs: {
+      regulationMinutes: 20,
+      overtimeMinutes: 20,
+      overtimeType: "5v5",
+      shootoutEnabled: false,
+      otLossPoint: false,
+      continuousOT: true
+    }
+  };
+
+  save();
 }
 
 /* ---------- TEAMS ---------- */
