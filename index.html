@@ -742,6 +742,24 @@ function createDefaultSeasonRules(season){
     }
   };
 
+function getCurrentGameRules(){
+
+  if(!state.game) return null;
+
+  const season = state.game.season;
+  const gameType = state.game.gameType;
+
+  if(!state.seasonRules[season]){
+    createDefaultSeasonRules(season);
+  }
+
+  if(gameType === "Playoff"){
+    return state.seasonRules[season].playoffs;
+  }
+
+  return state.seasonRules[season].regular;
+}
+
   save();
 }
 
@@ -1181,6 +1199,7 @@ $("startGame").onclick = () => {
   }
 
   state.game = {
+    season: $("ngSeason").value,
     home: homeTeam,
     away: awayTeam,
     homeGoalie: homeGoalie || "",
