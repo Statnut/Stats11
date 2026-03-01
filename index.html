@@ -1235,8 +1235,7 @@ gameType: $("ngGameType").value === "Playoff"
     boxFinalized:false
   };
 
-  const rules = getCurrentGameRules();
-state.clock.seconds = rules.regulationMinutes * 60;
+ state.clock.seconds = 1200;
   state.clock.running = false;
   clearInterval(state.clock.timer);
 
