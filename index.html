@@ -2435,33 +2435,36 @@ window.editGoalieStats = function(teamKey){
 
 function initTabs(){
 
-  const buttons = document.querySelectorAll("nav button");
+  const nav = document.querySelector("nav");
 
-  buttons.forEach(btn=>{
-    btn.addEventListener("click", function(){
+  nav.addEventListener("click", function(e){
 
-      const tab = this.dataset.tab;
-      if(!tab) return;
+    const btn = e.target.closest("button");
+    if(!btn) return;
 
-      // Remove active from all buttons
-      buttons.forEach(b=>b.classList.remove("active"));
+    const tab = btn.dataset.tab;
+    if(!tab) return;
 
-      // Remove active from all sections
-      document.querySelectorAll("section")
-        .forEach(s=>s.classList.remove("active"));
+    // Remove active from all buttons
+    nav.querySelectorAll("button")
+      .forEach(b => b.classList.remove("active"));
 
-      // Activate selected
-      this.classList.add("active");
+    // Remove active from all sections
+    document.querySelectorAll("section")
+      .forEach(s => s.classList.remove("active"));
 
-      const section = document.getElementById(tab);
-      if(section){
-        section.classList.add("active");
-      }
+    // Activate selected
+    btn.classList.add("active");
 
-      if(tab === "boxscore"){
-        renderBoxScore();
-      }
-    });
+    const section = document.getElementById(tab);
+    if(section){
+      section.classList.add("active");
+    }
+
+    if(tab === "boxscore"){
+      renderBoxScore();
+    }
+
   });
 
 }
