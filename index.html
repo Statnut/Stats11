@@ -542,13 +542,6 @@ th { background:#f0f0f0; }
 </section>
 
 <script>
-
-window.onerror = function(message, source, lineno, colno, error){
-  alert("JS Error:\n" + message + "\nLine: " + lineno);
-};
-
-alert("Script Loaded");
-
 const $ = id => document.getElementById(id);
 
 /* ---------- DATA ---------- */
@@ -748,6 +741,8 @@ function createDefaultSeasonRules(season){
       continuousOT: true
     }
   };
+
+}
 
 function getCurrentGameRules(){
 
