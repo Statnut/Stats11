@@ -6,12 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Hockey Stat Sheet v1.30</title>
 
-window.onerror = function(message, source, lineno, colno, error){
-  alert("JS Error:\n" + message + "\nLine: " + lineno);
-};
-
-alert("Script Loaded");
-
 <meta name="apple-mobile-web-app-capable" content="yes">
 
 <style>
@@ -549,6 +543,10 @@ th { background:#f0f0f0; }
 
 <script>
 const $ = id => document.getElementById(id);
+
+window.onerror = function(message, source, lineno, colno, error){
+  alert("JS Error:\n" + message + "\nLine: " + lineno);
+};
 
 /* ---------- DATA ---------- */
 const penaltyTypes = {
