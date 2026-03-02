@@ -594,6 +594,51 @@ if(!state.seasonRules){
 
 function save(){ localStorage.setItem("hockeyState",JSON.stringify(state)); }
 
+/* ---------- SEASON RULES ENGINE ---------- */
+
+function createDefaultSeasonRules(season){
+
+  if(state.seasonRules[season]) return;
+
+  state.seasonRules[season] = {
+    regular: {
+      regulationMinutes: 20,
+      overtimeMinutes: 5,
+      overtimeType: "3v3",
+      shootoutEnabled: true,
+      otLossPoint: true
+    },
+    playoffs: {
+      regulationMinutes: 20,
+      overtimeMinutes: 20,
+      overtimeType: "5v5",
+      shootoutEnabled: false,
+      otLossPoint: false,
+      continuousOT: true
+    }
+  };
+
+  save();
+}
+
+function getCurrentGameRules(){
+
+  if(!state.game) return null;
+
+  const season = state.game.season;
+  const gameType = state.game.gameType;
+
+  if(!state.seasonRules[season]){
+    createDefaultSeasonRules(season);
+  }
+
+  if(gameType === "Playoff"){
+    return state.seasonRules[season].playoffs;
+  }
+
+  return state.seasonRules[season].regular;
+}
+
 /* ---------- GAME SUBTABS ---------- */
 function showGamePanel(which){
   ["Goal","Shot","Penalty","Faceoff","Notes"].forEach(n=>{
@@ -718,51 +763,6 @@ if(pvs && state.seasons.length){
   pvs.onchange = renderPlayoffs;
 
   renderPlayoffs();
-}
-
-function createDefaultSeasonRules(season){
-
-  if(state.seasonRules[season]) return;
-
-  state.seasonRules[season] = {
-    regular: {
-      regulationMinutes: 20,
-      overtimeMinutes: 5,
-      overtimeType: "3v3",
-      shootoutEnabled: true,
-      otLossPoint: true
-    },
-    playoffs: {
-      regulationMinutes: 20,
-      overtimeMinutes: 20,
-      overtimeType: "5v5",
-      shootoutEnabled: false,
-      otLossPoint: false,
-      continuousOT: true
-    }
-  };
-
-}
-
-function getCurrentGameRules(){
-
-  if(!state.game) return null;
-
-  const season = state.game.season;
-  const gameType = state.game.gameType;
-
-  if(!state.seasonRules[season]){
-    createDefaultSeasonRules(season);
-  }
-
-  if(gameType === "Playoff"){
-    return state.seasonRules[season].playoffs;
-  }
-
-  return state.seasonRules[season].regular;
-}
-
-  save();
 }
 
 /* ---------- TEAMS ---------- */
@@ -1915,44 +1915,6 @@ function applyBoxOverrides(){
 }
 
 /* ---------- BOX SCORE EDIT UI FUNCTIONS (RESTORED) ---------- */
-window.editTeamShots = function(){
-  if(!state.game) return;
-  ensureBoxOverrides();
-
-  const away = prompt("Enter Away Shots:", state.game.shots.away);
-  if(away === null) return;
-
-  const home = prompt("Enter Home Shots:", state.game.shots.home);
-  if(home === null) return;
-
-  state.game.boxOverrides.teamShots.away = Number(away);
-  state.game.boxOverrides.teamShots.home = Number(home);
-
-  applyBoxOverrides();
-  updateScore();
-  renderBoxScore();
-  save();
-};
-
-window.editGoalieStats = function(teamKey){
-  if(!state.game) return;
-  ensureBoxOverrides();
-
-  const gs = state.game.goalieStats[teamKey];
-
-  const sa = prompt(`Enter ${teamKey.toUpperCase()} Goalie Shots Against:`, gs.shotsAgainst);
-  if(sa === null) return;
-
-  const ga = prompt(`Enter ${teamKey.toUpperCase()} Goalie Goals Against:`, gs.goalsAgainst);
-  if(ga === null) return;
-
-  state.game.boxOverrides.goalie[teamKey].sa = Number(sa);
-  state.game.boxOverrides.goalie[teamKey].ga = Number(ga);
-
-  applyBoxOverrides();
-  renderBoxScore();
-  save();
-};
 
 window.editSkaterStats = function(teamKey, playerName){
   if(!state.game) return;
@@ -2438,24 +2400,21 @@ window.editGoalieStats = function(teamKey){
 function initTabs(){
 
   const nav = document.querySelector("nav");
+  if(!nav) return;
 
   nav.addEventListener("click", function(e){
 
     const btn = e.target.closest("button");
-    if(!btn) return;
+    if(!btn || !btn.dataset.tab) return;
 
     const tab = btn.dataset.tab;
-    if(!tab) return;
 
-    // Remove active from all buttons
     nav.querySelectorAll("button")
       .forEach(b => b.classList.remove("active"));
 
-    // Remove active from all sections
     document.querySelectorAll("section")
       .forEach(s => s.classList.remove("active"));
 
-    // Activate selected
     btn.classList.add("active");
 
     const section = document.getElementById(tab);
@@ -2468,7 +2427,6 @@ function initTabs(){
     }
 
   });
-
 }
 
 /* ---------- EXPORT BOX SCORE (HTML) ---------- */
@@ -2831,7 +2789,7 @@ skaters.forEach(p=>{
           <th>GA</th>
           <th>Saves</th>
           <th>SV%</th>
-          <th>SV%</th>
+          <th>GAA</th>
           <th>SO</th>
         </tr>
     `;
