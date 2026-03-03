@@ -763,6 +763,7 @@ $("addSeason").onclick = () => {
     state.seasons.push(seasonName.value);
     state.teams[seasonName.value]=[];
 createDefaultSeasonRules(seasonName.value);
+ensureSeasonStructure(seasonName.value);
 
   }
   seasonName.value="";
@@ -802,6 +803,8 @@ if(ss2){
 
   ss2.onchange = renderConferences;
 }
+
+renderConferences();
 
 const ps = $("playoffSeason");
 
