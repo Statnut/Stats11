@@ -1240,7 +1240,9 @@ gameType: $("ngGameType").value === "Playoff"
     boxFinalized:false
   };
 
- state.clock.seconds = 1200;
+const rules = getCurrentGameRules();
+state.clock.seconds = rules.regulationMinutes * 60;
+
   state.clock.running = false;
   clearInterval(state.clock.timer);
 
@@ -1293,12 +1295,17 @@ $("clockMinus").onclick = () => {
 $("advancePeriod").onclick = () => {
   if(state.game?.final) return;
 
-  // If in regulation periods (1-3)
-  if(state.game.period < 3){
-    state.game.period++;
-    state.clock.seconds=1200;
-    renderClock();
-updateGameHeader();
+// Regulation periods
+if(state.game.period < 3){
+  state.game.period++;
+
+  state.clock.seconds = rules.regulationMinutes * 60;
+
+  renderClock();
+  updateGameHeader();
+  save();
+  return;
+}
 
     save();
     return;
@@ -1326,17 +1333,39 @@ updateGameHeader();
     return;
   }
 
-  // If already in OT (period 4)
-  if(state.game.period === 4){
-    // If still tied, allow shootout
-    if(state.game.score.home === state.game.score.away){
+// If already in OT (period 4)
+if(state.game.period === 4){
+
+  if(state.game.score.home === state.game.score.away){
+
+    // Shootout enabled (regular season default)
+    if(rules.shootoutEnabled){
       state.game.period = 5;
       state.clock.seconds = 0;
       renderClock();
-     updateGameHeader();
+      updateGameHeader();
       save();
       return;
     }
+
+    // Continuous OT (playoffs)
+    if(rules.continuousOT){
+      state.game.period++;
+      state.clock.seconds = rules.overtimeMinutes * 60;
+      renderClock();
+      updateGameHeader();
+      save();
+      return;
+    }
+
+    // No shootout + no continuous OT → game ends tied
+    state.game.final = true;
+    state.clock.running = false;
+    clearInterval(state.clock.timer);
+    updateGameHeader();
+    save();
+    return;
+  }
 
     // If OT ended with a winner
     state.game.final=true;
@@ -2873,29 +2902,39 @@ function calculateStandings(season){
       table[away].gf += awayGoals;
       table[away].ga += homeGoals;
 
-      const isOT = g.period >= 4;
+     const rules = state.seasonRules[g.season]?.regular;
+const isOT = g.period >= 4;
+const otLossPoint = rules?.otLossPoint === true;
 
       if(homeGoals > awayGoals){
         table[home].w++;
         table[home].pts += 2;
 
-        if(isOT){
-          table[away].ot++;
-          table[away].pts += 1;
-        } else {
-          table[away].l++;
-        }
-      } else {
-        table[away].w++;
-        table[away].pts += 2;
+ if(homeGoals > awayGoals){
 
-        if(isOT){
-          table[home].ot++;
-          table[home].pts += 1;
-        } else {
-          table[home].l++;
-        }
-      }
+  table[home].w++;
+  table[home].pts += 2;
+
+  if(isOT && otLossPoint){
+    table[away].ot++;
+    table[away].pts += 1;
+  } else {
+    table[away].l++;
+  }
+
+} else {
+
+  table[away].w++;
+  table[away].pts += 2;
+
+  if(isOT && otLossPoint){
+    table[home].ot++;
+    table[home].pts += 1;
+  } else {
+    table[home].l++;
+  }
+
+}
 
     });
 
