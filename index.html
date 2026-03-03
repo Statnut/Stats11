@@ -2843,7 +2843,6 @@ const gaa = g.gp > 0
 function calculateStandings(season){
 
   const teams = state.teams[season] || [];
-
   const table = {};
 
   teams.forEach(t=>{
@@ -2861,7 +2860,7 @@ function calculateStandings(season){
 
   state.completedGames
     .filter(g => g.season === season)
-    .forEach(g=>{
+    .forEach(g => {
 
       const home = g.home;
       const away = g.away;
@@ -2880,37 +2879,37 @@ function calculateStandings(season){
       table[away].gf += awayGoals;
       table[away].ga += homeGoals;
 
-     const rules = state.seasonRules[g.season]?.regular;
-const isOT = g.period >= 4;
-const otLossPoint = rules?.otLossPoint === true;
+      const rules = state.seasonRules[g.season]?.regular;
+      const isOT = g.period >= 4;
+      const otLossPoint = rules?.otLossPoint === true;
 
-     if(homeGoals > awayGoals){
+      if(homeGoals > awayGoals){
 
-  table[home].w++;
-  table[home].pts += 2;
+        table[home].w++;
+        table[home].pts += 2;
 
-  if(isOT && otLossPoint){
-    table[away].ot++;
-    table[away].pts += 1;
-  } else {
-    table[away].l++;
-  }
+        if(isOT && otLossPoint){
+          table[away].ot++;
+          table[away].pts += 1;
+        } else {
+          table[away].l++;
+        }
 
-} else {
+      } else {
 
-  table[away].w++;
-  table[away].pts += 2;
+        table[away].w++;
+        table[away].pts += 2;
 
-  if(isOT && otLossPoint){
-    table[home].ot++;
-    table[home].pts += 1;
-  } else {
-    table[home].l++;
-  }
+        if(isOT && otLossPoint){
+          table[home].ot++;
+          table[home].pts += 1;
+        } else {
+          table[home].l++;
+        }
 
-}
+      }
 
-}};
+    }); // ← closes forEach
 
   return Object.values(table)
     .sort((a,b)=> 
