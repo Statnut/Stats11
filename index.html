@@ -2906,11 +2906,7 @@ function calculateStandings(season){
 const isOT = g.period >= 4;
 const otLossPoint = rules?.otLossPoint === true;
 
-      if(homeGoals > awayGoals){
-        table[home].w++;
-        table[home].pts += 2;
-
- if(homeGoals > awayGoals){
+     if(homeGoals > awayGoals){
 
   table[home].w++;
   table[home].pts += 2;
@@ -2935,8 +2931,6 @@ const otLossPoint = rules?.otLossPoint === true;
   }
 
 }
-
-    });
 
   return Object.values(table)
     .sort((a,b)=> 
