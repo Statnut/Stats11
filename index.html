@@ -1295,59 +1295,24 @@ $("clockMinus").onclick = () => {
 $("advancePeriod").onclick = () => {
   if(state.game?.final) return;
 
-// Regulation periods
-if(state.game.period < 3){
-  state.game.period++;
+  const rules = getCurrentGameRules();
 
-  state.clock.seconds = rules.regulationMinutes * 60;
-
-  renderClock();
-  updateGameHeader();
-  save();
-  return;
-}
-
-
-  // If period is 3
-  if(state.game.period === 3){
-    // If tied, go to OT
-    if(state.game.score.home === state.game.score.away){
-      state.game.period = 4;
-      state.clock.seconds = 300; // 5 min OT default
-      renderClock();
-     updateGameHeader();
-
-      save();
-      return;
-    }
-
-    // If not tied, end game
-    state.game.final=true;
-    state.clock.running=false;
-    clearInterval(state.clock.timer);
-   updateGameHeader();
+  // Regulation periods (1–2)
+  if(state.game.period < 3){
+    state.game.period++;
+    state.clock.seconds = rules.regulationMinutes * 60;
+    renderClock();
+    updateGameHeader();
     save();
     return;
   }
 
-// If already in OT (period 4)
-if(state.game.period === 4){
+  // End of 3rd period
+  if(state.game.period === 3){
 
-  if(state.game.score.home === state.game.score.away){
-
-    // Shootout enabled (regular season default)
-    if(rules.shootoutEnabled){
-      state.game.period = 5;
-      state.clock.seconds = 0;
-      renderClock();
-      updateGameHeader();
-      save();
-      return;
-    }
-
-    // Continuous OT (playoffs)
-    if(rules.continuousOT){
-      state.game.period++;
+    // If tied → go to OT
+    if(state.game.score.home === state.game.score.away){
+      state.game.period = 4;
       state.clock.seconds = rules.overtimeMinutes * 60;
       renderClock();
       updateGameHeader();
@@ -1355,7 +1320,7 @@ if(state.game.period === 4){
       return;
     }
 
-    // No shootout + no continuous OT → game ends tied
+    // If not tied → end game
     state.game.final = true;
     state.clock.running = false;
     clearInterval(state.clock.timer);
@@ -1364,21 +1329,37 @@ if(state.game.period === 4){
     return;
   }
 
-    // If OT ended with a winner
-    state.game.final=true;
-    state.clock.running=false;
-    clearInterval(state.clock.timer);
-   updateGameHeader();
-    save();
-    return;
-  }
+  // Overtime & beyond
+  if(state.game.period >= 4){
 
-  // If shootout period (5) and user presses again, finalize
-  if(state.game.period === 5){
-    state.game.final=true;
-    state.clock.running=false;
+    if(state.game.score.home === state.game.score.away){
+
+      // Shootout (regular season)
+      if(rules.shootoutEnabled){
+        state.game.period = 5;
+        state.clock.seconds = 0;
+        renderClock();
+        updateGameHeader();
+        save();
+        return;
+      }
+
+      // Continuous OT (playoffs)
+      if(rules.continuousOT){
+        state.game.period++;
+        state.clock.seconds = rules.overtimeMinutes * 60;
+        renderClock();
+        updateGameHeader();
+        save();
+        return;
+      }
+    }
+
+    // OT finished with winner
+    state.game.final = true;
+    state.clock.running = false;
     clearInterval(state.clock.timer);
-   updateGameHeader();
+    updateGameHeader();
     save();
     return;
   }
