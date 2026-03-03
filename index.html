@@ -917,6 +917,7 @@ $("addTeam").onclick = () => {
 
 function populateTeamStructureDropdowns(){
   const season = $("teamSeason").value;
+  ensureSeasonStructure(season);
   const confSelect = $("teamConference");
   const divSelect = $("teamDivision");
 
@@ -1015,10 +1016,13 @@ d.appendChild(logoBtn);
 
   renderRoster();
 }
+
 teamSeason.onchange = () => {
   renderTeams();
+  populateTeamStructureDropdowns();
   renderTeamSeasonStats();
 };
+
 $("teamConference").onchange = updateDivisionDropdown;
 function uploadTeamLogo(season, teamName){
   const input = document.createElement("input");
@@ -2555,7 +2559,9 @@ function initTabs(){
     if(tab === "boxscore"){
       renderBoxScore();
     }
-
+if(tab === "teams"){
+  populateTeamStructureDropdowns();
+}
   });
 }
 
