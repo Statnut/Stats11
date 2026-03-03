@@ -327,6 +327,53 @@ th { background:#f0f0f0; }
 
 <div id="playoffSettingsStatus" class="small-note" style="margin-top:6px;"></div>
 
+<hr>
+<h4>Season Rules</h4>
+
+<select id="rulesSeason"></select>
+
+<h5>Regular Season</h5>
+
+<label>Regulation Minutes</label>
+<input id="regMinutes" type="number" min="1">
+
+<label>Overtime Minutes</label>
+<input id="regOTMinutes" type="number" min="1">
+
+<label>
+  <input type="checkbox" id="regShootout">
+  Shootout Enabled
+</label>
+
+<label>
+  <input type="checkbox" id="regOTLossPoint">
+  OT Loss Point
+</label>
+
+<h5 style="margin-top:14px;">Playoffs</h5>
+
+<label>Regulation Minutes</label>
+<input id="poRegMinutes" type="number" min="1">
+
+<label>Overtime Minutes</label>
+<input id="poOTMinutes" type="number" min="1">
+
+<label>
+  <input type="checkbox" id="poShootout">
+  Shootout Enabled
+</label>
+
+<label>
+  <input type="checkbox" id="poContinuousOT">
+  Continuous OT
+</label>
+
+<button onclick="saveSeasonRules()" style="margin-top:10px;">
+  Save Season Rules
+</button>
+
+<div id="rulesStatus" class="small-note"></div>
+
 </section>
 
 <section id="teams">
@@ -640,6 +687,59 @@ function getCurrentGameRules(){
   return state.seasonRules[season].regular;
 }
 
+function loadSeasonRules(){
+
+  const season = $("rulesSeason").value;
+  if(!season) return;
+
+  if(!state.seasonRules[season]){
+    createDefaultSeasonRules(season);
+  }
+
+  const r = state.seasonRules[season];
+
+  // Regular
+  regMinutes.value = r.regular.regulationMinutes;
+  regOTMinutes.value = r.regular.overtimeMinutes;
+  regShootout.checked = r.regular.shootoutEnabled;
+  regOTLossPoint.checked = r.regular.otLossPoint;
+
+  // Playoffs
+  poRegMinutes.value = r.playoffs.regulationMinutes;
+  poOTMinutes.value = r.playoffs.overtimeMinutes;
+  poShootout.checked = r.playoffs.shootoutEnabled;
+  poContinuousOT.checked = r.playoffs.continuousOT;
+}
+
+function saveSeasonRules(){
+
+  const season = $("rulesSeason").value;
+  if(!season) return;
+
+  state.seasonRules[season] = {
+
+    regular:{
+      regulationMinutes: Number(regMinutes.value),
+      overtimeMinutes: Number(regOTMinutes.value),
+      overtimeType: "3v3",
+      shootoutEnabled: regShootout.checked,
+      otLossPoint: regOTLossPoint.checked
+    },
+
+    playoffs:{
+      regulationMinutes: Number(poRegMinutes.value),
+      overtimeMinutes: Number(poOTMinutes.value),
+      overtimeType: "5v5",
+      shootoutEnabled: poShootout.checked,
+      otLossPoint: false,
+      continuousOT: poContinuousOT.checked
+    }
+  };
+
+  save();
+  rulesStatus.textContent = "Season rules saved.";
+}
+
 /* ---------- GAME SUBTABS ---------- */
 function showGamePanel(which){
   ["Goal","Shot","Penalty","Faceoff","Notes"].forEach(n=>{
@@ -764,6 +864,21 @@ if(pvs && state.seasons.length){
   pvs.onchange = renderPlayoffs;
 
   renderPlayoffs();
+}
+
+const rs = $("rulesSeason");
+
+if(rs){
+  rs.innerHTML = state.seasons
+    .map(s=>`<option>${s}</option>`)
+    .join("");
+
+  if(state.seasons.length){
+    rs.value = state.seasons[0];
+    loadSeasonRules();
+  }
+
+  rs.onchange = loadSeasonRules;
 }
 
 }
