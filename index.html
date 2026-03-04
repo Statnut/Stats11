@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hockey Stat Sheet v1.30</title>
+<title>Hockey Stat Sheet v1.31</title>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 
@@ -767,7 +767,8 @@ ensureSeasonStructure(seasonName.value);
 
   }
   seasonName.value="";
-  save(); renderSeasons();
+ save();
+refreshLeagueUI();
 };
 
 function renderSeasons(){
@@ -782,7 +783,8 @@ function renderSeasons(){
     del.onclick=()=>{
       state.seasons=state.seasons.filter(x=>x!==s);
       delete state.teams[s];
-      save(); renderSeasons(); renderTeams();
+     save();
+refreshLeagueUI();
     };
     d.appendChild(del); seasonList.appendChild(d);
   });
@@ -822,6 +824,10 @@ if(ps){
 
 if(state.seasons.length){
   teamSeason.value = ngSeason.value = state.seasons[0];
+
+renderTeams();
+populateTeamStructureDropdowns();
+
 }
 
 const ss = $("standingsSeason");
@@ -911,8 +917,8 @@ $("addTeam").onclick = () => {
   state.rosters[teamName.value] = [];
   teamName.value = teamAbbr.value = "";
 
-  save();
-  renderTeams();
+ save();
+refreshLeagueUI();
 };
 
 function populateTeamStructureDropdowns(){
@@ -1005,7 +1011,7 @@ d.appendChild(logoBtn);
     del.onclick=()=>{
       state.teams[teamSeason.value]=state.teams[teamSeason.value].filter(x=>x!==t);
       delete state.rosters[t.name];
-      save(); renderTeams();
+      save(); refreshLeagueUI();
     };
     d.appendChild(del); teamList.appendChild(d);
 
@@ -1039,12 +1045,12 @@ function uploadTeamLogo(season, teamName){
       const base64 = evt.target.result;
 
       const team = state.teams[season].find(t=>t.name===teamName);
-      if(team){
-        team.logo = base64;
-        save();
-        renderTeams();
-        alert("Logo uploaded successfully.");
-      }
+     if(team){
+  team.logo = base64;
+  save();
+  refreshLeagueUI();
+  alert("Logo uploaded successfully.");
+}
     };
 
     reader.readAsDataURL(file);
@@ -1536,11 +1542,10 @@ rebuildSeasonStats(snapshot.season);
 
 alert("Game Ended");
 
- updateGameHeader();
-  save();
-};
+updateGameHeader();
+save();
 
-renderStandings();
+refreshLeagueUI();
 
 /* ---------- GAME SELECTORS ---------- */
 function setupGameSelectors(){
@@ -3355,9 +3360,8 @@ window.deleteHistoryGame = function(date){
   state.completedGames =
     state.completedGames.filter(g => g.date !== date);
 
-  save();
-  renderHistory();
-  renderStandings();
+ save();
+refreshLeagueUI();
 };
 
 /* ---------- HISTORY VIEWER ---------- */
@@ -3528,6 +3532,7 @@ if(confSelect){
 }
 
   $("conferenceList").innerHTML = html;
+populateTeamStructureDropdowns();
 }
 
 /* ---------- PLAYOFF SETTINGS ENGINE ---------- */
@@ -3909,12 +3914,62 @@ state.playoffBrackets[season].locked = true;
 
 }
 
+function validateLeagueSelections(){
+
+  if(!state.seasons.length) return;
+
+  const currentSeason = teamSeason?.value || state.seasons[0];
+
+  // Ensure selected season exists
+  if(!state.seasons.includes(currentSeason)){
+    teamSeason.value = state.seasons[0];
+    ngSeason.value = state.seasons[0];
+  }
+
+  // Ensure team structure exists
+  if(!state.teams[currentSeason]){
+    state.teams[currentSeason] = [];
+  }
+
+}
+
+function refreshLeagueUI(){
+validateLeagueSelections();
+  renderSeasons();
+
+  if(typeof renderTeams === "function"){
+    renderTeams();
+  }
+
+  if(typeof populateTeamStructureDropdowns === "function"){
+    populateTeamStructureDropdowns();
+  }
+
+  if(typeof renderStandings === "function"){
+    renderStandings();
+  }
+
+  if(typeof renderHistory === "function"){
+    renderHistory();
+  }
+
+  if(typeof renderTeamSeasonStats === "function"){
+    renderTeamSeasonStats();
+  }
+
+  if(typeof renderPlayoffs === "function"){
+    renderPlayoffs();
+  }
+
+}
+
 /* ---------- INIT ---------- */
 
 document.addEventListener("DOMContentLoaded", function(){
 
   initTabs();
-  renderSeasons(); 
+  validateLeagueSelections();
+  refreshLeagueUI();
   checkForActiveGame();
 
 });
