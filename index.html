@@ -3904,12 +3904,11 @@ function checkForChampion(season){
 
   if(series.wins1 >= needed){
     state.playoffBrackets[season].champion = series.seed1;
-
-state.playoffBrackets[season].locked = true;
-
+    state.playoffBrackets[season].locked = true;
   }
   else if(series.wins2 >= needed){
     state.playoffBrackets[season].champion = series.seed2;
+    state.playoffBrackets[season].locked = true;
   }
 
 }
@@ -3934,7 +3933,9 @@ function validateLeagueSelections(){
 }
 
 function refreshLeagueUI(){
-validateLeagueSelections();
+
+  validateLeagueSelections();
+
   renderSeasons();
 
   if(typeof renderTeams === "function"){
@@ -3944,6 +3945,24 @@ validateLeagueSelections();
   if(typeof populateTeamStructureDropdowns === "function"){
     populateTeamStructureDropdowns();
   }
+
+  if(typeof renderStandings === "function"){
+    renderStandings();
+  }
+
+  if(typeof renderHistory === "function"){
+    renderHistory();
+  }
+
+  if(typeof renderTeamSeasonStats === "function"){
+    renderTeamSeasonStats();
+  }
+
+  if(typeof renderPlayoffs === "function"){
+    renderPlayoffs();
+  }
+
+}
 
   if(typeof renderStandings === "function"){
     renderStandings();
