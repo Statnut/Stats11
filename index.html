@@ -879,8 +879,6 @@ if(pvs && state.seasons.length){
   renderPlayoffs();
 }
 
-populateTeamStructureDropdowns();
-renderTeams();
 }
 const rs = $("rulesSeason");
 
@@ -3944,12 +3942,12 @@ function refreshLeagueUI(){
 
   renderSeasons();
 
-  if(typeof renderTeams === "function"){
-    renderTeams();
+ if(typeof populateTeamStructureDropdowns === "function"){
+    populateTeamStructureDropdowns();
   }
 
-  if(typeof populateTeamStructureDropdowns === "function"){
-    populateTeamStructureDropdowns();
+  if(typeof renderTeams === "function"){
+    renderTeams();
   }
 
   if(typeof renderStandings === "function"){
