@@ -4023,6 +4023,27 @@ function refreshLeagueUI(){
 document.addEventListener("DOMContentLoaded", function(){
 
   initTabs();
+
+  $("addSeason").onclick = () => {
+
+    const name = $("seasonName").value.trim();
+    if(!name) return;
+
+    if(!state.seasons.includes(name)){
+      state.seasons.push(name);
+
+      if(!state.teams[name]) state.teams[name] = [];
+
+      createDefaultSeasonRules(name);
+      ensureSeasonStructure(name);
+    }
+
+    $("seasonName").value = "";
+
+    save();
+    refreshLeagueUI();
+  };
+
   validateLeagueSelections();
   refreshLeagueUI();
   checkForActiveGame();
