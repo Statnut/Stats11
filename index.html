@@ -759,21 +759,6 @@ $("tabPenalty").onclick = ()=>showGamePanel("Penalty");
 $("tabFaceoff").onclick = ()=>showGamePanel("Faceoff");
 $("tabNotes").onclick = ()=>showGamePanel("Notes");
 
-/* ---------- SEASONS ---------- */
-$("addSeason").onclick = () => {
-  if(!seasonName.value) return;
-  if(!state.seasons.includes(seasonName.value)){
-    state.seasons.push(seasonName.value);
-    state.teams[seasonName.value]=[];
-createDefaultSeasonRules(seasonName.value);
-ensureSeasonStructure(seasonName.value);
-
-  }
-  seasonName.value="";
- save();
-refreshLeagueUI();
-};
-
 function renderSeasons(){
   seasonList.innerHTML="";
 
@@ -879,8 +864,22 @@ if(pvs && state.seasons.length){
   renderPlayoffs();
 }
 
-}
 const rs = $("rulesSeason");
+
+if(rs){
+  rs.innerHTML = state.seasons
+    .map(s=>`<option>${s}</option>`)
+    .join("");
+
+  if(state.seasons.length){
+    rs.value = state.seasons[0];
+    loadSeasonRules();
+  }
+
+  rs.onchange = loadSeasonRules;
+}
+
+}
 
 if(rs){
   rs.innerHTML = state.seasons
