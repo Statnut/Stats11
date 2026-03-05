@@ -879,6 +879,9 @@ if(pvs && state.seasons.length){
   renderPlayoffs();
 }
 
+populateTeamStructureDropdowns();
+renderTeams();
+}
 const rs = $("rulesSeason");
 
 if(rs){
@@ -3137,8 +3140,7 @@ function resetCompletedGames(){
   state.completedGames = [];
   save();
 
-  renderStandings();
-  renderHistory();
+ refreshLeagueUI();
 
   alert("All completed games cleared.");
 }
@@ -3974,25 +3976,37 @@ document.addEventListener("DOMContentLoaded", function(){
 
   initTabs();
 
-  $("addSeason").onclick = () => {
+  const addSeasonBtn = $("addSeason");
+  const seasonInput = $("seasonName");
 
-    const name = $("seasonName").value.trim();
-    if(!name) return;
+  if(addSeasonBtn && seasonInput){
 
-    if(!state.seasons.includes(name)){
-      state.seasons.push(name);
+    addSeasonBtn.onclick = () => {
 
-      if(!state.teams[name]) state.teams[name] = [];
+      const name = seasonInput.value.trim();
+      if(!name) return;
 
-      createDefaultSeasonRules(name);
-      ensureSeasonStructure(name);
-    }
+      if(!state.seasons.includes(name)){
 
-    $("seasonName").value = "";
+        state.seasons.push(name);
 
-    save();
-    refreshLeagueUI();
-  };
+        if(!state.teams[name]){
+          state.teams[name] = [];
+        }
+
+        createDefaultSeasonRules(name);
+        ensureSeasonStructure(name);
+
+      }
+
+      seasonInput.value = "";
+
+      save();
+      refreshLeagueUI();
+
+    };
+
+  }
 
   validateLeagueSelections();
   refreshLeagueUI();
