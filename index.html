@@ -592,6 +592,8 @@ th { background:#f0f0f0; }
 console.log("SCRIPT START");
 const $ = id => document.getElementById(id);
 
+const seasonName = $("seasonName");
+
 function initTabs(){
 
   document.querySelectorAll("nav button").forEach(btn=>{
@@ -808,6 +810,7 @@ function renderSeasons(){
   seasonList.innerHTML="";
 
   state.seasons.forEach(s=>{
+createDefaultSeasonRules(s);
     const d=document.createElement("div");
     d.className="list-item";
     d.innerHTML=`<span>${s}</span>`;
