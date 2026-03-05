@@ -594,37 +594,6 @@ const $ = id => document.getElementById(id);
 
 const seasonName = $("seasonName");
 
-function initTabs(){
-
-  document.querySelectorAll("nav button").forEach(btn=>{
-
-    btn.onclick = function(){
-
-      const tab = btn.dataset.tab;
-
-      document.querySelectorAll("nav button").forEach(b=>{
-        b.classList.remove("active");
-      });
-
-      document.querySelectorAll("section").forEach(s=>{
-        s.classList.remove("active");
-      });
-
-      btn.classList.add("active");
-
-      const section = document.getElementById(tab);
-      if(section){
-        section.classList.add("active");
-      }
-
-      if(tab === "boxscore"){
-        renderBoxScore();
-      }
-
-    };
-
-  });
-
 }
 
 /* ---------- DATA ---------- */
@@ -3981,24 +3950,6 @@ function refreshLeagueUI(){
   if(typeof populateTeamStructureDropdowns === "function"){
     populateTeamStructureDropdowns();
   }
-
-  if(typeof renderStandings === "function"){
-    renderStandings();
-  }
-
-  if(typeof renderHistory === "function"){
-    renderHistory();
-  }
-
-  if(typeof renderTeamSeasonStats === "function"){
-    renderTeamSeasonStats();
-  }
-
-  if(typeof renderPlayoffs === "function"){
-    renderPlayoffs();
-  }
-
-}
 
   if(typeof renderStandings === "function"){
     renderStandings();
