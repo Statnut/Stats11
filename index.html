@@ -2565,13 +2565,16 @@ function initTabs(){
       section.classList.add("active");
     }
 
-    if(tab === "boxscore"){
+    if(tab === "boxscore" && typeof renderBoxScore === "function"){
       renderBoxScore();
     }
-if(tab === "teams"){
-  populateTeamStructureDropdowns();
-}
+
+    if(tab === "teams" && typeof populateTeamStructureDropdowns === "function"){
+      populateTeamStructureDropdowns();
+    }
+
   });
+
 }
 
 /* ---------- EXPORT BOX SCORE (HTML) ---------- */
@@ -3939,9 +3942,11 @@ function refreshLeagueUI(){
 
   validateLeagueSelections();
 
-  renderSeasons();
+  if(typeof renderSeasons === "function"){
+    renderSeasons();
+  }
 
- if(typeof populateTeamStructureDropdowns === "function"){
+  if(typeof populateTeamStructureDropdowns === "function"){
     populateTeamStructureDropdowns();
   }
 
@@ -4000,7 +4005,6 @@ document.addEventListener("DOMContentLoaded", function(){
 
       save();
       refreshLeagueUI();
-
     };
 
   }
