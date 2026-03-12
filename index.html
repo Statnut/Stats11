@@ -879,20 +879,6 @@ if(rs){
   rs.onchange = loadSeasonRules;  
 }  
   
-}  
-if(rs){  
-  rs.innerHTML = state.seasons  
-    .map(s=>`<option>${s}</option>`)  
-    .join("");  
-  
-  if(state.seasons.length){  
-    rs.value = state.seasons[0];  
-    loadSeasonRules();  
-  }  
-  
-  rs.onchange = loadSeasonRules;  
-}  
-  
   
 /* ---------- TEAMS ---------- */  
   
