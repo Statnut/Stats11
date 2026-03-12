@@ -594,7 +594,33 @@ const $ = id => document.getElementById(id);
   
 const seasonName = $("seasonName");  
   
+/* ---------- MAIN NAV TABS (Safari optimized) ---------- */  
   
+const sections = document.querySelectorAll("section");  
+const navButtons = document.querySelectorAll("nav button");  
+  
+navButtons.forEach(btn => {  
+  
+  btn.onclick = () => {  
+  
+    const tab = btn.dataset.tab;  
+  
+    // Update button states  
+    navButtons.forEach(b => b.classList.remove("active"));  
+    btn.classList.add("active");  
+  
+    // Only update sections that actually change  
+    sections.forEach(sec => {  
+      if(sec.id === tab){  
+        sec.classList.add("active");  
+      }else if(sec.classList.contains("active")){  
+        sec.classList.remove("active");  
+      }  
+    });  
+  
+  };  
+  
+});  
 /* ---------- DATA ---------- */  
 const penaltyTypes = {  
   "Tripping":2,"Hooking":2,"Slashing":2,"Interference":2,"Holding":2,  
@@ -3960,8 +3986,6 @@ function refreshLeagueUI(){
 /* ---------- INIT ---------- */  
   
 document.addEventListener("DOMContentLoaded", function(){  
-
-console.log("INIT running");
   
   initTabs();  
   
