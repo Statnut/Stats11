@@ -4026,7 +4026,25 @@ document.addEventListener("DOMContentLoaded", function(){
   
 });  
   
-}  
+} 
+
+  function init(){
+
+  renderSeasons();
+  renderTeams();
+  renderRoster();
+  renderClock();
+
+  populateTeamStructureDropdowns();
+
+  if(state.game){
+    updateScore();
+    updateGameHeader();
+    renderEventLog();
+  }
+
+}
+  window.onload = init;
 </script>  
   
 <!-- RESUME GAME BANNER -->  
