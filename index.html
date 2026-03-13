@@ -4000,30 +4000,41 @@ document.addEventListener("DOMContentLoaded", function(){
   if(addSeasonBtn && seasonInput){  
   
     addSeasonBtn.onclick = () => {  
-  
-      const name = seasonInput.value.trim();  
-      if(!name) return;  
-  
-      if(!state.seasons.includes(name)){  
-  
-        state.seasons.push(name);  
-  
-        if(!state.teams[name]){  
-          state.teams[name] = [];  
-        }  
-  
-        createDefaultSeasonRules(name);  
-        ensureSeasonStructure(name);  
-  
-      }  
-  
-      seasonInput.value = "";  
-  
-      save();  
-      refreshLeagueUI();  
-    };  
-  
+
+  const name = seasonInput.value.trim();  
+  if(!name) return;  
+
+  if(!state.seasons.includes(name)){  
+
+    state.seasons.push(name);  
+
+    if(!state.teams[name]){  
+      state.teams[name] = [];  
+    }  
+
+    createDefaultSeasonRules(name);  
+    ensureSeasonStructure(name);  
+
   }  
+
+  seasonInput.value = "";  
+
+  save();  
+  refreshLeagueUI();
+
+  // Auto-select the new season after UI refresh
+  setTimeout(() => {
+    if($("teamSeason")) $("teamSeason").value = name;
+    if($("ngSeason")) $("ngSeason").value = name;
+    if($("structureSeason")) $("structureSeason").value = name;
+    if($("playoffSeason")) $("playoffSeason").value = name;
+    if($("rulesSeason")) {
+      $("rulesSeason").value = name;
+      loadSeasonRules();
+    }
+  }, 0);
+
+};
   
   validateLeagueSelections();  
   refreshLeagueUI();  
