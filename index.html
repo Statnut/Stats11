@@ -695,7 +695,13 @@ function createDefaultSeasonRules(season){
     }  
   };  
   
-  save();  
+  save();
+
+if($("rulesSeason") && $("rulesSeason").value === season){
+  loadSeasonRules();
+}
+
+} 
 }  
   
 function getCurrentGameRules(){  
@@ -727,19 +733,18 @@ function loadSeasonRules(){
   
   const r = state.seasonRules[season];  
   
-  // Regular  
-  regMinutes.value = r.regular.regulationMinutes;  
-  regOTMinutes.value = r.regular.overtimeMinutes;  
-  regShootout.checked = r.regular.shootoutEnabled;  
-  regOTLossPoint.checked = r.regular.otLossPoint;  
-  
-  // Playoffs  
-  poRegMinutes.value = r.playoffs.regulationMinutes;  
-  poOTMinutes.value = r.playoffs.overtimeMinutes;  
-  poShootout.checked = r.playoffs.shootoutEnabled;  
-  poContinuousOT.checked = r.playoffs.continuousOT;  
-}  
-  
+ // Regular
+$("regMinutes").value = r.regular.regulationMinutes;
+$("regOTMinutes").value = r.regular.overtimeMinutes;
+$("regShootout").checked = r.regular.shootoutEnabled;
+$("regOTLossPoint").checked = r.regular.otLossPoint;
+
+// Playoffs
+$("poRegMinutes").value = r.playoffs.regulationMinutes;
+$("poOTMinutes").value = r.playoffs.overtimeMinutes;
+$("poShootout").checked = r.playoffs.shootoutEnabled;
+$("poContinuousOT").checked = r.playoffs.continuousOT;
+  }
 function saveSeasonRules(){  
   
   const season = $("rulesSeason").value;  
