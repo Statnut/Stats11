@@ -4019,20 +4019,28 @@ document.addEventListener("DOMContentLoaded", function(){
 
   seasonInput.value = "";  
 
-  save();  
-  refreshLeagueUI();
+  save();
+refreshLeagueUI();
 
-  // Auto-select the new season after UI refresh
-  setTimeout(() => {
-    if($("teamSeason")) $("teamSeason").value = name;
-    if($("ngSeason")) $("ngSeason").value = name;
-    if($("structureSeason")) $("structureSeason").value = name;
-    if($("playoffSeason")) $("playoffSeason").value = name;
-    if($("rulesSeason")) {
-      $("rulesSeason").value = name;
-      loadSeasonRules();
-    }
-  }, 0);
+// Auto-select the new season and load rules
+setTimeout(() => {
+
+  if($("teamSeason")) $("teamSeason").value = name;
+  if($("ngSeason")) $("ngSeason").value = name;
+  if($("structureSeason")) $("structureSeason").value = name;
+  if($("playoffSeason")) $("playoffSeason").value = name;
+
+  if($("rulesSeason")){
+    $("rulesSeason").value = name;
+
+    // Ensure default rules exist
+    createDefaultSeasonRules(name);
+
+    // Force rules to populate the inputs
+    loadSeasonRules();
+  }
+
+}, 0);
 
 };
   
