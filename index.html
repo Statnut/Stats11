@@ -789,6 +789,39 @@ $("tabPenalty").onclick = ()=>showGamePanel("Penalty");
 $("tabFaceoff").onclick = ()=>showGamePanel("Faceoff");  
 $("tabNotes").onclick = ()=>showGamePanel("Notes");  
   
+/* ---------- RENDER CONFERENCES ---------- */
+
+function renderConferences(){
+
+  const season = $("structureSeason")?.value;
+  const container = $("conferenceList");
+
+  if(!season || !container) return;
+
+  container.innerHTML = "";
+
+  const structure = state.structure?.[season];
+  if(!structure) return;
+
+  const confs = structure.conferences || {};
+
+  Object.keys(confs).forEach(conf => {
+
+    const div = document.createElement("div");
+    div.className = "list-item";
+
+    const divisions = confs[conf].divisions || [];
+
+    div.innerHTML =
+      "<span><strong>" + conf + "</strong> — " +
+      divisions.join(", ") +
+      "</span>";
+
+    container.appendChild(div);
+
+  });
+
+}
 function renderSeasons(){  
   seasonList.innerHTML="";  
   
