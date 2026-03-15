@@ -1203,39 +1203,24 @@ $("addTeam").onclick = () => {
 refreshLeagueUI();  
 };  
   
-function populateTeamStructureDropdowns(){  
-  const season = $("teamSeason").value;  
-  ensureSeasonStructure(season);  
-  const confSelect = $("teamConference");  
-  const divSelect = $("teamDivision");  
-  
-  confSelect.innerHTML = "";  
-  divSelect.innerHTML = "";  
-  
-  if(!season || !state.structure[season]){  
-    confSelect.innerHTML = "<option>No Conferences</option>";  
-    divSelect.innerHTML = "<option>No Divisions</option>";  
-    return;  
-  }  
-  
-  const confs = state.structure[season].conferences;  
-  
-  const confNames = Object.keys(confs);  
-  
-  if(confNames.length === 0){  
-    confSelect.innerHTML = "<option>No Conferences</option>";  
-    divSelect.innerHTML = "<option>No Divisions</option>";  
-    return;  
-  }  
-  
-  confSelect.innerHTML = confNames  
-    .map(c=>`<option>${c}</option>`)  
-    .join("");  
-  
-  updateDivisionDropdown();  
-  
-  confSelect.onchange = updateDivisionDropdown;  
-}  
+/* ---------- POPULATE STRUCTURE DROPDOWNS ---------- */
+
+function populateTeamStructureDropdowns(){
+
+  const season = $("structureSeason")?.value;
+  const confSelect = $("divisionConfSelect");
+
+  if(!season || !confSelect) return;
+
+  ensureSeasonStructure(season);
+
+  const confs = state.structure[season].conferences || {};
+
+  confSelect.innerHTML = Object.keys(confs)
+    .map(c => `<option value="${c}">${c}</option>`)
+    .join("");
+
+} 
   
 function updateDivisionDropdown(){  
   const season = $("teamSeason").value;  
