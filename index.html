@@ -947,7 +947,40 @@ function renderHistory(){
   container.innerHTML = html;
 
 }
+/* ---------- PLAYOFFS ---------- */
 
+function renderPlayoffs(){
+
+  const container = $("playoffBracket");
+  if(!container) return;
+
+  const season = $("playoffViewSeason")?.value;
+  if(!season) return;
+
+  const bracket = state.playoffBrackets?.[season];
+
+  if(!bracket){
+    container.innerHTML = "<div class='small-note'>Playoffs not generated.</div>";
+    return;
+  }
+
+  let html = "";
+
+  bracket.forEach(series => {
+
+    html += `
+      <div class="bracket-series">
+        <strong>${series.home} vs ${series.away}</strong>
+        <div>Series: ${series.homeWins || 0} - ${series.awayWins || 0}</div>
+      </div>
+    `;
+
+  });
+
+  container.innerHTML = html;
+
+}
+  
 function renderSeasons(){
   seasonList.innerHTML="";  
   
