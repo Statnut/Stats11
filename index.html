@@ -914,7 +914,41 @@ function renderStandings(){
 
 }
 
-function renderSeasons(){ 
+
+/* ---------- HISTORY ---------- */
+
+function renderHistory(){
+
+  const container = $("historyList");
+  if(!container) return;
+
+  const season = $("historySeason")?.value;
+  if(!season) return;
+
+  const games = state.completedGames || [];
+
+  const filtered = games.filter(g => g.season === season);
+
+  if(filtered.length === 0){
+    container.innerHTML = "<div class='small-note'>No games yet.</div>";
+    return;
+  }
+
+  let html = "";
+
+  filtered.forEach(g=>{
+    html += `
+      <div class="event-item">
+        ${g.away} ${g.score.away} - ${g.score.home} ${g.home}
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+}
+
+function renderSeasons(){
   seasonList.innerHTML="";  
   
   state.seasons.forEach(s=>{  
