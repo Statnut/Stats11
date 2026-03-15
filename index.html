@@ -811,6 +811,58 @@ function ensureSeasonStructure(season){
   }
 
 }
+  
+  /* ---------- ADD CONFERENCE ---------- */
+
+function addConference(){
+
+  const season = $("structureSeason")?.value;
+  const confName = $("confName")?.value.trim();
+
+  if(!season || !confName) return;
+
+  ensureSeasonStructure(season);
+
+  if(!state.structure[season].conferences[confName]){
+    state.structure[season].conferences[confName] = {
+      divisions:[]
+    };
+  }
+
+  $("confName").value = "";
+
+  save();
+  renderConferences();
+
+}
+  /* ---------- ADD DIVISION ---------- */
+
+function addDivision(){
+
+  const season = $("structureSeason")?.value;
+  const conf = $("divisionConfSelect")?.value;
+  const divisionName = $("divisionName")?.value.trim();
+
+  if(!season || !conf || !divisionName) return;
+
+  ensureSeasonStructure(season);
+
+  const confObj = state.structure[season].conferences[conf];
+
+  if(!confObj) return;
+
+  if(!confObj.divisions.includes(divisionName)){
+    confObj.divisions.push(divisionName);
+  }
+
+  $("divisionName").value = "";
+
+  save();
+  renderConferences();
+  populateTeamStructureDropdowns();
+
+}
+  
 /* ---------- RENDER CONFERENCES ---------- */
 
 function renderConferences(){
