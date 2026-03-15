@@ -788,7 +788,21 @@ $("tabShot").onclick = ()=>showGamePanel("Shot");
 $("tabPenalty").onclick = ()=>showGamePanel("Penalty");  
 $("tabFaceoff").onclick = ()=>showGamePanel("Faceoff");  
 $("tabNotes").onclick = ()=>showGamePanel("Notes");  
+
   
+  /* ---------- ENSURE SEASON STRUCTURE ---------- */
+
+function ensureSeasonStructure(season){
+
+  if(!state.structure) state.structure = {};
+
+  if(!state.structure[season]){
+    state.structure[season] = {
+      conferences: {}
+    };
+  }
+
+}
 /* ---------- RENDER CONFERENCES ---------- */
 
 function renderConferences(){
