@@ -882,33 +882,69 @@ function renderConferences(){
 
   Object.keys(confs).forEach(conf => {
 
-    const div = document.createElement("div");
-    div.className = "list-item";
+    const block = document.createElement("div");
+    block.className = "list-item";
 
-    const divisions = confs[conf].divisions || [];
-
-    div.innerHTML = `
-      <span><strong>${conf}</strong> — ${divisions.join(", ")}</span>
-    `;
+    const title = document.createElement("div");
+    title.innerHTML = `<strong>${conf}</strong>`;
 
     const del = document.createElement("button");
     del.textContent = "Delete";
 
-    del.onclick = () => {
+   del.onclick = () => {
 
-      delete state.structure[season].conferences[conf];
+  const ok = confirm(`Delete conference "${conf}" and all its divisions?`);
+  if(!ok) return;
 
-      save();
-      renderConferences();
-      populateTeamStructureDropdowns();
+  delete state.structure[season].conferences[conf];
 
-    };
+  save();
+  renderConferences();
+  populateTeamStructureDropdowns();
 
-    div.appendChild(del);
+};
 
-    container.appendChild(div);
+    title.appendChild(del);
+    block.appendChild(title);
 
-  });
+    const divisions = confs[conf].divisions || [];
+
+    divisions.forEach(d => {
+
+  const divRow = document.createElement("div");
+  divRow.style.marginLeft = "20px";
+
+  const name = document.createElement("span");
+  name.textContent = d;
+
+  const del = document.createElement("button");
+  del.textContent = "Delete";
+  del.style.marginLeft = "10px";
+
+  del.onclick = () => {
+
+  const ok = confirm(`Delete division "${d}"?`);
+  if(!ok) return;
+
+  const list = state.structure[season].conferences[conf].divisions;
+
+  const index = list.indexOf(d);
+  if(index !== -1){
+    list.splice(index,1);
+  }
+
+  save();
+  renderConferences();
+  populateTeamStructureDropdowns();
+
+};
+
+  divRow.appendChild(name);
+  divRow.appendChild(del);
+
+  block.appendChild(divRow);
+
+});
 
 }
 /* ---------- LOAD PLAYOFF SETTINGS ---------- */
