@@ -730,9 +730,6 @@ function loadSeasonRules(){
 
   if(!season) return;
 
-  const season = $("rulesSeason")?.value;
-  if(!season) return;
-
   // Ensure rule object exists
   if(!state.seasonRules) state.seasonRules = {};
   if(!state.seasonRules[season]){
@@ -741,6 +738,7 @@ function loadSeasonRules(){
 
   const r = state.seasonRules[season];
   console.log("Rules object:", r);
+
   if(!r) return;
 
   // Regular season
