@@ -4201,7 +4201,9 @@ document.addEventListener("DOMContentLoaded", function(){
 
   const name = seasonInput.value.trim();  
   if(!name) return;  
-
+      
+   console.log("Adding season:", name);
+      
   if(!state.seasons.includes(name)){  
 
     state.seasons.push(name);  
