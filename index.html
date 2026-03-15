@@ -737,14 +737,14 @@ function loadSeasonRules(){
   if(!r) return;
 
   // Regular season
-  if($("regMinutes")) $("regMinutes").value = r.regular.regulationMinutes ?? 20;
-  if($("regOTMinutes")) $("regOTMinutes").value = r.regular.overtimeMinutes ?? 5;
+  if($("regMinutes")) $("regMinutes").value = String(r.regular.regulationMinutes ?? 20);
+  if($("regOTMinutes")) $("regOTMinutes").value = String(r.regular.overtimeMinutes ?? 5);
   if($("regShootout")) $("regShootout").checked = r.regular.shootoutEnabled ?? true;
   if($("regOTLossPoint")) $("regOTLossPoint").checked = r.regular.otLossPoint ?? true;
 
   // Playoffs
-  if($("poRegMinutes")) $("poRegMinutes").value = r.playoffs.regulationMinutes ?? 20;
-  if($("poOTMinutes")) $("poOTMinutes").value = r.playoffs.overtimeMinutes ?? 20;
+  if($("poRegMinutes")) $("poRegMinutes").value = String(r.playoffs.regulationMinutes ?? 20);
+  if($("poOTMinutes")) $("poOTMinutes").value = String(r.playoffs.overtimeMinutes ?? 20);
   if($("poShootout")) $("poShootout").checked = r.playoffs.shootoutEnabled ?? false;
   if($("poContinuousOT")) $("poContinuousOT").checked = r.playoffs.continuousOT ?? true;
 
