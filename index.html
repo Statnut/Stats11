@@ -971,21 +971,24 @@ if(pvs && state.seasons.length){
   renderPlayoffs();  
 }  
   
-const rs = $("rulesSeason");  
-  
-if(rs){  
-  rs.innerHTML = state.seasons  
-    .map(s=>`<option>${s}</option>`)  
-    .join("");  
-  
-  if(state.seasons.length){  
-    rs.value = state.seasons[0];  
-    loadSeasonRules();  
-  }  
-  
-  rs.onchange = loadSeasonRules;  
+const rs = $("rulesSeason");
+
+if(rs){
+
+  rs.innerHTML = state.seasons
+    .map(s=>`<option value="${s}">${s}</option>`)
+    .join("");
+
+  if(state.seasons.length){
+    rs.value = state.seasons[0];
+  }
+
+  rs.onchange = loadSeasonRules;
+
+  // force rules to populate after dropdown rebuild
   loadSeasonRules();
-}  
+
+}
   
 }  
   
