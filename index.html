@@ -591,8 +591,6 @@ th { background:#f0f0f0; }
 <script>  
 console.log("SCRIPT START");  
 const $ = id => document.getElementById(id);  
-const addSeasonBtn = $("addSeason");
-const seasonInput = $("seasonName");
   
 /* ---------- MAIN NAV TABS (Safari optimized) ---------- */  
   
@@ -4253,7 +4251,33 @@ setTimeout(() => {
   
 } 
 
-  function init(){
+ function init(){
+
+  const addSeasonBtn = $("addSeason");
+  const seasonInput = $("seasonName");
+
+  addSeasonBtn.onclick = () => {
+
+    const name = seasonInput.value.trim();
+    if(!name) return;
+
+    if(!state.seasons.includes(name)){
+
+      state.seasons.push(name);
+
+      if(!state.teams[name]){
+        state.teams[name] = [];
+      }
+
+      createDefaultSeasonRules(name);
+      ensureSeasonStructure(name);
+    }
+
+    seasonInput.value = "";
+
+    save();
+    refreshLeagueUI();
+  };
 
   renderSeasons();
   renderTeams();
