@@ -721,29 +721,34 @@ function getCurrentGameRules(){
   return state.seasonRules[season].regular;  
 }  
   
-function loadSeasonRules(){  
-  
-  const season = $("rulesSeason").value;  
-  if(!season) return;  
-  
-  if(!state.seasonRules[season]){  
-    createDefaultSeasonRules(season);  
-  }  
-  
-  const r = state.seasonRules[season];  
-  
- // Regular
-$("regMinutes").value = r.regular.regulationMinutes;
-$("regOTMinutes").value = r.regular.overtimeMinutes;
-$("regShootout").checked = r.regular.shootoutEnabled;
-$("regOTLossPoint").checked = r.regular.otLossPoint;
+function loadSeasonRules(){
 
-// Playoffs
-$("poRegMinutes").value = r.playoffs.regulationMinutes;
-$("poOTMinutes").value = r.playoffs.overtimeMinutes;
-$("poShootout").checked = r.playoffs.shootoutEnabled;
-$("poContinuousOT").checked = r.playoffs.continuousOT;
+  const season = $("rulesSeason")?.value;
+  if(!season) return;
+
+  // Ensure rule object exists
+  if(!state.seasonRules) state.seasonRules = {};
+  if(!state.seasonRules[season]){
+    createDefaultSeasonRules(season);
   }
+
+  const r = state.seasonRules[season];
+
+  if(!r) return;
+
+  // Regular season
+  if($("regMinutes")) $("regMinutes").value = r.regular.regulationMinutes ?? 20;
+  if($("regOTMinutes")) $("regOTMinutes").value = r.regular.overtimeMinutes ?? 5;
+  if($("regShootout")) $("regShootout").checked = r.regular.shootoutEnabled ?? true;
+  if($("regOTLossPoint")) $("regOTLossPoint").checked = r.regular.otLossPoint ?? true;
+
+  // Playoffs
+  if($("poRegMinutes")) $("poRegMinutes").value = r.playoffs.regulationMinutes ?? 20;
+  if($("poOTMinutes")) $("poOTMinutes").value = r.playoffs.overtimeMinutes ?? 20;
+  if($("poShootout")) $("poShootout").checked = r.playoffs.shootoutEnabled ?? false;
+  if($("poContinuousOT")) $("poContinuousOT").checked = r.playoffs.continuousOT ?? true;
+
+}
 function saveSeasonRules(){  
   
   const season = $("rulesSeason").value;  
@@ -974,6 +979,7 @@ if(rs){
   }  
   
   rs.onchange = loadSeasonRules;  
+  loadSeasonRules();
 }  
   
 }  
