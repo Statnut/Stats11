@@ -4293,6 +4293,19 @@ setTimeout(() => {
   }
 
 }
+  /* ---------- REFRESH LEAGUE UI ---------- */
+
+function refreshLeagueUI(){
+
+  renderSeasons();
+  renderTeams();
+  renderRoster();
+  populateTeamStructureDropdowns();
+
+  const rs = $("rulesSeason");
+  if(rs) loadSeasonRules();
+
+}
   window.onload = init;
 </script>  
   
