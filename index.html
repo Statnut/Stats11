@@ -892,12 +892,12 @@ title.style.alignItems = "center";
 title.style.fontWeight = "bold";
 title.style.padding = "4px 0";
 
+const del = document.createElement("button");
+    del.textContent = "Delete";
+    
 title.textContent = conf;
 title.appendChild(del);
 block.appendChild(title);
-
-    const del = document.createElement("button");
-    del.textContent = "Delete";
 
    del.onclick = () => {
 
