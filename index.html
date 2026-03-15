@@ -864,7 +864,57 @@ function loadPlayoffSettings(){
   }
 
 }
-function renderSeasons(){  
+
+
+/* ---------- STANDINGS ---------- */
+
+function renderStandings(){
+
+  const table = $("standingsTable");
+  if(!table) return;
+
+  const season = $("standingsSeason")?.value;
+  if(!season) return;
+
+  const teams = state.teams?.[season] || [];
+
+  if(teams.length === 0){
+    table.innerHTML = "<div class='small-note'>No teams yet.</div>";
+    return;
+  }
+
+  let html = `
+  <table>
+    <tr>
+      <th>Team</th>
+      <th>GP</th>
+      <th>W</th>
+      <th>L</th>
+      <th>OT</th>
+      <th>PTS</th>
+    </tr>
+  `;
+
+  teams.forEach(t=>{
+    html += `
+      <tr>
+        <td>${t.name}</td>
+        <td>0</td>
+        <td>0</td>
+        <td>0</td>
+        <td>0</td>
+        <td>0</td>
+      </tr>
+    `;
+  });
+
+  html += "</table>";
+
+  table.innerHTML = html;
+
+}
+
+function renderSeasons(){ 
   seasonList.innerHTML="";  
   
   state.seasons.forEach(s=>{  
