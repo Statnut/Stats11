@@ -1181,7 +1181,75 @@ rosterTeam.onchange = () => {
   renderRoster();  
   renderTeamSeasonStats();  
 };  
-  
+  /* ---------- TEAM SEASON STATS ---------- */
+
+function renderTeamSeasonStats(){
+
+  const container = $("teamSeasonStats");
+  if(!container) return;
+
+  const season = $("teamSeason")?.value;
+  if(!season) return;
+
+  const teams = state.teams?.[season] || [];
+
+  if(teams.length === 0){
+    container.innerHTML = "<div class='small-note'>No teams yet.</div>";
+    return;
+  }
+
+  let html = "";
+
+  teams.forEach(team => {
+
+    const teamName = team.name;
+
+    html += "<h5>" + teamName + "</h5>";
+
+    html += `
+      <table>
+        <tr>
+          <th>Player</th>
+          <th>G</th>
+          <th>A</th>
+          <th>P</th>
+          <th>SOG</th>
+          <th>PIM</th>
+        </tr>
+    `;
+
+    const roster = state.rosters?.[teamName] || [];
+
+    roster.forEach(player => {
+
+      const stats =
+        state.seasonStats?.[season]?.[teamName]?.[player.name] || {};
+
+      const g = stats.goals || 0;
+      const a = stats.assists || 0;
+      const p = g + a;
+      const sog = stats.shots || 0;
+      const pim = stats.pim || 0;
+
+      html += `
+        <tr>
+          <td>#${player.number} ${player.name}</td>
+          <td>${g}</td>
+          <td>${a}</td>
+          <td>${p}</td>
+          <td>${sog}</td>
+          <td>${pim}</td>
+        </tr>
+      `;
+    });
+
+    html += "</table>";
+
+  });
+
+  container.innerHTML = html;
+
+}
 /* ---------- GOALIES ---------- */  
 function populateGoalies(team, sel){  
   sel.innerHTML="";  
