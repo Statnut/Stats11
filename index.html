@@ -820,6 +820,24 @@ function renderConferences(){
     container.appendChild(div);
 
   });
+/* ---------- LOAD PLAYOFF SETTINGS ---------- */
+
+function loadPlayoffSettings(){
+
+  const season = $("playoffSeason")?.value;
+  if(!season) return;
+
+  const settings = state.playoffSettings?.[season];
+
+  if(!settings) return;
+
+  if($("teamsPerConference")){
+    $("teamsPerConference").value = settings.teamsPerConference || 4;
+  }
+
+  if($("seriesLength")){
+    $("seriesLength").value = settings.seriesLength || 7;
+  }
 
 }
 function renderSeasons(){  
