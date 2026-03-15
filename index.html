@@ -886,7 +886,13 @@ function renderConferences(){
     block.className = "list-item";
 
     const title = document.createElement("div");
-    title.innerHTML = `<strong>${conf}</strong>`;
+title.style.display = "flex";
+title.style.justifyContent = "space-between";
+title.style.alignItems = "center";
+title.style.fontWeight = "bold";
+title.style.marginTop = "12px";
+
+title.innerHTML = `<span>${conf}</span>`;
 
     const del = document.createElement("button");
     del.textContent = "Delete";
@@ -912,10 +918,13 @@ function renderConferences(){
     divisions.forEach(d => {
 
   const divRow = document.createElement("div");
+  divRow.style.display = "flex";
+  divRow.style.justifyContent = "space-between";
+  divRow.style.alignItems = "center";
   divRow.style.marginLeft = "20px";
-
+  divRow.style.padding = "2px 0";
   const name = document.createElement("span");
-  name.textContent = d;
+  name.textContent = "• " + d;
 
   const del = document.createElement("button");
   del.textContent = "Delete";
