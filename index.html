@@ -883,16 +883,18 @@ function renderConferences(){
   Object.keys(confs).forEach(conf => {
 
     const block = document.createElement("div");
-    block.className = "list-item";
+    block.style.marginBottom = "10px";
 
-    const title = document.createElement("div");
+   const title = document.createElement("div");
 title.style.display = "flex";
 title.style.justifyContent = "space-between";
 title.style.alignItems = "center";
 title.style.fontWeight = "bold";
-title.style.marginTop = "12px";
+title.style.padding = "4px 0";
 
-title.innerHTML = `<span>${conf}</span>`;
+title.textContent = conf;
+title.appendChild(del);
+block.appendChild(title);
 
     const del = document.createElement("button");
     del.textContent = "Delete";
@@ -918,11 +920,12 @@ title.innerHTML = `<span>${conf}</span>`;
     divisions.forEach(d => {
 
   const divRow = document.createElement("div");
-  divRow.style.display = "flex";
-  divRow.style.justifyContent = "space-between";
-  divRow.style.alignItems = "center";
-  divRow.style.marginLeft = "20px";
-  divRow.style.padding = "2px 0";
+divRow.style.display = "flex";
+divRow.style.justifyContent = "space-between";
+divRow.style.alignItems = "center";
+divRow.style.marginLeft = "25px";
+divRow.style.padding = "2px 0";
+divRow.style.fontSize = "0.95em";
   const name = document.createElement("span");
   name.textContent = "• " + d;
 
@@ -1254,44 +1257,61 @@ refreshLeagueUI();
   
 /* ---------- POPULATE STRUCTURE DROPDOWNS ---------- */
 
+/* ---------- POPULATE STRUCTURE DROPDOWNS ---------- */
+
 function populateTeamStructureDropdowns(){
 
-  const season = $("structureSeason")?.value;
-  const confSelect = $("divisionConfSelect");
+  const season = $("teamSeason")?.value;
+  const confSelect = $("teamConference");
+  const divSelect = $("teamDivision");
 
-  if(!season || !confSelect) return;
+  if(!season || !confSelect || !divSelect) return;
 
   ensureSeasonStructure(season);
 
   const confs = state.structure[season].conferences || {};
+  const confNames = Object.keys(confs);
 
-  confSelect.innerHTML = Object.keys(confs)
+  if(confNames.length === 0){
+    confSelect.innerHTML = "<option>No Conferences</option>";
+    divSelect.innerHTML = "<option>No Divisions</option>";
+    return;
+  }
+
+  confSelect.innerHTML = confNames
     .map(c => `<option value="${c}">${c}</option>`)
     .join("");
 
-} 
-  
-function updateDivisionDropdown(){  
-  const season = $("teamSeason").value;  
-  const conf = $("teamConference").value;  
-  const divSelect = $("teamDivision");  
-  
-  divSelect.innerHTML = "";  
-  
-  if(!season || !conf) return;  
-  
-  const divisions =  
-    state.structure[season]?.conferences[conf]?.divisions || [];  
-  
-  if(divisions.length === 0){  
-    divSelect.innerHTML = "<option>No Divisions</option>";  
-    return;  
-  }  
-  
-  divSelect.innerHTML = divisions  
-    .map(d=>`<option>${d}</option>`)  
-    .join("");  
-}  
+  updateDivisionDropdown();
+
+  confSelect.onchange = updateDivisionDropdown;
+
+}
+
+
+/* ---------- UPDATE DIVISION DROPDOWN ---------- */
+
+function updateDivisionDropdown(){
+
+  const season = $("teamSeason")?.value;
+  const conf = $("teamConference")?.value;
+  const divSelect = $("teamDivision");
+
+  if(!season || !conf || !divSelect) return;
+
+  const divisions =
+    state.structure?.[season]?.conferences?.[conf]?.divisions || [];
+
+  if(divisions.length === 0){
+    divSelect.innerHTML = "<option>No Divisions</option>";
+    return;
+  }
+
+  divSelect.innerHTML = divisions
+    .map(d => `<option value="${d}">${d}</option>`)
+    .join("");
+
+}
   
 function renderTeams(){  
 populateTeamStructureDropdowns();  
