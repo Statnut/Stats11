@@ -245,16 +245,20 @@ th { background:#f0f0f0; }
   display: block;  
 }  
   
-/* Mobile tighten */  
-@media(max-width:520px){  
-  th, td { font-size:12px; padding:5px; }  
-  nav button { font-size:12px; padding:10px; }  
-}  
-  .small-btn {
-  font-size: 11px;
-  padding: 2px 6px;
-  margin-left: 8px;
+.small-btn {
+  font-size: 12px;
+  padding: 0 6px;
+  margin-left: 6px;
   cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background: #f5f5f5;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.small-btn:hover {
+  background: #e0e0e0;
 }
 </style>  
 </head>  
@@ -899,7 +903,7 @@ title.style.fontWeight = "bold";
 title.style.padding = "4px 0";
 
 const del = document.createElement("button");
-del.textContent = "Delete";
+del.textContent = "x";
 del.className = "small-btn";
     
 title.textContent = conf;
@@ -937,7 +941,7 @@ divRow.style.fontSize = "0.95em";
   name.textContent = "• " + d;
 
 const del = document.createElement("button");
-del.textContent = "Delete";
+del.textContent = "x";
 del.className = "small-btn";
 
   del.onclick = () => {
