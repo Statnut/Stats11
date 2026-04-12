@@ -984,7 +984,9 @@ del.className = "small-btn";
   divRow.appendChild(del);
 
   divisionContainer.appendChild(divRow);
-
+      
+const teams = Object.values(state.teams?.[season] || {});
+      
     teams
   .filter(t => t.conference === conf && t.division === d)
   .forEach(team => {
