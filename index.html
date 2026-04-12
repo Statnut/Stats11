@@ -969,6 +969,23 @@ del.className = "small-btn";
 
   block.appendChild(divRow);
 
+      // ---------- TEAMS UNDER DIVISION ----------
+
+const teams = state.teams?.[season] || [];
+
+teams
+  .filter(t => t.conference === conf && t.division === d)
+  .forEach(team => {
+
+    const teamRow = document.createElement("div");
+    teamRow.style.marginLeft = "45px";
+    teamRow.style.fontSize = "0.9em";
+    teamRow.textContent = "– " + team.name;
+
+    block.appendChild(teamRow);
+
+  });
+
     });
 
     container.appendChild(block);
