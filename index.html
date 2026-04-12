@@ -1122,7 +1122,7 @@ createDefaultSeasonRules(s);
     d.className="list-item";  
     d.innerHTML=`<span>${s}</span>`;  
     const del=document.createElement("button");  
-    del.textContent="Delete";  
+    del.textContent="x";  
     del.onclick=()=>{  
       state.seasons=state.seasons.filter(x=>x!==s);  
       delete state.teams[s];  
@@ -1356,7 +1356,7 @@ logoBtn.onclick = () => {
 d.appendChild(logoBtn);  
   
     const del=document.createElement("button");  
-    del.textContent="Delete";  
+    del.textContent="x";  
     del.onclick=()=>{  
       state.teams[teamSeason.value]=state.teams[teamSeason.value].filter(x=>x!==t);  
       delete state.rosters[t.name];  
@@ -1430,7 +1430,7 @@ function renderRoster(){
     d.className="list-item";  
     d.innerHTML=`<span>#${p.number} ${p.name} (${p.position})</span>`;  
     const del=document.createElement("button");  
-    del.textContent="Delete";  
+    del.textContent="x";  
     del.onclick=()=>{  
       state.rosters[rosterTeam.value]=state.rosters[rosterTeam.value].filter(x=>x!==p);  
       save(); renderRoster();  
