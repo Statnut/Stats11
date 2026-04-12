@@ -247,16 +247,18 @@ th { background:#f0f0f0; }
   
 .small-btn {
   font-size: 12px;
-  padding: 0 6px;
+  padding: 0 4px;
   margin-left: 6px;
   cursor: pointer;
   border-radius: 4px;
   border: 1px solid #ccc;
   background: #f5f5f5;
   line-height: 1.2;
-  min-width: 0;
-}
 
+  width: auto;          /* 🔑 prevents full-width stretch */
+  display: inline-block;/* 🔑 keeps it compact */
+  flex: 0 0 auto;       /* 🔑 prevents flex growth */
+}
 .small-btn:hover {
   background: #e0e0e0;
 }
