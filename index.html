@@ -880,7 +880,12 @@ function addDivision(){
 
 function renderConferences(){
 
+  if(!state.collapsedConfs){
+    state.collapsedConfs = {};
+  }
+
   const season = $("structureSeason")?.value;
+
   const container = $("conferenceList");
 
   if(!season || !container) return;
@@ -903,6 +908,16 @@ title.style.justifyContent = "flex-start";
 title.style.alignItems = "center";
 title.style.fontWeight = "bold";
 title.style.padding = "4px 0";
+
+    title.style.cursor = "pointer";
+
+title.onclick = () => {
+
+  state.collapsedConfs[conf] = !state.collapsedConfs[conf];
+
+  renderConferences();
+
+};
 
 const del = document.createElement("button");
 del.textContent = "x";
@@ -929,7 +944,8 @@ block.appendChild(title);
     block.appendChild(title);
 
     const divisions = confs[conf].divisions || [];
-
+const divisionContainer = document.createElement("div");
+    
     divisions.forEach(d => {
 
   const divRow = document.createElement("div");
@@ -967,27 +983,54 @@ del.className = "small-btn";
   divRow.appendChild(name);
   divRow.appendChild(del);
 
-  block.appendChild(divRow);
+  divisionContainer.appendChild(divRow);
 
-      // ---------- TEAMS UNDER DIVISION ----------
-
-const teams = state.teams?.[season] || [];
-
-teams
+    teams
   .filter(t => t.conference === conf && t.division === d)
   .forEach(team => {
 
     const teamRow = document.createElement("div");
+    teamRow.style.display = "flex";
+    teamRow.style.alignItems = "center";
     teamRow.style.marginLeft = "45px";
     teamRow.style.fontSize = "0.9em";
-    teamRow.textContent = "– " + team.name;
+
+    const name = document.createElement("span");
+    name.textContent = "– " + team.name;
+
+    const del = document.createElement("button");
+    del.textContent = "×";
+    del.className = "small-btn";
+
+    del.onclick = () => {
+
+      const ok = confirm(`Delete team "${team.name}"?`);
+      if(!ok) return;
+
+      const list = state.teams[season];
+
+      const index = list.findIndex(t => t.name === team.name);
+      if(index !== -1){
+        list.splice(index,1);
+      }
+
+      save();
+      renderConferences();
+      renderTeams();
+
+    };
+
+    teamRow.appendChild(name);
+    teamRow.appendChild(del);
 
     block.appendChild(teamRow);
 
   });
-
+      
     });
-
+if(!state.collapsedConfs[conf]){
+  block.appendChild(divisionContainer);
+}
     container.appendChild(block);
 
   });
@@ -3870,7 +3913,7 @@ function ensureSeasonStructure(season){
     div.className = "list-item";
 
     const divisions = confs[conf].divisions || [];
-
+const divisionContainer = document.createElement("div");
     div.innerHTML =
       "<span><strong>" + conf + "</strong> — " +
       divisions.join(", ") +
