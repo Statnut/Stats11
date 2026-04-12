@@ -250,6 +250,12 @@ th { background:#f0f0f0; }
   th, td { font-size:12px; padding:5px; }  
   nav button { font-size:12px; padding:10px; }  
 }  
+  .small-btn {
+  font-size: 11px;
+  padding: 2px 6px;
+  margin-left: 8px;
+  cursor: pointer;
+}
 </style>  
 </head>  
   
@@ -893,7 +899,8 @@ title.style.fontWeight = "bold";
 title.style.padding = "4px 0";
 
 const del = document.createElement("button");
-    del.textContent = "Delete";
+del.textContent = "Delete";
+del.className = "small-btn";
     
 title.textContent = conf;
 title.appendChild(del);
@@ -929,9 +936,9 @@ divRow.style.fontSize = "0.95em";
   const name = document.createElement("span");
   name.textContent = "• " + d;
 
-  const del = document.createElement("button");
-  del.textContent = "Delete";
-  del.style.marginLeft = "10px";
+const del = document.createElement("button");
+del.textContent = "Delete";
+del.className = "small-btn";
 
   del.onclick = () => {
 
