@@ -1869,10 +1869,11 @@ function applyGameStats(){
       stats[e.scorer].goals += 1;
       stats[e.scorer].points += 1;
 
-      // Assists (supports array OR single value)
-const assists = Array.isArray(e.assists)
-  ? e.assists
-  : (e.assist ? [e.assist] : []);
+      // Assists (based on your structure: a1 / a2)
+const assists = [];
+
+if(e.a1) assists.push(e.a1);
+if(e.a2) assists.push(e.a2);
 
 assists.forEach(a => {
 
