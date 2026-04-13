@@ -1790,6 +1790,24 @@ gameStatus.innerHTML = `
 `;  
   
  }  
+
+  /* ---------- UPDATE SCORE ---------- */
+
+function updateScore(){
+
+  if(!state.game) return;
+
+  const homeScore = $("homeScore");
+  const awayScore = $("awayScore");
+
+  if(!homeScore || !awayScore) return;
+
+  const score = state.game.score || { home:0, away:0 };
+
+  homeScore.textContent = score.home;
+  awayScore.textContent = score.away;
+
+}
   
 /* ---------- GAME ---------- */  
   
