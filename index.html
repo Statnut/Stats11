@@ -1974,6 +1974,8 @@ $("advancePeriod").onclick = () => {
   
 $("endGame").onclick = () => {  
   if(!state.game) return;  
+
+ applyGameStats(); 
   
   state.game.final=true;  
   
@@ -2110,7 +2112,49 @@ function renderEventLog(){
     eventLog.innerHTML = "";  
     return;  
   }  
-  
+  /* ---------- APPLY GAME STATS ---------- */
+
+function applyGameStats(){
+
+  const game = state.game;
+  if(!game) return;
+
+  const season = game.season;
+
+  if(!state.playerStats) state.playerStats = {};
+  if(!state.playerStats[season]) state.playerStats[season] = {};
+
+  const stats = state.playerStats[season];
+
+  game.events.forEach(e => {
+
+    if(e.type === "goal"){
+
+      // Scorer
+      if(!stats[e.scorer]){
+        stats[e.scorer] = { goals:0, assists:0, points:0 };
+      }
+
+      stats[e.scorer].goals += 1;
+      stats[e.scorer].points += 1;
+
+      // Assists
+      (e.assists || []).forEach(a => {
+
+        if(!stats[a]){
+          stats[a] = { goals:0, assists:0, points:0 };
+        }
+
+        stats[a].assists += 1;
+        stats[a].points += 1;
+
+      });
+
+    }
+
+  });
+
+}
   ensureEvents();  
   
   if(state.game.events.length === 0){  
