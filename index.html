@@ -1869,17 +1869,21 @@ function applyGameStats(){
       stats[e.scorer].goals += 1;
       stats[e.scorer].points += 1;
 
-      // Assists
-      (e.assists || []).forEach(a => {
+      // Assists (supports array OR single value)
+const assists = Array.isArray(e.assists)
+  ? e.assists
+  : (e.assist ? [e.assist] : []);
 
-        if(!stats[a]){
-          stats[a] = { goals:0, assists:0, points:0 };
-        }
+assists.forEach(a => {
 
-        stats[a].assists += 1;
-        stats[a].points += 1;
+  if(!stats[a]){
+    stats[a] = { goals:0, assists:0, points:0 };
+  }
 
-      });
+  stats[a].assists += 1;
+  stats[a].points += 1;
+
+});
 
     }
 
