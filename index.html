@@ -1812,19 +1812,34 @@ function updateScore(){
 
 function renderEventLog(){
 
-  const log = $("eventLog");
-  if(!log) return;
+  ensureEvents();
 
-  if(!state.game || !state.game.events){
-    log.innerHTML = "<div class='small-note'>No events yet.</div>";
-    return;
-  }
+  const eventLog = $("eventLog");
+  if(!eventLog) return;
 
-  const events = state.game.events;
+  if(!state.game || state.game.events.length === 0){  
+    eventLog.innerHTML = `<div class="small-note">No events yet.</div>`;  
+    return;  
+  }  
 
-  log.innerHTML = events
-    .map(e => `<div class="event-item">${e.type}</div>`)
-    .join("");
+  let html = "";  
+
+  state.game.events.forEach(ev => {  
+    html += `  
+      <div class="event-item" data-id="${ev.id}">  
+        <div class="event-row">  
+          <div class="left">${eventLabel(ev)}</div>  
+          <div class="right">  
+            <button class="smallbtn" onclick="editEventUI('${ev.id}')">Edit</button>  
+            <button class="smallbtn" onclick="deleteEvent('${ev.id}')">Delete</button>  
+          </div>  
+        </div>  
+        <div class="event-edit" id="edit-${ev.id}" style="display:none;"></div>  
+      </div>  
+    `;  
+  });  
+
+  eventLog.innerHTML = html;  
 
 }
 /* ---------- GAME ---------- */  
@@ -2191,32 +2206,7 @@ function applyGameStats(){
   });
 
 }
-  ensureEvents();  
-  
-  if(state.game.events.length === 0){  
-    eventLog.innerHTML = `<div class="small-note">No events yet.</div>`;  
-    return;  
-  }  
-  
-  let html = "";  
-  
-  state.game.events.forEach(ev=>{  
-    html += `  
-      <div class="event-item" data-id="${ev.id}">  
-        <div class="event-row">  
-          <div class="left">${eventLabel(ev)}</div>  
-          <div class="right">  
-            <button class="smallbtn" onclick="editEventUI('${ev.id}')">Edit</button>  
-            <button class="smallbtn" onclick="deleteEvent('${ev.id}')">Delete</button>  
-          </div>  
-        </div>  
-        <div class="event-edit" id="edit-${ev.id}" style="display:none;"></div>  
-      </div>  
-    `;  
-  });  
-  
-  eventLog.innerHTML = html;  
-}  
+ 
   
 /* ---------- EVENT EDIT/DELETE ---------- */  
 window.deleteEvent = function(id){  
