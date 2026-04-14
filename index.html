@@ -1844,7 +1844,6 @@ function renderEventLog(){
 }
 
   /* ---------- APPLY GAME STATS ---------- */
-  
 function applyGameStats(){
 
   const game = state.game;
@@ -1857,36 +1856,42 @@ function applyGameStats(){
 
   const stats = state.playerStats[season];
 
-  game.events.forEach(e => {
+  (game.events || []).forEach(e => {
 
     if(e.type === "goal"){
 
       // Scorer
-      if(!stats[e.scorer]){
-        stats[e.scorer] = { goals:0, assists:0, points:0 };
+      if(e.scorer){
+        if(!stats[e.scorer]){
+          stats[e.scorer] = { goals:0, assists:0, points:0 };
+        }
+
+        stats[e.scorer].goals += 1;
+        stats[e.scorer].points += 1;
       }
 
-      stats[e.scorer].goals += 1;
-      stats[e.scorer].points += 1;
+      // Assists (a1 / a2)
+      const assists = [];
 
-    // Assists (a1 / a2)
-const assists = [];
+      if(e.a1) assists.push(e.a1);
+      if(e.a2) assists.push(e.a2);
 
-if(e.a1) assists.push(e.a1);
-if(e.a2) assists.push(e.a2);
+      assists.forEach(a => {
 
-assists.forEach(a => {
+        if(!stats[a]){
+          stats[a] = { goals:0, assists:0, points:0 };
+        }
 
-  if(!stats[a]){
-    stats[a] = { goals:0, assists:0, points:0 };
-  }
+        stats[a].assists += 1;
+        stats[a].points += 1;
 
-  stats[a].assists += 1;
-  stats[a].points += 1;
+      });
 
-});
+    }  
 
-}
+  });  
+
+}       
 /* ---------- APPLY TEAM STATS ---------- */
 
 function applyTeamStats(){
