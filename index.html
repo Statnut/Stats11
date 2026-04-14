@@ -1889,7 +1889,68 @@ assists.forEach(a => {
     }
 
   });
+  
+/* ---------- APPLY TEAM STATS ---------- */
 
+function applyTeamStats(){
+
+  const game = state.game;
+  if(!game) return;
+
+  const season = game.season;
+
+  if(!state.teamStats) state.teamStats = {};
+  if(!state.teamStats[season]) state.teamStats[season] = {};
+
+  const stats = state.teamStats[season];
+
+  const home = game.home;
+  const away = game.away;
+
+  // Ensure both teams exist
+  [home, away].forEach(t => {
+    if(!stats[t]){
+      stats[t] = {
+        gp: 0,
+        w: 0,
+        l: 0,
+        otl: 0,
+        pts: 0,
+        gf: 0,
+        ga: 0
+      };
+    }
+  });
+
+  const homeScore = game.score.home;
+  const awayScore = game.score.away;
+
+  // Games played
+  stats[home].gp += 1;
+  stats[away].gp += 1;
+
+  // Goals
+  stats[home].gf += homeScore;
+  stats[home].ga += awayScore;
+
+  stats[away].gf += awayScore;
+  stats[away].ga += homeScore;
+
+  // Determine winner
+  if(homeScore > awayScore){
+    stats[home].w += 1;
+    stats[home].pts += 2;
+
+    stats[away].l += 1;
+
+  } else if(awayScore > homeScore){
+    stats[away].w += 1;
+    stats[away].pts += 2;
+
+    stats[home].l += 1;
+  }
+
+}
 }
 /* ---------- GAME ---------- */  
   
@@ -2076,7 +2137,7 @@ $("endGame").onclick = () => {
   if(!state.game) return;  
 
  applyGameStats(); 
-  
+ applyTeamStats();
   state.game.final=true;  
   
 // Prevent duplicate save  
