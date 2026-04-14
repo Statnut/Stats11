@@ -1869,7 +1869,7 @@ function applyGameStats(){
       stats[e.scorer].goals += 1;
       stats[e.scorer].points += 1;
 
-      // Assists (based on your structure: a1 / a2)
+    // Assists (a1 / a2)
 const assists = [];
 
 if(e.a1) assists.push(e.a1);
@@ -1884,9 +1884,7 @@ assists.forEach(a => {
   stats[a].assists += 1;
   stats[a].points += 1;
 
-    }
-
-  });
+});
 
 }
 /* ---------- APPLY TEAM STATS ---------- */
