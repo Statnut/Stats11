@@ -575,7 +575,7 @@ th { background:#f0f0f0; }
   
 <button onclick="resetCompletedGames()">Reset All Game History</button>  
   
-  <div id="standingsTable"></div>  
+ <div id="standings" class="list"></div>
 </section>  
   
 <section id="playoffs">  
@@ -1501,7 +1501,40 @@ function renderRoster(){
   });  
 renderTeamSeasonStats();  
 }  
-  
+  /* ---------- RENDER STANDINGS ---------- */
+
+function renderStandings(){
+
+  const season = $("teamSeason")?.value;
+  const container = $("standings");
+
+  if(!season || !container) return;
+
+  const stats = state.teamStats?.[season];
+
+  if(!stats){
+    container.innerHTML = "<div class='small-note'>No standings yet</div>";
+    return;
+  }
+
+  const teams = Object.entries(stats);
+
+  teams.sort((a, b) => b[1].pts - a[1].pts);
+
+  let html = `<div class="list-item"><strong>Standings</strong></div>`;
+
+  teams.forEach(([team, s]) => {
+    html += `
+      <div class="list-item">
+        ${team} — GP:${s.gp} W:${s.w} L:${s.l} PTS:${s.pts} GF:${s.gf} GA:${s.ga}
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+}
+
 rosterTeam.onchange = () => {  
   renderRoster();  
   renderTeamSeasonStats();  
