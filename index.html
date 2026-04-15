@@ -1557,12 +1557,14 @@ html += `
     <tbody>
 `;
 
-teams.forEach(([team, s]) => {
+divisionTeams.forEach(([team, s], index) => {
 
+  const isLeader = index === 0;  
+  
   const diff = s.gf - s.ga;
 
   html += `
-    <tr>
+    <tr style="${isLeader ? 'font-weight:bold; background:#f5faff;' : ''}">
       <td>${team}</td>
       <td>${s.gp}</td>
       <td>${s.w}</td>
@@ -3304,7 +3306,7 @@ strong { font-weight:700; }
 .standings-table th,
 .standings-table td {
   border-bottom: 1px solid #ddd;
-  padding: 6px 8px;
+  padding: 4px 6px;
   text-align: center;
 }
 
@@ -3838,7 +3840,7 @@ function renderStandings(){
             <td><strong>${t.pts}</strong></td>  
             <td>${t.gf}</td>  
             <td>${t.ga}</td>  
-            <td>${diff}</td>  
+            <td>${diff > 0 ? "+" + diff : diff}</td>
           </tr>  
         `;  
       });  
