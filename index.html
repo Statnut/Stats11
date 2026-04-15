@@ -1064,7 +1064,7 @@ function loadPlayoffSettings(){
 
 function renderStandings(){
 
-  const table = $("standingsTable");
+  const table = $("standings");
   if(!table) return;
 
   const season = $("standingsSeason")?.value;
@@ -3703,7 +3703,7 @@ function renderStandings(){
   const structure = state.structure[season];  
   
   if(!structure || !structure.conferences){  
-    $("standingsTable").innerHTML = "<div class='small-note'>No league structure defined.</div>";  
+    $("standings").innerHTML = "<div class='small-note'>No league structure defined.</div>";  
     return;  
   }  
   
@@ -3770,7 +3770,7 @@ function renderStandings(){
   
   });  
   
-  $("standingsTable").innerHTML = html;  
+  $("standings").innerHTML = html;  
 }  
   
 function resetCompletedGames(){  
