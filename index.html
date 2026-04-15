@@ -1519,19 +1519,68 @@ function renderStandings(){
 
   const teams = Object.entries(stats);
 
-  teams.sort((a, b) => b[1].pts - a[1].pts);
+  teams.sort((a, b) => {
 
-  let html = `<div class="list-item"><strong>Standings</strong></div>`;
+  const A = a[1];
+  const B = b[1];
 
-  teams.forEach(([team, s]) => {
-    html += `
-      <div class="list-item">
-        ${team} — GP:${s.gp} W:${s.w} L:${s.l} PTS:${s.pts} GF:${s.gf} GA:${s.ga}
-      </div>
-    `;
-  });
+  // 1. Points
+  if(B.pts !== A.pts) return B.pts - A.pts;
 
-  container.innerHTML = html;
+  // 2. Goal Differential
+  const gdA = A.gf - A.ga;
+  const gdB = B.gf - B.ga;
+  if(gdB !== gdA) return gdB - gdA;
+
+  // 3. Goals For
+  if(B.gf !== A.gf) return B.gf - A.gf;
+
+  return 0;
+});
+
+  let html = `<h3>Standings</h3>`;
+
+html += `
+  <table class="standings-table">
+    <thead>
+      <tr>
+        <th>Team</th>
+        <th>GP</th>
+        <th>W</th>
+        <th>L</th>
+        <th>PTS</th>
+        <th>GF</th>
+        <th>GA</th>
+        <th>+/-</th>
+      </tr>
+    </thead>
+    <tbody>
+`;
+
+teams.forEach(([team, s]) => {
+
+  const diff = s.gf - s.ga;
+
+  html += `
+    <tr>
+      <td>${team}</td>
+      <td>${s.gp}</td>
+      <td>${s.w}</td>
+      <td>${s.l}</td>
+      <td><strong>${s.pts}</strong></td>
+      <td>${s.gf}</td>
+      <td>${s.ga}</td>
+      <td>${diff >= 0 ? "+" + diff : diff}</td>
+    </tr>
+  `;
+});
+
+html += `
+    </tbody>
+  </table>
+`;
+
+container.innerHTML = html;
 
 }
 
@@ -3244,6 +3293,35 @@ table { width:100%; border-collapse:collapse; margin-top:10px; }
 th, td { border:1px solid #ccc; padding:6px; font-size:14px; }  
 th { background:#f0f0f0; }  
 strong { font-weight:700; }  
+/* Standings Table Styling */
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.standings-table th,
+.standings-table td {
+  border-bottom: 1px solid #ddd;
+  padding: 6px 8px;
+  text-align: center;
+}
+
+.standings-table th {
+  background: #f5f5f5;
+  font-weight: bold;
+}
+
+.standings-table td:first-child {
+  text-align: left;
+  font-weight: 500;
+}
+
+.standings-table tr:hover {
+  background: #f9f9f9;
+}
+
 </style>  
 </head>  
 <body>  
