@@ -1116,7 +1116,7 @@ function renderStandings(){
 
 function renderPlayerStats(){
 
-  const season = $("teamSeason")?.value;
+  const season = $("standingsSeason")?.value;
   const container = $("playerStats");
 
   if(!season || !container) return;
@@ -4798,9 +4798,6 @@ function refreshLeagueUI(){
     renderTeams();  
   }  
   
-  if(typeof renderStandings === "function"){  
-    renderStandings();  
-  }  
   
   if(typeof renderHistory === "function"){  
     renderHistory();  
@@ -4813,6 +4810,11 @@ function refreshLeagueUI(){
   if(typeof renderPlayoffs === "function"){  
     renderPlayoffs();  
   }  
+
+    if(typeof renderStandings === "function"){  
+    renderStandings();  
+  }  
+  
   if(typeof renderPlayerStats === "function"){
   renderPlayerStats();
 }
