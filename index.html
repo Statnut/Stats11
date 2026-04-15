@@ -1574,9 +1574,12 @@ renderTeamSeasonStats();
 
 function renderStandings(){
 
-  const season = $("teamSeason")?.value;
+  const season = $("standingsSeason")?.value;
   const container = $("standings");
-
+if(!container){
+  console.log("standings container not found");
+  return;
+}
   if(!season || !container) return;
 
   const stats = state.teamStats?.[season];
