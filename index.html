@@ -4920,9 +4920,11 @@ setTimeout(() => {
   renderTeams();
   renderRoster();
   renderClock();
+ 
+  populateTeamStructureDropdowns();
+
   renderStandings();
   renderPlayerStats();
-  populateTeamStructureDropdowns();
 
   if(state.game){
     updateScore();
