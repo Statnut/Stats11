@@ -1068,23 +1068,18 @@ function loadPlayoffSettings(){
 
 function renderStandings(){
 
-  console.log("renderStandings running");
-  
+  console.log("renderStandings RUNNING");
+
   const table = $("standings");
-  if(!table) return;
 
-  const season = $("standingsSeason")?.value || state.seasons?.[0];
-  if(!season) return;
+  if(!table){
+    console.log("NO TABLE FOUND");
+    return;
+  }
 
-  const stats = state.teamStats?.[season];
+  table.innerHTML = "<h1 style='color:red'>IT WORKS</h1>";
 
-  const teams = Object.entries(stats);
-  
-  if(!stats){
-  table.innerHTML = "<div class='small-note'>No standings yet.</div>";
-  return;
 }
-
   let html = `
   <table>
     <tr>
