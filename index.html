@@ -1076,12 +1076,12 @@ function renderStandings(){
   const season = $("standingsSeason")?.value || state.seasons?.[0];
   if(!season) return;
 
-  const teams = state.teams?.[season] || [];
+  const stats = state.teamStats?.[season];
 
-  if(teams.length === 0){
-    table.innerHTML = "<div class='small-note'>No teams yet.</div>";
-    return;
-  }
+  if(!stats){
+  table.innerHTML = "<div class='small-note'>No standings yet.</div>";
+  return;
+}
 
   let html = `
   <table>
