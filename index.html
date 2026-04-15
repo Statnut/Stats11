@@ -576,6 +576,8 @@ th { background:#f0f0f0; }
 <button onclick="resetCompletedGames()">Reset All Game History</button>  
   
  <div id="standings" class="list"></div>
+
+  <div id="playerStats" class="list"></div>
 </section>  
   
 <section id="playoffs">  
@@ -1108,7 +1110,74 @@ function renderStandings(){
 
 }
 
+/* ---------- RENDER PLAYER STATS ---------- */
 
+function renderPlayerStats(){
+
+  const season = $("teamSeason")?.value;
+  const container = $("playerStats");
+
+  if(!season || !container) return;
+
+  const stats = state.playerStats?.[season];
+
+  if(!stats){
+    container.innerHTML = "<div class='small-note'>No player stats yet</div>";
+    return;
+  }
+
+  const players = Object.entries(stats);
+
+  // Sort: Points → Goals → Assists
+  players.sort((a, b) => {
+
+    const A = a[1];
+    const B = b[1];
+
+    if(B.points !== A.points) return B.points - A.points;
+    if(B.goals !== A.goals) return B.goals - A.goals;
+    if(B.assists !== A.assists) return B.assists - A.assists;
+
+    return 0;
+  });
+
+  let html = `
+    <h3>Player Leaders</h3>
+    <table class="standings-table">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>G</th>
+          <th>A</th>
+          <th>PTS</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  players.forEach(([name, s], index) => {
+
+    const isLeader = index === 0;
+
+    html += `
+      <tr style="${isLeader ? 'font-weight:bold; background:#f5faff;' : ''}">
+        <td>${name}</td>
+        <td>${s.goals}</td>
+        <td>${s.assists}</td>
+        <td><strong>${s.points}</strong></td>
+      </tr>
+    `;
+  });
+
+  html += `
+      </tbody>
+    </table>
+  `;
+
+  container.innerHTML = html;
+
+}
+  
 /* ---------- HISTORY ---------- */
 
 function renderHistory(){
@@ -4739,7 +4808,9 @@ function refreshLeagueUI(){
   if(typeof renderPlayoffs === "function"){  
     renderPlayoffs();  
   }  
-  
+  if(typeof renderPlayerStats === "function"){
+  renderPlayerStats();
+}
 }  
   
 /* ---------- INIT ---------- */  
