@@ -1073,7 +1073,7 @@ function renderStandings(){
   const table = $("standings");
   if(!table) return;
 
-  const season = $("standingsSeason")?.value;
+  const season = $("standingsSeason")?.value || state.seasons?.[0];
   if(!season) return;
 
   const teams = state.teams?.[season] || [];
@@ -1312,11 +1312,16 @@ const ss = $("standingsSeason");
   
 if(ss && state.seasons.length){  
   
-  ss.innerHTML = state.seasons  
-    .map(s=>`<option>${s}</option>`)  
-    .join("");  
-  
-  ss.value = state.seasons[0];  
+  const current = ss.value;
+
+ss.innerHTML = state.seasons
+  .map(s => `<option ${s===current ? "selected" : ""}>${s}</option>`)
+  .join("");
+
+// fallback if nothing selected yet
+if(!ss.value){
+  ss.value = state.seasons[0];
+}
   
   ss.onchange = renderStandings;  
   
