@@ -1599,7 +1599,10 @@ if(!container){
   }
 
   const teams = Object.entries(stats);
-
+  
+table.innerHTML = "<h1>TEAMS FOUND: " + teams.length + "</h1>";
+return;
+  
   teams.sort((a, b) => {
 
   const A = a[1];
