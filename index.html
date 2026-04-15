@@ -1078,6 +1078,8 @@ function renderStandings(){
 
   const stats = state.teamStats?.[season];
 
+  const teams = Object.entries(stats);
+  
   if(!stats){
   table.innerHTML = "<div class='small-note'>No standings yet.</div>";
   return;
@@ -1095,15 +1097,15 @@ function renderStandings(){
     </tr>
   `;
 
-  teams.forEach(t=>{
+  teams.forEach(([team, s])=>{
     html += `
       <tr>
-        <td>${t.name}</td>
-        <td>0</td>
-        <td>0</td>
-        <td>0</td>
-        <td>0</td>
-        <td>0</td>
+      <td>${team}</td>
+      <td>${s.gp}</td>
+      <td>${s.w}</td>
+      <td>${s.l}</td>
+      <td>${s.otl}</td>
+      <td>${s.pts}</td>
       </tr>
     `;
   });
