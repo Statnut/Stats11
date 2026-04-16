@@ -1097,7 +1097,9 @@ function renderStandings(){
     return;
   }
 
-  const teams = Object.entries(stats);
+  const teams = Object.entries(stats).sort((a, b) => {
+  return b[1].pts - a[1].pts; // sort by points descending
+});
 
   let html = `
     <table>
@@ -1111,7 +1113,7 @@ function renderStandings(){
       </tr>
   `;
 
-  teams.forEach(([team, s])=>{
+teams.forEach(([team, s], index)=>{
     html += `
       <tr>
         <td>${team}</td>
@@ -1127,7 +1129,7 @@ function renderStandings(){
   html += "</table>";
 
   table.classList.add("active");
-  table.innerHTML = "<h1 style='color:red'>VISIBLE TEST</h1>";
+  table.innerHTML = html;
   
 console.log("FINAL HTML:", table.innerHTML);
   
