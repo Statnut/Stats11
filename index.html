@@ -1099,19 +1099,30 @@ function renderStandings(){
 
   const teams = state.teams?.[season] || [];
   const structure = {};
+teams.forEach(team => {
 
-  let html = `
-    <table>
-      <tr>
-        <th>Team</th>
-        <th>GP</th>
-        <th>W</th>
-        <th>L</th>
-        <th>OT</th>
-        <th>PTS</th>
-      </tr>
-  `;
+  const conf = team.conference || "Other";
+  const div = team.division || "Other";
 
+  if(!structure[conf]){
+    structure[conf] = {};
+  }
+
+  if(!structure[conf][div]){
+    structure[conf][div] = [];
+  }
+
+  const s = stats[team.name] || {
+    gp:0,w:0,l:0,otl:0,pts:0,gf:0,ga:0
+  };
+
+  structure[conf][div].push({
+    name: team.name,
+    ...s
+  });
+
+});
+  
 let html = "";
 
 Object.keys(structure).forEach(conf => {
@@ -1150,6 +1161,7 @@ Object.keys(structure).forEach(conf => {
           <td>${t.l}</td>
           <td>${t.otl}</td>
           <td>${t.pts}</td>
+          <td>${t.gf - t.ga}</td>
         </tr>
       `;
     });
