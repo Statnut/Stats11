@@ -577,6 +577,8 @@ th { background:#f0f0f0; }
 
   <div id="standingsTable" class="list"></div>
 </section>
+
+<div id="playerLeaders"></div>
   
 <section id="playerStatsSection">
   <div id="playerStats" class="list"></div>
@@ -1244,6 +1246,49 @@ function renderPlayerStats(){
 
   container.innerHTML = html;
 
+}
+
+  function renderLeagueLeaders(){
+
+  const season = $("standingsSeason")?.value || state.seasons?.[0];
+  if(!season) return;
+
+  const stats = state.playerStats?.[season];
+  if(!stats) return;
+
+  const container = $("playerLeaders");
+  if(!container) return;
+
+  const players = Object.entries(stats);
+
+  // helper function
+  function getTop(stat){
+    return [...players]
+      .sort((a,b)=> (b[1][stat] || 0) - (a[1][stat] || 0))
+      .slice(0,10);
+  }
+
+  const topPoints = getTop("points");
+  const topGoals = getTop("goals");
+  const topAssists = getTop("assists");
+
+  let html = `<h3 style="margin-top:20px;">🏆 League Leaders</h3>`;
+
+  function renderList(title, data, statKey){
+    html += `<h4 style="margin-top:10px;">${title}</h4><ol>`;
+    data.forEach(([name, s], index)=>{
+  html += `<li style="${index===0 ? 'font-weight:bold;' : ''}">
+    ${name} — ${s[statKey]}
+  </li>`;
+});
+    html += `</ol>`;
+  }
+
+  renderList("Points", topPoints, "points");
+  renderList("Goals", topGoals, "goals");
+  renderList("Assists", topAssists, "assists");
+
+  container.innerHTML = html;
 }
   
 /* ---------- HISTORY ---------- */
@@ -4858,7 +4903,11 @@ function refreshLeagueUI(){
     if(typeof renderPlayerStats === "function"){
       renderPlayerStats();
     }
-
+    
+    if(typeof renderLeagueLeaders === "function"){
+  renderLeagueLeaders();
+}
+    
   }, 0);
 
 }
