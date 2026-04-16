@@ -4938,7 +4938,9 @@ console.log("standings container:", $("standings"));
  
   populateTeamStructureDropdowns();
 
+  setTimeout(() => {
   refreshLeagueUI();
+}, 0);
 
   if(state.game){
     updateScore();
