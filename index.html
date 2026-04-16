@@ -1127,7 +1127,8 @@ function renderStandings(){
 
   html += "</table>";
 
-  table.innerHTML = "<h1 style='color:red'>VISIBLE TEST</h1>";
+  table.classList.add("active");
+  table.innerHTML = html;
   
 console.log("FINAL HTML:", table.innerHTML);
   
