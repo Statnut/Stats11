@@ -1113,7 +1113,6 @@ function renderStandings(){
   });
 
   html += "</table>";
-
   table.innerHTML = html;
 
 }
@@ -1583,103 +1582,6 @@ function renderRoster(){
   });  
 renderTeamSeasonStats();  
 }  
-  /* ---------- RENDER STANDINGS ---------- */
-
-function renderStandings(){
-
-  const season = $("standingsSeason")?.value;
-  const container = $("standings");
-  
-container.innerHTML = html;
-if(!container){
-  console.log("standings container not found");
-  return;
-}
-  if(!season || !container) return;
-
-  const stats = state.teamStats?.[season];
-
-  if(!stats){
-    container.innerHTML = "<div class='small-note'>No standings yet</div>";
-    return;
-  }
-
-  const teams = Object.entries(stats);
-  
-table.innerHTML = "<h1>TEAMS FOUND: " + teams.length + "</h1>";
-return;
-  
-  teams.sort((a, b) => {
-
-  const A = a[1];
-  const B = b[1];
-
-  // 1. Points
-  if(B.pts !== A.pts) return B.pts - A.pts;
-
-  // 2. Goal Differential
-  const gdA = A.gf - A.ga;
-  const gdB = B.gf - B.ga;
-  if(gdB !== gdA) return gdB - gdA;
-
-  // 3. Goals For
-  if(B.gf !== A.gf) return B.gf - A.gf;
-
-  return 0;
-});
-
-  let html = `<h3>Standings</h3>`;
-
-html += `
-  <table class="standings-table">
-    <thead>
-      <tr>
-        <th>Team</th>
-        <th>GP</th>
-        <th>W</th>
-        <th>L</th>
-        <th>PTS</th>
-        <th>GF</th>
-        <th>GA</th>
-        <th>+/-</th>
-      </tr>
-    </thead>
-    <tbody>
-`;
-
-divisionTeams.forEach(([team, s], index) => {
-
-  const isLeader = index === 0;  
-  
-  const diff = s.gf - s.ga;
-
-  html += `
-    <tr style="${isLeader ? 'font-weight:bold; background:#f5faff;' : ''}">
-      <td>${team}</td>
-      <td>${s.gp}</td>
-      <td>${s.w}</td>
-      <td>${s.l}</td>
-      <td><strong>${s.pts}</strong></td>
-      <td>${s.gf}</td>
-      <td>${s.ga}</td>
-      <td>${diff >= 0 ? "+" + diff : diff}</td>
-    </tr>
-  `;
-});
-
-html += `
-    </tbody>
-  </table>
-`;
-
-container.innerHTML = html;
-
-}
-
-rosterTeam.onchange = () => {  
-  renderRoster();  
-  renderTeamSeasonStats();  
-};  
   /* ---------- TEAM SEASON STATS ---------- */
 
 function renderTeamSeasonStats(){
