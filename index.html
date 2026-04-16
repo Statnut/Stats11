@@ -1097,9 +1097,8 @@ function renderStandings(){
     return;
   }
 
-  const teams = Object.entries(stats).sort((a, b) => {
-  return b[1].pts - a[1].pts; // sort by points descending
-});
+  const teams = state.teams?.[season] || [];
+  const structure = {};
 
   let html = `
     <table>
@@ -1113,20 +1112,52 @@ function renderStandings(){
       </tr>
   `;
 
-teams.forEach(([team, s], index)=>{
+let html = "";
+
+Object.keys(structure).forEach(conf => {
+
+  html += `<h3 style="margin-top:18px;">${conf.toUpperCase()} CONFERENCE</h3>`;
+
+  Object.keys(structure[conf]).forEach(div => {
+
+    const divisionTeams = structure[conf][div];
+
+    // sort by points
+    divisionTeams.sort((a,b)=> b.pts - a.pts);
+
     html += `
-      <tr>
-        <td>${team}</td>
-        <td>${s.gp}</td>
-        <td>${s.w}</td>
-        <td>${s.l}</td>
-        <td>${s.otl}</td>
-        <td>${s.pts}</td>
-      </tr>
+      <h4 style="margin-top:12px;">${div} Division</h4>
+      <table>
+        <tr>
+          <th>Team</th>
+          <th>GP</th>
+          <th>W</th>
+          <th>L</th>
+          <th>OT</th>
+          <th>PTS</th>
+        </tr>
     `;
+
+    divisionTeams.forEach((t, index)=>{
+
+      const isLeader = index === 0;
+
+      html += `
+        <tr style="${isLeader ? 'font-weight:bold; background:#f5faff;' : ''}">
+          <td>${t.name}</td>
+          <td>${t.gp}</td>
+          <td>${t.w}</td>
+          <td>${t.l}</td>
+          <td>${t.otl}</td>
+          <td>${t.pts}</td>
+        </tr>
+      `;
+    });
+
+    html += `</table>`;
   });
 
-  html += "</table>";
+});
 
   table.classList.add("active");
   table.innerHTML = html;
