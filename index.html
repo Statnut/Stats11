@@ -1128,7 +1128,9 @@ function renderStandings(){
   html += "</table>";
 
   table.innerHTML = html;
-
+  
+console.log("FINAL HTML:", table.innerHTML);
+  
 }
 
 /* ---------- RENDER PLAYER STATS ---------- */
@@ -4800,14 +4802,21 @@ function refreshLeagueUI(){
   const rs = $("rulesSeason");
   if(rs) loadSeasonRules();
 
-}
-  window.onload = init;
+  // 👇 ADD THIS BLOCK
   setTimeout(() => {
-  console.log("FORCED standings render");
-  if(typeof renderStandings === "function"){
-    renderStandings();
-  }
-}, 500);
+    console.log("renderStandings via refresh");
+
+    if(typeof renderStandings === "function"){
+      renderStandings();
+    }
+
+    if(typeof renderPlayerStats === "function"){
+      renderPlayerStats();
+    }
+
+  }, 0);
+
+}
 </script>  
   
 <!-- RESUME GAME BANNER -->  
