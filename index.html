@@ -1066,27 +1066,37 @@ function loadPlayoffSettings(){
 
 /* ---------- STANDINGS ---------- */
 
-let season = $("standingsSeason")?.value;
-console.log("season:", season);
+function renderStandings(){
 
-if(!season && state.seasons.length){
-  season = state.seasons[0];
-  console.log("FALLBACK season used:", season);
-}
+  console.log("renderStandings RUNNING");
 
-const stats = state.teamStats?.[season];
-console.log("stats:", stats);
+  const table = $("standings");
+  if(!table){
+    console.log("NO TABLE FOUND");
+    return;
+  }
 
-if(!season){
-  console.log("EXIT: no season");
-  return;
-}
+  let season = $("standingsSeason")?.value;
+  console.log("season:", season);
 
-if(!stats){
-  console.log("EXIT: no stats");
-  table.innerHTML = "<div>No standings yet</div>";
-  return;
-}
+  if(!season && state.seasons.length){
+    season = state.seasons[0];
+    console.log("FALLBACK season used:", season);
+  }
+
+  const stats = state.teamStats?.[season];
+  console.log("stats:", stats);
+
+  if(!season){
+    console.log("EXIT: no season");
+    return;
+  }
+
+  if(!stats){
+    console.log("EXIT: no stats");
+    table.innerHTML = "<div>No standings yet</div>";
+    return;
+  }
 
   const teams = Object.entries(stats);
 
@@ -1116,6 +1126,7 @@ if(!stats){
   });
 
   html += "</table>";
+
   table.innerHTML = html;
 
 }
