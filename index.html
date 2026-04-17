@@ -4,7 +4,7 @@
 <meta charset="utf-8">  
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">  
 <meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>Hockey Stat Sheet v1.44</title>  
+<title>Hockey Stat Sheet v1.45</title>  
 
 <meta name="apple-mobile-web-app-capable" content="yes">  
   
@@ -2066,10 +2066,6 @@ function applyGameStats(){
 });
 
 (game.events || []).forEach(e => {
-
-   if(e.type === "penalty"){
-    console.log("PENALTY EVENT:", e);
-  }
   
     if(e.type === "goal"){
       
@@ -2412,6 +2408,7 @@ $("advancePeriod").onclick = () => {
 $("endGame").onclick = () => {  
   if(!state.game) return;  
 
+ rebuildFromEvents();   // 👈 ADD THIS LINE FIRST
  applyGameStats(); 
  applyTeamStats();
   state.game.final=true;  
