@@ -4,7 +4,7 @@
 <meta charset="utf-8">  
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">  
 <meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>Hockey Stat Sheet v1.43</title>  
+<title>Hockey Stat Sheet v1.44</title>  
 
 <meta name="apple-mobile-web-app-capable" content="yes">  
   
@@ -2062,7 +2062,7 @@ function applyGameStats(){
   (game.events || []).forEach(e => {
 
     if(e.type === "goal"){
-
+      
       // Scorer
       if(e.scorer){
         const teamName = e.teamKey === "home" ? game.home : game.away;
@@ -2114,7 +2114,25 @@ if(!stats[a]){
       });
 
     }  
+if(e.type === "shot"){
 
+  const teamName = e.teamKey === "home" ? game.home : game.away;
+
+  if(!stats[e.player]){
+    stats[e.player] = {
+      team: teamName,
+      goals: 0,
+      assists: 0,
+      points: 0,
+      pim: 0,
+      shots: 0,
+      ppg: 0,
+      faceoffWins: 0
+    };
+  }
+
+  stats[e.player].shots += 1;
+}
   });  
 
 }       
