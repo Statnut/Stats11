@@ -1253,7 +1253,13 @@ function renderPlayerStats(){
     const standingsSection = $("standings");
 const container = $("playerLeaders");
 if(!container) return;
-    
+
+    const standingsSection = $("standings");
+
+if(!standingsSection || !standingsSection.classList.contains("active")){
+  container.innerHTML = ""; // clear it
+  return;
+}
   const season = $("standingsSeason")?.value || state.seasons?.[0];
   if(!season) return;
 
@@ -4951,13 +4957,7 @@ function refreshLeagueUI(){
       renderPlayerStats();
     }
     
-   const standingsSection = $("standings");
-
-if(
-  standingsSection &&
-  standingsSection.classList.contains("active") &&
-  typeof renderLeagueLeaders === "function"
-){
+   if(typeof renderLeagueLeaders === "function"){
   renderLeagueLeaders();
 }
     
