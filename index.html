@@ -1254,13 +1254,20 @@ function renderPlayerStats(){
 const container = $("playerLeaders");
 if(!container) return;
 
-  const season = $("standingsSeason")?.value || state.seasons?.[0];
-  if(!season) return;
+const standingsSection = $("standings");
 
-  const stats = state.playerStats?.[season];
-  if(!stats) return;
+if(!standingsSection || !standingsSection.classList.contains("active")){
+  container.innerHTML = "";
+  return;
+}
 
-  const players = Object.entries(stats);
+const season = $("standingsSeason")?.value || state.seasons?.[0];
+if(!season) return;
+
+const stats = state.playerStats?.[season];
+if(!stats) return;
+
+const players = Object.entries(stats);
 
   // helper function
   function getTop(stat){
@@ -1293,8 +1300,8 @@ if(!container) return;
     html += `
       <li style="${style}">
         ${name} (${s.team || "-"}) — ${statKey === "shooting"
-  ? ((s.goals / s.shots * 100) || 0).toFixed(1) + "%"
-  : s[statKey]
+  ? (s.shots ? (s.goals / s.shots * 100).toFixed(1) + "%" : "0.0%")
+  : (s[statKey] ?? 0)
 }
       </li>
     `;
@@ -2059,7 +2066,12 @@ function applyGameStats(){
 
   const stats = state.playerStats[season];
 
-  (game.events || []).forEach(e => {
+  Object.values(stats).forEach(p => {
+  if(p.shots == null) p.shots = 0;
+  if(p.pim == null) p.pim = 0;
+});
+
+(game.events || []).forEach(e => {
 
     if(e.type === "goal"){
       
