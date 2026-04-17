@@ -3901,6 +3901,9 @@ function resetCompletedGames(){
   if(!ok) return;  
   
   state.completedGames = [];  
+  state.playerStats = {};
+  state.teamStats = {};
+  
   save();  
   
  refreshLeagueUI();  
