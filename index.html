@@ -2139,6 +2139,27 @@ if(e.type === "shot"){
 
   stats[e.player].shots += 1;
 }
+  
+  if(e.type === "penalty"){
+
+  const teamName = e.teamKey === "home" ? game.home : game.away;
+
+  if(!stats[e.player]){
+    stats[e.player] = {
+      team: teamName,
+      goals: 0,
+      assists: 0,
+      points: 0,
+      pim: 0,
+      shots: 0,
+      ppg: 0,
+      faceoffWins: 0
+    };
+  }
+
+  stats[e.player].pim += Number(e.minutes || 0);
+}
+  
   });  
 
 }       
