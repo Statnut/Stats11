@@ -1278,9 +1278,8 @@ function renderPlayerStats(){
     html += `<h4 style="margin-top:10px;">${title}</h4><ol>`;
     data.forEach(([name, s], index)=>{
   html += `<li style="${index===0 ? 'font-weight:bold;' : ''}">
-    ${name} — ${s[statKey]}
-  </li>`;
-});
+  ${name} (${s.team || "-"}) — ${s[statKey]}
+</li>`;
     html += `</ol>`;
   }
 
@@ -2044,9 +2043,16 @@ function applyGameStats(){
 
       // Scorer
       if(e.scorer){
-        if(!stats[e.scorer]){
-          stats[e.scorer] = { goals:0, assists:0, points:0 };
-        }
+        const teamName = e.teamKey === "home" ? game.home : game.away;
+
+if(!stats[e.scorer]){
+  stats[e.scorer] = { 
+    team: teamName,
+    goals:0, 
+    assists:0, 
+    points:0 
+  };
+}
 
         stats[e.scorer].goals += 1;
         stats[e.scorer].points += 1;
@@ -2060,9 +2066,16 @@ function applyGameStats(){
 
       assists.forEach(a => {
 
-        if(!stats[a]){
-          stats[a] = { goals:0, assists:0, points:0 };
-        }
+  const teamName = e.teamKey === "home" ? game.home : game.away;
+
+  if(!stats[a]){
+    stats[a] = { 
+      team: teamName,
+      goals:0, 
+      assists:0, 
+      points:0 
+    };
+  }
 
         stats[a].assists += 1;
         stats[a].points += 1;
