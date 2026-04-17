@@ -1254,13 +1254,6 @@ function renderPlayerStats(){
 const container = $("playerLeaders");
 if(!container) return;
 
-    const standingsSection = $("standings");
-
-if(!standingsSection || !standingsSection.classList.contains("active")){
-  container.style.display = "none";
-} else {
-  container.style.display = "block";
-}
   const season = $("standingsSeason")?.value || state.seasons?.[0];
   if(!season) return;
 
