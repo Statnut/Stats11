@@ -2067,6 +2067,10 @@ function applyGameStats(){
 
 (game.events || []).forEach(e => {
 
+   if(e.type === "penalty"){
+    console.log("PENALTY EVENT:", e);
+  }
+  
     if(e.type === "goal"){
       
       // Scorer
