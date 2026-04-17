@@ -4,7 +4,7 @@
 <meta charset="utf-8">  
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">  
 <meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>Hockey Stat Sheet v1.35</title>  
+<title>Hockey Stat Sheet v1.40</title>  
 
 <meta name="apple-mobile-web-app-capable" content="yes">  
   
@@ -1275,14 +1275,22 @@ function renderPlayerStats(){
   let html = `<h3 style="margin-top:20px;">🏆 League Leaders</h3>`;
 
   function renderList(title, data, statKey){
-    html += `<h4 style="margin-top:10px;">${title}</h4><ol>`;
-    data.forEach(([name, s], index)=>{
-  html += `<li style="${index===0 ? 'font-weight:bold;' : ''}">
-  ${name} (${s.team || "-"}) — ${s[statKey]}
-</li>`;
-    html += `</ol>`;
-  }
 
+  html += `<h4 style="margin-top:10px;">${title}</h4><ol>`;
+
+  data.forEach(([name, s], index) => {
+
+    const style = index === 0 ? 'font-weight:bold;' : '';
+
+    html += `
+      <li style="${style}">
+        ${name} (${s.team || "-"}) — ${s[statKey]}
+      </li>
+    `;
+  });
+
+  html += `</ol>`;
+}
   renderList("Points", topPoints, "points");
   renderList("Goals", topGoals, "goals");
   renderList("Assists", topAssists, "assists");
