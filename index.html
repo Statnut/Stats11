@@ -576,9 +576,10 @@ th { background:#f0f0f0; }
   <button onclick="resetCompletedGames()">Reset All Game History</button>
 
   <div id="standingsTable" class="list"></div>
-</section>
 
+  
 <div id="playerLeaders"></div>
+</section>
   
 <section id="playerStatsSection">
   <div id="playerStats" class="list"></div>
@@ -1253,14 +1254,6 @@ function renderPlayerStats(){
     
 const container = $("playerLeaders");
 if(!container) return;
-
-const standingsSection = $("standings");
-
-if(!standingsSection || !standingsSection.classList.contains("active")){
-  container.style.display = "none";
-} else {
-  container.style.display = "block";
-}
     
 const season = $("standingsSeason")?.value || state.seasons?.[0];
 if(!season) return;
