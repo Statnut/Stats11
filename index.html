@@ -4951,7 +4951,13 @@ function refreshLeagueUI(){
       renderPlayerStats();
     }
     
-    if(typeof renderLeagueLeaders === "function"){
+   const standingsSection = $("standings");
+
+if(
+  standingsSection &&
+  standingsSection.classList.contains("active") &&
+  typeof renderLeagueLeaders === "function"
+){
   renderLeagueLeaders();
 }
     
