@@ -1250,6 +1250,9 @@ function renderPlayerStats(){
 
   function renderLeagueLeaders(){
 
+    const standingsSection = $("standings");
+if(!standingsSection?.classList.contains("active")) return;
+    
   const season = $("standingsSeason")?.value || state.seasons?.[0];
   if(!season) return;
 
