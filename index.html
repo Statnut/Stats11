@@ -4,7 +4,7 @@
 <meta charset="utf-8">  
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">  
 <meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>Hockey Stat Sheet v1.40</title>  
+<title>Hockey Stat Sheet v1.41</title>  
 
 <meta name="apple-mobile-web-app-capable" content="yes">  
   
@@ -1251,7 +1251,8 @@ function renderPlayerStats(){
   function renderLeagueLeaders(){
 
     const standingsSection = $("standings");
-if(!standingsSection?.classList.contains("active")) return;
+const container = $("playerLeaders");
+if(!container) return;
     
   const season = $("standingsSeason")?.value || state.seasons?.[0];
   if(!season) return;
