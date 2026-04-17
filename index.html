@@ -4,7 +4,7 @@
 <meta charset="utf-8">  
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">  
 <meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>Hockey Stat Sheet v1.42</title>  
+<title>Hockey Stat Sheet v1.43</title>  
 
 <meta name="apple-mobile-web-app-capable" content="yes">  
   
@@ -1272,6 +1272,13 @@ if(!container) return;
   const topPoints = getTop("points");
   const topGoals = getTop("goals");
   const topAssists = getTop("assists");
+  const topShooting = [...players]
+  .filter(([_, s]) => s.shots > 0)
+  .sort((a,b)=> (b[1].goals / b[1].shots) - (a[1].goals / a[1].shots))
+  .slice(0,10);  
+
+  const topPIM = getTop("pim");
+  const topShots = getTop("shots");
 
   let html = `<h3 style="margin-top:20px;">🏆 League Leaders</h3>`;
 
@@ -1285,7 +1292,10 @@ if(!container) return;
 
     html += `
       <li style="${style}">
-        ${name} (${s.team || "-"}) — ${s[statKey]}
+        ${name} (${s.team || "-"}) — ${statKey === "shooting"
+  ? ((s.goals / s.shots * 100) || 0).toFixed(1) + "%"
+  : s[statKey]
+}
       </li>
     `;
   });
@@ -1295,7 +1305,10 @@ if(!container) return;
   renderList("Points", topPoints, "points");
   renderList("Goals", topGoals, "goals");
   renderList("Assists", topAssists, "assists");
-
+  renderList("Shooting %", topShooting, "shooting");
+  renderList("Shots", topShots, "shots");
+  renderList("PIM", topPIM, "pim");
+    
   container.innerHTML = html;
 }
   
@@ -2054,17 +2067,22 @@ function applyGameStats(){
       if(e.scorer){
         const teamName = e.teamKey === "home" ? game.home : game.away;
 
-if(!stats[e.scorer]){
+  if(!stats[e.scorer]){
   stats[e.scorer] = { 
     team: teamName,
-    goals:0, 
-    assists:0, 
-    points:0 
+    goals: 0, 
+    assists: 0, 
+    points: 0,
+    pim: 0,
+    shots: 0,
+    ppg: 0,
+    faceoffWins: 0
   };
 }
 
         stats[e.scorer].goals += 1;
         stats[e.scorer].points += 1;
+        stats[e.scorer].shots += 1;
       }
 
       // Assists (a1 / a2)
@@ -2077,14 +2095,18 @@ if(!stats[e.scorer]){
 
   const teamName = e.teamKey === "home" ? game.home : game.away;
 
-  if(!stats[a]){
-    stats[a] = { 
-      team: teamName,
-      goals:0, 
-      assists:0, 
-      points:0 
-    };
-  }
+if(!stats[a]){
+  stats[a] = { 
+    team: teamName,
+    goals: 0, 
+    assists: 0, 
+    points: 0,
+    pim: 0,
+    shots: 0,
+    ppg: 0,
+    faceoffWins: 0
+  };
+}
 
         stats[a].assists += 1;
         stats[a].points += 1;
