@@ -4,7 +4,7 @@
 <meta charset="utf-8">  
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">  
 <meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>Hockey Stat Sheet v1.46</title>  
+<title>Hockey Stat Sheet v1.47</title>  
 
 <meta name="apple-mobile-web-app-capable" content="yes">  
   
@@ -1287,16 +1287,16 @@ function renderPlayerStats(){
 
   function renderLeagueLeaders(){
     
-const container = $("playerLeaders");
-if(!container) return;
+  const container = $("playerLeaders");
+  if(!container) return;
     
-const season = $("standingsSeason")?.value || state.seasons?.[0];
-if(!season) return;
+  const season = $("standingsSeason")?.value || state.seasons?.[0];
+  if(!season) return;
 
-const stats = state.playerStats?.[season];
-if(!stats) return;
+  const stats = state.playerStats?.[season];
+  if(!stats) return;
 
-const players = Object.entries(stats);
+  const players = Object.entries(stats);
 
   // helper function
   function getTop(stat){
@@ -1308,49 +1308,76 @@ const players = Object.entries(stats);
   const topPoints = getTop("points");
   const topGoals = getTop("goals");
   const topAssists = getTop("assists");
+
   const rules = state.seasonRules?.[season] || {};
-const mins = rules.leaderMinimums || {};
+  const mins = rules.leaderMinimums || {};
 
-const MIN_SHOTS = mins.shots ?? LEADER_MINIMUMS.shots;
+  const MIN_SHOTS = mins.shots ?? LEADER_MINIMUMS.shots;
+  const MIN_FACEOFFS = mins.faceoffs ?? LEADER_MINIMUMS.faceoffs;
 
-const topShooting = [...players]
-  .filter(([_, s]) => (s.shots ?? 0) >= MIN_SHOTS)
-  .sort((a,b)=> (b[1].goals / b[1].shots) - (a[1].goals / a[1].shots))
-  .slice(0,10);  
+  // Shooting %
+  const topShooting = [...players]
+    .filter(([_, s]) => (s.shots ?? 0) >= MIN_SHOTS)
+    .sort((a,b)=> (b[1].goals / b[1].shots) - (a[1].goals / a[1].shots))
+    .slice(0,10);  
+
+  // ✅ Faceoff %
+  const topFaceoff = [...players]
+    .map(([name, s]) => {
+      const wins = s.faceoffWins ?? 0;
+      const losses = s.faceoffLosses ?? 0;
+      const total = wins + losses;
+      return [name, s, total];
+    })
+    .filter(([_, __, total]) => total >= MIN_FACEOFFS)
+    .sort((a,b)=> (b[1].faceoffWins / b[2]) - (a[1].faceoffWins / a[2]))
+    .slice(0,10);
 
   const topPIM = getTop("pim");
   const topShots = getTop("shots");
 
   let html = `<h3 style="margin-top:20px;">🏆 League Leaders</h3>`;
 
-    html += `<div style="font-size:12px; opacity:0.7; margin-bottom:6px;">
-  * Min ${MIN_SHOTS} shots required for shooting %
-</div>`;
-    
+  html += `<div style="font-size:12px; opacity:0.7; margin-bottom:6px;">
+    * Min ${MIN_SHOTS} shots required for shooting %
+  </div>`;
+
+  html += `<div style="font-size:12px; opacity:0.7; margin-bottom:10px;">
+    * Min ${MIN_FACEOFFS} faceoffs required for faceoff %
+  </div>`;
+
   function renderList(title, data, statKey){
 
-  html += `<h4 style="margin-top:10px;">${title}</h4><ol>`;
+    html += `<h4 style="margin-top:10px;">${title}</h4><ol>`;
 
-  data.forEach(([name, s], index) => {
+    data.forEach((item, index) => {
 
-    const style = index === 0 ? 'font-weight:bold;' : '';
+      // Handle both normal stats and faceoff tuple
+      const [name, s, total] = item;
 
-    html += `
-      <li style="${style}">
-        ${name} (${s.team || "-"}) — ${statKey === "shooting"
-  ? (s.shots ? (s.goals / s.shots * 100).toFixed(1) + "%" : "0.0%")
-  : (s[statKey] ?? 0)
-}
-      </li>
-    `;
-  });
+      const style = index === 0 ? 'font-weight:bold;' : '';
 
-  html += `</ol>`;
-}
+      html += `
+        <li style="${style}">
+          ${name} (${s.team || "-"}) — ${
+            statKey === "shooting"
+              ? (s.shots ? (s.goals / s.shots * 100).toFixed(1) + "%" : "0.0%")
+              : statKey === "faceoff"
+              ? (total ? (s.faceoffWins / total * 100).toFixed(1) + "%" : "0.0%")
+              : (s[statKey] ?? 0)
+          }
+        </li>
+      `;
+    });
+
+    html += `</ol>`;
+  }
+
   renderList("Points", topPoints, "points");
   renderList("Goals", topGoals, "goals");
   renderList("Assists", topAssists, "assists");
   renderList("Shooting %", topShooting, "shooting");
+  renderList("Faceoff %", topFaceoff, "faceoff"); // ✅ NEW
   renderList("Shots", topShots, "shots");
   renderList("PIM", topPIM, "pim");
     
