@@ -455,9 +455,7 @@ th { background:#f0f0f0; }
   <select id="ngHomeG"></select>  
   
   <button id="startGame">Start Game</button>  
-  
-  <div class="small-note">  
-    NOTE: Future update will allow custom regulation period length and overtime length.  
+    
   </div>  
 </section>  
   
@@ -785,7 +783,9 @@ function saveSeasonRules(){
   
   const season = $("rulesSeason").value;  
   if(!season) return;  
-  
+
+  const existing = state.seasonRules[season] || {};
+
   state.seasonRules[season] = {  
   
     regular:{  
@@ -803,12 +803,19 @@ function saveSeasonRules(){
       shootoutEnabled: poShootout.checked,  
       otLossPoint: false,  
       continuousOT: poContinuousOT.checked  
-    }  
+    },
+
+    // 👇 PRESERVE OR DEFAULT
+    leaderMinimums: existing.leaderMinimums || {
+      shots: 10,
+      faceoffs: 20
+    }
+
   };  
   
   save();  
   rulesStatus.textContent = "Season rules saved.";  
-}  
+} 
   
 /* ---------- GAME SUBTABS ---------- */  
 function showGamePanel(which){  
@@ -1284,7 +1291,10 @@ const players = Object.entries(stats);
   const topPoints = getTop("points");
   const topGoals = getTop("goals");
   const topAssists = getTop("assists");
-  const MIN_SHOTS = 10;
+  const rules = state.seasonRules?.[season] || {};
+const mins = rules.leaderMinimums || {};
+
+const MIN_SHOTS = mins.shots ?? LEADER_MINIMUMS.shots;
 
 const topShooting = [...players]
   .filter(([_, s]) => (s.shots ?? 0) >= MIN_SHOTS)
