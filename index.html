@@ -4,7 +4,7 @@
 <meta charset="utf-8">  
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">  
 <meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>Hockey Stat Sheet v1.45</title>  
+<title>Hockey Stat Sheet v1.46</title>  
 
 <meta name="apple-mobile-web-app-capable" content="yes">  
   
@@ -379,6 +379,22 @@ th { background:#f0f0f0; }
   <input type="checkbox" id="poContinuousOT">  
   Continuous OT  
 </label>  
+
+<div style="margin-top:20px;">
+  <h3>📊 League Leader Minimums</h3>
+
+  <label>
+    Min Shots (Shooting %):
+    <input id="minShots" type="number" min="0">
+  </label>
+
+  <br>
+
+  <label>
+    Min Faceoffs (Faceoff %):
+    <input id="minFaceoffs" type="number" min="0">
+  </label>
+</div>
   
 <button onclick="saveSeasonRules()" style="margin-top:10px;">  
   Save Season Rules  
@@ -812,12 +828,10 @@ function saveSeasonRules(){
       continuousOT: poContinuousOT.checked  
     },
 
-    // 👇 PRESERVE OR DEFAULT
-    leaderMinimums: existing.leaderMinimums || {
-      shots: 10,
-      faceoffs: 20
-    }
-
+    leaderMinimums: {
+  shots: Number($("minShots")?.value ?? existing.leaderMinimums?.shots ?? 10),
+  faceoffs: Number($("minFaceoffs")?.value ?? existing.leaderMinimums?.faceoffs ?? 20)
+}
   };  
   
   save();  
