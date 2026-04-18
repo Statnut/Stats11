@@ -1273,6 +1273,8 @@ function renderPlayerStats(){
 
   function renderLeagueLeaders(){
 
+    console.log("LEADERS SEASON:", season);
+console.log("RULES USED:", state.seasonRules?.[season]);
     
 const container = $("playerLeaders");
 if(!container) return;
