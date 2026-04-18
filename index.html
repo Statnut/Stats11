@@ -778,6 +778,10 @@ function loadSeasonRules(){
   if($("poShootout")) $("poShootout").checked = r.playoffs.shootoutEnabled ?? false;
   if($("poContinuousOT")) $("poContinuousOT").checked = r.playoffs.continuousOT ?? true;
 
+  // Leader minimums
+if($("minShots")) $("minShots").value = r.leaderMinimums?.shots ?? 10;
+if($("minFaceoffs")) $("minFaceoffs").value = r.leaderMinimums?.faceoffs ?? 20;
+  
 }
 function saveSeasonRules(){  
   
@@ -4922,28 +4926,7 @@ document.addEventListener("DOMContentLoaded", function(){
 refreshLeagueUI();
 
    };
-// Auto-select the new season and load rules
-setTimeout(() => {
 
-  if($("teamSeason")) $("teamSeason").value = name;
-  if($("ngSeason")) $("ngSeason").value = name;
-  if($("structureSeason")) $("structureSeason").value = name;
-  if($("playoffSeason")) $("playoffSeason").value = name;
-
-  if($("rulesSeason")){
-    $("rulesSeason").value = name;
-
-    // Ensure default rules exist
-    createDefaultSeasonRules(name);
-
-    // Force rules to populate the inputs
-    loadSeasonRules();
-  }
-
-}, 0);
-
-};
-  
   validateLeagueSelections();  
   refreshLeagueUI();  
   checkForActiveGame();  
@@ -4980,6 +4963,27 @@ console.log("standings container:", $("standings"));
 
     save();
     refreshLeagueUI();
+    
+    setTimeout(() => {
+
+  if($("teamSeason")) $("teamSeason").value = name;
+  if($("ngSeason")) $("ngSeason").value = name;
+  if($("structureSeason")) $("structureSeason").value = name;
+  if($("playoffSeason")) $("playoffSeason").value = name;
+
+  if($("rulesSeason")){
+    $("rulesSeason").value = name;
+
+    // Ensure default rules exist
+    createDefaultSeasonRules(name);
+
+    // Force rules to populate the inputs
+    loadSeasonRules();
+  }
+
+}, 0);
+
+};
   };
 
   renderSeasons();
