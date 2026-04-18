@@ -660,6 +660,10 @@ let state = JSON.parse(localStorage.getItem("hockeyState")) || {
   seasonStats: {},  
   clock: { seconds:1200, running:false, timer:null }  
 };  
+  const LEADER_MINIMUMS = {
+  shots: 10,
+  faceoffs: 20
+};
   
 if(!state.completedGames){  
   state.completedGames = [];  
@@ -693,25 +697,32 @@ function createDefaultSeasonRules(season){
   
   if(state.seasonRules[season]) return;  
   
-  state.seasonRules[season] = {  
-    regular: {  
-      regulationMinutes: 20,  
-      overtimeMinutes: 5,  
-      overtimeType: "3v3",  
-      shootoutEnabled: true,  
-      otLossPoint: true  
-    },  
-    playoffs: {  
-      regulationMinutes: 20,  
-      overtimeMinutes: 20,  
-      overtimeType: "5v5",  
-      shootoutEnabled: false,  
-      otLossPoint: false,  
-      continuousOT: true  
-    }  
-  };  
-  
-  save();
+ state.seasonRules[season] = {  
+  regular: {  
+    regulationMinutes: 20,  
+    overtimeMinutes: 5,  
+    overtimeType: "3v3",  
+    shootoutEnabled: true,  
+    otLossPoint: true  
+  },  
+
+  playoffs: {  
+    regulationMinutes: 20,  
+    overtimeMinutes: 20,  
+    overtimeType: "5v5",  
+    shootoutEnabled: false,  
+    otLossPoint: false,  
+    continuousOT: true  
+  },
+
+  leaderMinimums: {
+    shots: 10,
+    faceoffs: 20
+  }
+
+}; 
+
+save();
 
 if($("rulesSeason") && $("rulesSeason").value === season){
   loadSeasonRules();
@@ -1273,8 +1284,10 @@ const players = Object.entries(stats);
   const topPoints = getTop("points");
   const topGoals = getTop("goals");
   const topAssists = getTop("assists");
-  const topShooting = [...players]
-  .filter(([_, s]) => s.shots > 0)
+  const MIN_SHOTS = 10;
+
+const topShooting = [...players]
+  .filter(([_, s]) => (s.shots ?? 0) >= MIN_SHOTS)
   .sort((a,b)=> (b[1].goals / b[1].shots) - (a[1].goals / a[1].shots))
   .slice(0,10);  
 
@@ -1283,6 +1296,10 @@ const players = Object.entries(stats);
 
   let html = `<h3 style="margin-top:20px;">🏆 League Leaders</h3>`;
 
+    html += `<div style="font-size:12px; opacity:0.7; margin-bottom:6px;">
+  * Min ${MIN_SHOTS} shots required for shooting %
+</div>`;
+    
   function renderList(title, data, statKey){
 
   html += `<h4 style="margin-top:10px;">${title}</h4><ol>`;
