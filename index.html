@@ -750,9 +750,12 @@ function loadSeasonRules(){
 
   console.log("loadSeasonRules running");
 
-  const season = $("rulesSeason")?.value;
+  const season = $("standingsSeason")?.value || $("rulesSeason")?.value;
   console.log("Season selected:", season);
-
+  
+if($("rulesSeason")){
+  $("rulesSeason").value = season;
+}
   if(!season) return;
 
   // Ensure rule object exists
