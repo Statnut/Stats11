@@ -769,9 +769,6 @@ function loadSeasonRules(){
   const season = $("standingsSeason")?.value || $("rulesSeason")?.value;
   console.log("Season selected:", season);
   
-if($("rulesSeason")){
-  $("rulesSeason").value = season;
-}
   if(!season) return;
 
   // Ensure rule object exists
@@ -5042,9 +5039,14 @@ function refreshLeagueUI(){
   populateTeamStructureDropdowns();
 
   const rs = $("rulesSeason");
-  if(rs) loadSeasonRules();
+const ss = $("standingsSeason");
 
-  // 👇 ADD THIS BLOCK
+if(rs && ss){
+  rs.value = ss.value;
+}
+
+if(rs) loadSeasonRules();
+
   setTimeout(() => {
     console.log("renderStandings via refresh");
 
