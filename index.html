@@ -1272,9 +1272,6 @@ function renderPlayerStats(){
 }
 
   function renderLeagueLeaders(){
-
-    console.log("LEADERS SEASON:", season);
-console.log("RULES USED:", state.seasonRules?.[season]);
     
 const container = $("playerLeaders");
 if(!container) return;
@@ -4857,6 +4854,13 @@ function refreshLeagueUI(){
   
   validateLeagueSelections();  
   
+  const rs = $("rulesSeason");
+  const ss = $("standingsSeason");
+
+  if(rs && ss){
+    rs.value = ss.value;
+  }
+  
   if(typeof renderSeasons === "function"){  
     renderSeasons();  
   }  
@@ -4868,7 +4872,6 @@ function refreshLeagueUI(){
   if(typeof renderTeams === "function"){  
     renderTeams();  
   }  
-  
   
   if(typeof renderHistory === "function"){  
     renderHistory();  
@@ -4882,15 +4885,20 @@ function refreshLeagueUI(){
     renderPlayoffs();  
   }  
 
-    if(typeof renderStandings === "function"){  
+  if(typeof renderStandings === "function"){  
     renderStandings();  
   }  
   
   if(typeof renderPlayerStats === "function"){
-  renderPlayerStats();
+    renderPlayerStats();
+  }
+
+  // 👇 OPTIONAL but recommended (ensures leaders update too)
+  if(typeof renderLeagueLeaders === "function"){
+    renderLeagueLeaders();
+  }
+
 }
-}  
-  
 /* ---------- INIT ---------- */  
   
 document.addEventListener("DOMContentLoaded", function(){  
