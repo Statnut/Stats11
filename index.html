@@ -4853,14 +4853,18 @@ function validateLeagueSelections(){
 function refreshLeagueUI(){  
   
   validateLeagueSelections();  
-  
+
   const rs = $("rulesSeason");
   const ss = $("standingsSeason");
 
   if(rs && ss){
-    rs.value = ss.value;
+    if(ss.value){
+      rs.value = ss.value;
+    } else if(rs.value){
+      ss.value = rs.value;
+    }
   }
-  
+
   if(typeof renderSeasons === "function"){  
     renderSeasons();  
   }  
@@ -4893,7 +4897,6 @@ function refreshLeagueUI(){
     renderPlayerStats();
   }
 
-  // 👇 OPTIONAL but recommended (ensures leaders update too)
   if(typeof renderLeagueLeaders === "function"){
     renderLeagueLeaders();
   }
