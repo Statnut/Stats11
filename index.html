@@ -2120,8 +2120,6 @@ function renderEventLog(){
 
   /* ---------- APPLY GAME STATS ---------- */
 function applyGameStats(){
-
-console.log("applyGameStats RUNNING");
   
   const game = state.game;
   if(!game) return;
@@ -2133,7 +2131,6 @@ console.log("applyGameStats RUNNING");
 
   const stats = state.playerStats[season];
 
-console.log("PLAYER STATS AFTER:", state.playerStats[season]);
   
   Object.values(stats).forEach(p => {
   if(p.shots == null) p.shots = 0;
@@ -2237,7 +2234,8 @@ if(e.type === "shot"){
   
   });  
   
-console.log("PLAYER STATS AFTER:", state.playerStats[season]);
+  state.playerStats[season] = stats;
+save();
   
 }       
 /* ---------- APPLY TEAM STATS ---------- */
