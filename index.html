@@ -4,7 +4,7 @@
 <meta charset="utf-8">  
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">  
 <meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>Hockey Stat Sheet v1.47</title>  
+<title>Hockey Stat Sheet v1.48</title>  
 
 <meta name="apple-mobile-web-app-capable" content="yes">  
   
@@ -2126,6 +2126,17 @@ function renderEventLog(){
 
   /* ---------- APPLY GAME STATS ---------- */
 function applyGameStats(){
+
+Object.values(stats).forEach(p => {
+  if(p.shots == null) p.shots = 0;
+  if(p.pim == null) p.pim = 0;
+  if(p.faceoffWins == null) p.faceoffWins = 0;
+  if(p.faceoffLosses == null) p.faceoffLosses = 0;
+
+  // 👇 ADD THESE
+  if(p.shotsAgainst == null) p.shotsAgainst = 0;
+  if(p.goalsAgainst == null) p.goalsAgainst = 0;
+});
   
   const game = state.game;
   if(!game) return;
@@ -2174,6 +2185,32 @@ function applyGameStats(){
 }
       }
 
+// 👇 ADD THIS AFTER SCORER LOGIC
+const goalie = e.teamKey === "home" ? game.awayGoalie : game.homeGoalie;
+
+if(goalie){
+  const goalieTeam = e.teamKey === "home" ? game.away : game.home;
+
+ if(!stats[player]){
+  stats[player] = {
+    team: teamName,
+    goals: 0,
+    assists: 0,
+    points: 0,
+    pim: 0,
+    shots: 0,
+    ppg: 0,
+    faceoffWins: 0,
+    faceoffLosses: 0,
+    shotsAgainst: 0,
+    goalsAgainst: 0
+  };
+}
+
+  stats[goalie].shotsAgainst += 1;
+  stats[goalie].goalsAgainst += 1;
+}
+      
       // assists
       const assists = [];
       if(e.a1) assists.push(e.a1);
@@ -2193,6 +2230,8 @@ function applyGameStats(){
             ppg: 0,
             faceoffWins: 0,
             faceoffLosses: 0
+            shotsAgainst: 0,
+            goalsAgainst: 0
           };
         }
 
@@ -2216,12 +2255,39 @@ function applyGameStats(){
           ppg: 0,
           faceoffWins: 0,
           faceoffLosses: 0
+          shotsAgainst: 0,
+          goalsAgainst: 0
         };
       }
 
       stats[e.player].shots += 1;
     }
 
+    // 👇 ADD THIS AT THE END OF SHOT BLOCK
+const goalie = e.teamKey === "home" ? game.awayGoalie : game.homeGoalie;
+
+if(goalie){
+  const goalieTeam = e.teamKey === "home" ? game.away : game.home;
+
+  if(!stats[goalie]){
+    stats[goalie] = {
+      team: goalieTeam,
+      goals: 0,
+      assists: 0,
+      points: 0,
+      pim: 0,
+      shots: 0,
+      ppg: 0,
+      faceoffWins: 0,
+      faceoffLosses: 0,
+      shotsAgainst: 0,
+      goalsAgainst: 0
+    };
+  }
+
+  stats[goalie].shotsAgainst += 1;
+}
+    
     // 🔵 FACEOFF (FIXED POSITION)
     if(e.type === "faceoff"){
       const teamName = e.teamKey === "home" ? game.home : game.away;
@@ -2237,6 +2303,8 @@ function applyGameStats(){
           ppg: 0,
           faceoffWins: 0,
           faceoffLosses: 0
+          shotsAgainst: 0,
+          goalsAgainst: 0
         };
       }
 
@@ -2265,6 +2333,8 @@ else if(result === "loss"){
           ppg: 0,
           faceoffWins: 0,
           faceoffLosses: 0
+          shotsAgainst: 0,
+          goalsAgainst: 0
         };
       }
 
