@@ -2235,11 +2235,13 @@ function applyGameStats(){
         };
       }
 
-      if(e.result === "win"){
-        stats[e.player].faceoffWins += 1;
-      } else {
-        stats[e.player].faceoffLosses += 1;
-      }
+    const result = (e.result || "").toLowerCase();
+
+if(result === "win"){
+  stats[e.player].faceoffWins += 1;
+} else {
+  stats[e.player].faceoffLosses += 1;
+}
     }
 
     // 🔴 PENALTY
