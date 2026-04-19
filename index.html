@@ -2235,11 +2235,12 @@ function applyGameStats(){
         };
       }
 
-    const result = (e.result || "").toLowerCase();
+    const result = (e.result || "").trim().toLowerCase();
 
 if(result === "win"){
   stats[e.player].faceoffWins += 1;
-} else {
+}
+else if(result === "loss"){
   stats[e.player].faceoffLosses += 1;
 }
     }
