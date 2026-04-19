@@ -1360,11 +1360,15 @@ function renderPlayerStats(){
       html += `
         <li style="${style}">
           ${name} (${s.team || "-"}) — ${
-            statKey === "shooting"
-              ? (s.shots ? (s.goals / s.shots * 100).toFixed(1) + "%" : "0.0%")
-              : statKey === "faceoff"
-              ? (total ? (s.faceoffWins / total * 100).toFixed(1) + "%" : "0.0%")
-              : (s[statKey] ?? 0)
+          statKey === "shooting"
+  ? (s.shots ? (s.goals / s.shots * 100).toFixed(1) + "%" : "0.0%")
+  : statKey === "faceoff"
+  ? (
+      ((s.faceoffWins ?? 0) + (s.faceoffLosses ?? 0))
+        ? ((s.faceoffWins ?? 0) / ((s.faceoffWins ?? 0) + (s.faceoffLosses ?? 0)) * 100).toFixed(1) + "%"
+        : "0.0%"
+    )
+  : (s[statKey] ?? 0)
           }
         </li>
       `;
@@ -2131,113 +2135,139 @@ function applyGameStats(){
 
   const stats = state.playerStats[season];
 
-  
   Object.values(stats).forEach(p => {
-  if(p.shots == null) p.shots = 0;
-  if(p.pim == null) p.pim = 0;
-});
+    if(p.shots == null) p.shots = 0;
+    if(p.pim == null) p.pim = 0;
+    if(p.faceoffWins == null) p.faceoffWins = 0;
+    if(p.faceoffLosses == null) p.faceoffLosses = 0;
+  });
 
-(game.events || []).forEach(e => {
-  
+  (game.events || []).forEach(e => {
+
+    // 🟢 GOAL
     if(e.type === "goal"){
       
-      // Scorer
       if(e.scorer){
         const teamName = e.teamKey === "home" ? game.home : game.away;
 
-  if(!stats[e.scorer]){
-  stats[e.scorer] = { 
-    team: teamName,
-    goals: 0, 
-    assists: 0, 
-    points: 0,
-    pim: 0,
-    shots: 0,
-    ppg: 0,
-    faceoffWins: 0
-  };
-}
+        if(!stats[e.scorer]){
+          stats[e.scorer] = { 
+            team: teamName,
+            goals: 0, 
+            assists: 0, 
+            points: 0,
+            pim: 0,
+            shots: 0,
+            ppg: 0,
+            faceoffWins: 0,
+            faceoffLosses: 0
+          };
+        }
 
         stats[e.scorer].goals += 1;
         stats[e.scorer].points += 1;
         stats[e.scorer].shots += 1;
       }
 
-      // Assists (a1 / a2)
+      // assists
       const assists = [];
-
       if(e.a1) assists.push(e.a1);
       if(e.a2) assists.push(e.a2);
 
       assists.forEach(a => {
+        const teamName = e.teamKey === "home" ? game.home : game.away;
 
-  const teamName = e.teamKey === "home" ? game.home : game.away;
-
-if(!stats[a]){
-  stats[a] = { 
-    team: teamName,
-    goals: 0, 
-    assists: 0, 
-    points: 0,
-    pim: 0,
-    shots: 0,
-    ppg: 0,
-    faceoffWins: 0
-  };
-}
+        if(!stats[a]){
+          stats[a] = { 
+            team: teamName,
+            goals: 0, 
+            assists: 0, 
+            points: 0,
+            pim: 0,
+            shots: 0,
+            ppg: 0,
+            faceoffWins: 0,
+            faceoffLosses: 0
+          };
+        }
 
         stats[a].assists += 1;
         stats[a].points += 1;
-
       });
+    }
 
-    }  
-if(e.type === "shot"){
+    // 🟡 SHOT
+    if(e.type === "shot"){
+      const teamName = e.teamKey === "home" ? game.home : game.away;
 
-  const teamName = e.teamKey === "home" ? game.home : game.away;
+      if(!stats[e.player]){
+        stats[e.player] = {
+          team: teamName,
+          goals: 0,
+          assists: 0,
+          points: 0,
+          pim: 0,
+          shots: 0,
+          ppg: 0,
+          faceoffWins: 0,
+          faceoffLosses: 0
+        };
+      }
 
-  if(!stats[e.player]){
-    stats[e.player] = {
-      team: teamName,
-      goals: 0,
-      assists: 0,
-      points: 0,
-      pim: 0,
-      shots: 0,
-      ppg: 0,
-      faceoffWins: 0
-    };
-  }
+      stats[e.player].shots += 1;
+    }
 
-  stats[e.player].shots += 1;
-}
-  
-  if(e.type === "penalty"){
+    // 🔵 FACEOFF (FIXED POSITION)
+    if(e.type === "faceoff"){
+      const teamName = e.teamKey === "home" ? game.home : game.away;
 
-  const teamName = e.teamKey === "home" ? game.home : game.away;
+      if(!stats[e.player]){
+        stats[e.player] = {
+          team: teamName,
+          goals: 0,
+          assists: 0,
+          points: 0,
+          pim: 0,
+          shots: 0,
+          ppg: 0,
+          faceoffWins: 0,
+          faceoffLosses: 0
+        };
+      }
 
-  if(!stats[e.player]){
-    stats[e.player] = {
-      team: teamName,
-      goals: 0,
-      assists: 0,
-      points: 0,
-      pim: 0,
-      shots: 0,
-      ppg: 0,
-      faceoffWins: 0
-    };
-  }
+      if(e.result === "win"){
+        stats[e.player].faceoffWins += 1;
+      } else {
+        stats[e.player].faceoffLosses += 1;
+      }
+    }
 
-  stats[e.player].pim += Number(e.minutes || 0);
-}
-  
-  });  
-  
+    // 🔴 PENALTY
+    if(e.type === "penalty"){
+      const teamName = e.teamKey === "home" ? game.home : game.away;
+
+      if(!stats[e.player]){
+        stats[e.player] = {
+          team: teamName,
+          goals: 0,
+          assists: 0,
+          points: 0,
+          pim: 0,
+          shots: 0,
+          ppg: 0,
+          faceoffWins: 0,
+          faceoffLosses: 0
+        };
+      }
+
+      stats[e.player].pim += Number(e.minutes || 0);
+    }
+
+  });
+
   state.playerStats[season] = stats;
-save();
-  
-}       
+  save();
+}      
 /* ---------- APPLY TEAM STATS ---------- */
 
 function applyTeamStats(){
