@@ -1308,7 +1308,8 @@ function renderPlayerStats(){
   const topPoints = getTop("points");
   const topGoals = getTop("goals");
   const topAssists = getTop("assists");
-
+  const topPPG = getTop("ppg");
+    
   const rules = state.seasonRules?.[season] || {};
   const mins = rules.leaderMinimums || {};
 
@@ -1380,6 +1381,7 @@ function renderPlayerStats(){
   renderList("Points", topPoints, "points");
   renderList("Goals", topGoals, "goals");
   renderList("Assists", topAssists, "assists");
+  renderList("Power Play Goals", topPPG, "ppg");
   renderList("Shooting %", topShooting, "shooting");
   renderList("Faceoff %", topFaceoff, "faceoff"); // ✅ NEW
   renderList("Shots", topShots, "shots");
@@ -2167,6 +2169,9 @@ function applyGameStats(){
         stats[e.scorer].goals += 1;
         stats[e.scorer].points += 1;
         stats[e.scorer].shots += 1;
+        if(e.goalType === "PP"){
+  stats[e.scorer].ppg += 1;
+}
       }
 
       // assists
