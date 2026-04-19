@@ -592,7 +592,13 @@ th { background:#f0f0f0; }
   <div id="standingsTable" class="list"></div>
 
   
-<div id="playerLeaders"></div>
+<div style="display:flex; gap:20px; align-items:flex-start;">
+
+  <div id="playerLeaders" style="flex:1;"></div>
+
+  <div id="goalieLeaders" style="flex:1;"></div>
+
+</div>
 </section>
   
 <section id="playerStatsSection">
@@ -1248,8 +1254,8 @@ function renderPlayerStats(){
     return 0;
   });
 
-  let html = `
-    <h3>Player Leaders</h3>
+ let skaterHTML = `<h3>🏆 Skater Leaders</h3>`;
+let goalieHTML = `<h3>🥅 Goalie Leaders</h3>`;
     <table class="standings-table">
       <thead>
         <tr>
@@ -1286,6 +1292,11 @@ function renderPlayerStats(){
 }
 
   function renderLeagueLeaders(){
+
+const skaterContainer = $("playerLeaders");
+const goalieContainer = $("goalieLeaders");
+
+if(!skaterContainer || !goalieContainer) return;
     
   const container = $("playerLeaders");
   if(!container) return;
@@ -1334,6 +1345,24 @@ function renderPlayerStats(){
     .sort((a,b)=> (b[1].faceoffWins / b[2]) - (a[1].faceoffWins / a[2]))
     .slice(0,10);
 
+    const MIN_SA = 10; // minimum shots against (you can make this configurable later)
+
+const topSavePct = [...players]
+  .filter(([_, s]) => (s.shotsAgainst ?? 0) >= MIN_SA)
+  .sort((a,b)=> 
+    ((b[1].shotsAgainst - b[1].goalsAgainst) / b[1].shotsAgainst) -
+    ((a[1].shotsAgainst - a[1].goalsAgainst) / a[1].shotsAgainst)
+  )
+  .slice(0,10);
+  
+const goalieStatsConfig = [
+  { title: "Save %", key: "savepct", data: topSavePct },
+
+  { title: "GAA", key: "gaa", data: typeof topGAA !== "undefined" ? topGAA : null },
+  { title: "Wins", key: "wins", data: typeof topGoalieWins !== "undefined" ? topGoalieWins : null },
+  { title: "Shutouts", key: "shutouts", data: typeof topShutouts !== "undefined" ? topShutouts : null }
+];
+
   const topPIM = getTop("pim");
   const topShots = getTop("shots");
 
@@ -1347,47 +1376,64 @@ function renderPlayerStats(){
     * Min ${MIN_FACEOFFS} faceoffs required for faceoff %
   </div>`;
 
-  function renderList(title, data, statKey){
+ function renderList(target, title, data, statKey){
 
-    html += `<h4 style="margin-top:10px;">${title}</h4><ol>`;
+  target += `<h4 style="margin-top:10px;">${title}</h4><ol>`;
 
-    data.forEach((item, index) => {
+  data.forEach(([name, s], index) => {
 
-      // Handle both normal stats and faceoff tuple
-      const [name, s, total] = item;
+    const style = index === 0 ? 'font-weight:bold;' : '';
 
-      const style = index === 0 ? 'font-weight:bold;' : '';
-
-      html += `
-        <li style="${style}">
-          ${name} (${s.team || "-"}) — ${
+    target += `
+      <li style="${style}">
+        ${name} (${s.team || "-"}) — ${
           statKey === "shooting"
-  ? (s.shots ? (s.goals / s.shots * 100).toFixed(1) + "%" : "0.0%")
-  : statKey === "faceoff"
-  ? (
-      ((s.faceoffWins ?? 0) + (s.faceoffLosses ?? 0))
-        ? ((s.faceoffWins ?? 0) / ((s.faceoffWins ?? 0) + (s.faceoffLosses ?? 0)) * 100).toFixed(1) + "%"
-        : "0.0%"
-    )
-  : (s[statKey] ?? 0)
-          }
-        </li>
-      `;
-    });
+            ? (s.shots ? (s.goals / s.shots * 100).toFixed(1) + "%" : "0.0%")
+          : statKey === "faceoff"
+            ? (((s.faceoffWins ?? 0) + (s.faceoffLosses ?? 0))
+                ? (s.faceoffWins / ((s.faceoffWins ?? 0) + (s.faceoffLosses ?? 0)) * 100).toFixed(1) + "%"
+                : "0.0%")
+          : statKey === "savepct"
+            ? (s.shotsAgainst
+                ? (((s.shotsAgainst - s.goalsAgainst) / s.shotsAgainst) * 100).toFixed(1) + "%"
+                : "0.0%")
+          : (s[statKey] ?? 0)
+          : statKey === "gaa"
+? (
+    s.shotsAgainst
+      ? ( (s.goalsAgainst * 60) / (s.minutesPlayed || 60) ).toFixed(2)
+      : "0.00"
+  )
+        }
+      </li>
+    `;
+  });
 
-    html += `</ol>`;
+  target += `</ol>`;
+
+  return target;
+}
+
+// 🟢 SKATERS (LEFT)
+skaterHTML = renderList(skaterHTML, "Points", topPoints, "points");
+skaterHTML = renderList(skaterHTML, "Goals", topGoals, "goals");
+skaterHTML = renderList(skaterHTML, "Assists", topAssists, "assists");
+skaterHTML = renderList(skaterHTML, "Power Play Goals", topPPG, "ppg");
+skaterHTML = renderList(skaterHTML, "Shooting %", topShooting, "shooting");
+skaterHTML = renderList(skaterHTML, "Faceoff %", topFaceoff, "faceoff");
+skaterHTML = renderList(skaterHTML, "Shots", topShots, "shots");
+skaterHTML = renderList(skaterHTML, "PIM", topPIM, "pim");
+
+// 🔵 GOALIES (RIGHT)
+goalieStatsConfig.forEach(stat => {
+  if(stat.data){
+    goalieHTML = renderList(goalieHTML, stat.title, stat.data, stat.key);
   }
+});
 
-  renderList("Points", topPoints, "points");
-  renderList("Goals", topGoals, "goals");
-  renderList("Assists", topAssists, "assists");
-  renderList("Power Play Goals", topPPG, "ppg");
-  renderList("Shooting %", topShooting, "shooting");
-  renderList("Faceoff %", topFaceoff, "faceoff"); // ✅ NEW
-  renderList("Shots", topShots, "shots");
-  renderList("PIM", topPIM, "pim");
-    
-  container.innerHTML = html;
+// 🎯 FINAL RENDER
+skaterContainer.innerHTML = skaterHTML;
+goalieContainer.innerHTML = goalieHTML;
 }
   
 /* ---------- HISTORY ---------- */
