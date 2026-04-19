@@ -1300,9 +1300,6 @@ const goalieContainer = $("goalieLeaders");
 
 if(!skaterContainer || !goalieContainer) return;
     
-  const container = $("playerLeaders");
-  if(!container) return;
-    
   const season = $("standingsSeason")?.value || state.seasons?.[0];
   if(!season) return;
 
@@ -1335,17 +1332,19 @@ if(!skaterContainer || !goalieContainer) return;
     .sort((a,b)=> (b[1].goals / b[1].shots) - (a[1].goals / a[1].shots))
     .slice(0,10);  
 
-  // ✅ Faceoff %
   const topFaceoff = [...players]
-    .map(([name, s]) => {
-      const wins = s.faceoffWins ?? 0;
-      const losses = s.faceoffLosses ?? 0;
-      const total = wins + losses;
-      return [name, s, total];
-    })
-    .filter(([_, __, total]) => total >= MIN_FACEOFFS)
-    .sort((a,b)=> (b[1].faceoffWins / b[2]) - (a[1].faceoffWins / a[2]))
-    .slice(0,10);
+  .map(([name, s]) => {
+    const wins = s.faceoffWins ?? 0;
+    const losses = s.faceoffLosses ?? 0;
+    s._faceoffTotal = wins + losses;   // 👈 store it on the player
+    return [name, s];                  // 👈 ONLY return 2 values
+  })
+  .filter(([_, s]) => s._faceoffTotal >= MIN_FACEOFFS)
+  .sort((a,b)=> 
+    (b[1].faceoffWins / b[1]._faceoffTotal) -
+    (a[1].faceoffWins / a[1]._faceoffTotal)
+  )
+  .slice(0,10);
 
     const MIN_SA = 10; // minimum shots against (you can make this configurable later)
 
@@ -1368,17 +1367,20 @@ const goalieStatsConfig = [
   const topPIM = getTop("pim");
   const topShots = getTop("shots");
 
-  let html = `<h3 style="margin-top:20px;">🏆 League Leaders</h3>`;
+  let skaterHTML = `<h3>🏆 Skater Leaders</h3>`;
+    
+    skaterHTML += `
+  <div style="font-size:12px; opacity:0.7; margin-bottom:6px;">
+    * Min ${MIN_SHOTS} shots for shooting %
+  </div>
+  <div style="font-size:12px; opacity:0.7; margin-bottom:10px;">
+    * Min ${MIN_FACEOFFS} faceoffs for faceoff %
+  </div>
+`;
+    
+  let goalieHTML = `<h3>🥅 Goalie Leaders</h3>`;
 
-  html += `<div style="font-size:12px; opacity:0.7; margin-bottom:6px;">
-    * Min ${MIN_SHOTS} shots required for shooting %
-  </div>`;
-
-  html += `<div style="font-size:12px; opacity:0.7; margin-bottom:10px;">
-    * Min ${MIN_FACEOFFS} faceoffs required for faceoff %
-  </div>`;
-
- function renderList(target, title, data, statKey){
+function renderList(target, title, data, statKey){
 
   target += `<h4 style="margin-top:10px;">${title}</h4><ol>`;
 
@@ -1386,27 +1388,36 @@ const goalieStatsConfig = [
 
     const style = index === 0 ? 'font-weight:bold;' : '';
 
+    let value;
+
+    if(statKey === "shooting"){
+      value = s.shots
+        ? (s.goals / s.shots * 100).toFixed(1) + "%"
+        : "0.0%";
+    }
+    else if(statKey === "faceoff"){
+      const total = (s.faceoffWins ?? 0) + (s.faceoffLosses ?? 0);
+      value = total
+        ? (s.faceoffWins / total * 100).toFixed(1) + "%"
+        : "0.0%";
+    }
+    else if(statKey === "savepct"){
+      value = s.shotsAgainst
+        ? ((s.shotsAgainst - s.goalsAgainst) / s.shotsAgainst * 100).toFixed(1) + "%"
+        : "0.0%";
+    }
+    else if(statKey === "gaa"){
+      value = s.shotsAgainst
+        ? ((s.goalsAgainst * 60) / (s.minutesPlayed || 60)).toFixed(2)
+        : "0.00";
+    }
+    else{
+      value = s[statKey] ?? 0;
+    }
+
     target += `
       <li style="${style}">
-        ${name} (${s.team || "-"}) — ${
-          statKey === "shooting"
-            ? (s.shots ? (s.goals / s.shots * 100).toFixed(1) + "%" : "0.0%")
-          : statKey === "faceoff"
-            ? (((s.faceoffWins ?? 0) + (s.faceoffLosses ?? 0))
-                ? (s.faceoffWins / ((s.faceoffWins ?? 0) + (s.faceoffLosses ?? 0)) * 100).toFixed(1) + "%"
-                : "0.0%")
-          : statKey === "savepct"
-            ? (s.shotsAgainst
-                ? (((s.shotsAgainst - s.goalsAgainst) / s.shotsAgainst) * 100).toFixed(1) + "%"
-                : "0.0%")
-          : (s[statKey] ?? 0)
-          : statKey === "gaa"
-? (
-    s.shotsAgainst
-      ? ( (s.goalsAgainst * 60) / (s.minutesPlayed || 60) ).toFixed(2)
-      : "0.00"
-  )
-        }
+        ${name} (${s.team || "-"}) — ${value}
       </li>
     `;
   });
