@@ -1254,19 +1254,21 @@ function renderPlayerStats(){
     return 0;
   });
 
- let skaterHTML = `<h3>🏆 Skater Leaders</h3>`;
+ let skaterHTML = `
+  <h3>🏆 Skater Leaders</h3>
+  <table class="standings-table">
+    <thead>
+      <tr>
+        <th>Player</th>
+        <th>G</th>
+        <th>A</th>
+        <th>PTS</th>
+      </tr>
+    </thead>
+    <tbody>
+`;
+
 let goalieHTML = `<h3>🥅 Goalie Leaders</h3>`;
-    <table class="standings-table">
-      <thead>
-        <tr>
-          <th>Player</th>
-          <th>G</th>
-          <th>A</th>
-          <th>PTS</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
 
   players.forEach(([name, s], index) => {
 
