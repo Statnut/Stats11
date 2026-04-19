@@ -1357,7 +1357,15 @@ const topSavePct = [...players]
     ((a[1].shotsAgainst - a[1].goalsAgainst) / a[1].shotsAgainst)
   )
   .slice(0,10);
-  
+
+    const topGAA = [...players]
+  .filter(([_, s]) => (s.minutesPlayed ?? 0) > 0)
+  .sort((a,b)=> 
+    ((a[1].goalsAgainst * 60) / a[1].minutesPlayed) -
+    ((b[1].goalsAgainst * 60) / b[1].minutesPlayed)
+  )
+  .slice(0,10);
+    
 const goalieStatsConfig = [
   { title: "Save %", key: "savepct", data: topSavePct },
 
@@ -2404,6 +2412,26 @@ else if(result === "loss"){
 
   });
 
+// 👇 ADD THIS AT THE END OF applyGameStats
+
+const minutesPlayed = rules?.regular?.regulationMinutes || 20;
+
+if(game.homeGoalie){
+  if(!stats[game.homeGoalie]){
+    stats[game.homeGoalie] = { shotsAgainst: 0, goalsAgainst: 0 };
+  }
+  stats[game.homeGoalie].minutesPlayed =
+    (stats[game.homeGoalie].minutesPlayed || 0) + minutesPlayed;
+}
+
+if(game.awayGoalie){
+  if(!stats[game.awayGoalie]){
+    stats[game.awayGoalie] = { shotsAgainst: 0, goalsAgainst: 0 };
+  }
+  stats[game.awayGoalie].minutesPlayed =
+    (stats[game.awayGoalie].minutesPlayed || 0) + minutesPlayed;
+}
+  
   state.playerStats[season] = stats;
   save();
 }      
