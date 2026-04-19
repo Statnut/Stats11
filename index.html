@@ -1230,6 +1230,8 @@ function renderPlayerStats(){
   const season = $("standingsSeason")?.value;
   const container = $("playerStats");
 
+  let html = "";
+  
   if(!season || !container) return;
 
   const stats = state.playerStats?.[season];
