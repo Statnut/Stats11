@@ -2195,17 +2195,6 @@ function renderEventLog(){
 
   /* ---------- APPLY GAME STATS ---------- */
 function applyGameStats(){
-
-Object.values(stats).forEach(p => {
-  if(p.shots == null) p.shots = 0;
-  if(p.pim == null) p.pim = 0;
-  if(p.faceoffWins == null) p.faceoffWins = 0;
-  if(p.faceoffLosses == null) p.faceoffLosses = 0;
-
-  // 👇 ADD THESE
-  if(p.shotsAgainst == null) p.shotsAgainst = 0;
-  if(p.goalsAgainst == null) p.goalsAgainst = 0;
-});
   
   const game = state.game;
   if(!game) return;
@@ -2260,9 +2249,9 @@ const goalie = e.teamKey === "home" ? game.awayGoalie : game.homeGoalie;
 if(goalie){
   const goalieTeam = e.teamKey === "home" ? game.away : game.home;
 
- if(!stats[player]){
-  stats[player] = {
-    team: teamName,
+ if(!stats[goalie]){
+  stats[goalie] = {
+    team: goalieTeam,
     goals: 0,
     assists: 0,
     points: 0,
@@ -2272,7 +2261,8 @@ if(goalie){
     faceoffWins: 0,
     faceoffLosses: 0,
     shotsAgainst: 0,
-    goalsAgainst: 0
+    goalsAgainst: 0,
+    minutesPlayed: 0
   };
 }
 
@@ -2413,7 +2403,7 @@ else if(result === "loss"){
   });
 
 // 👇 ADD THIS AT THE END OF applyGameStats
-
+const rules = state.seasonRules?.[season] || {};
 const minutesPlayed = rules?.regular?.regulationMinutes || 20;
 
 if(game.homeGoalie){
