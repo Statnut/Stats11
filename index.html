@@ -1348,7 +1348,7 @@ if(!skaterContainer || !goalieContainer) return;
   )
   .slice(0,10);
 
-    const MIN_SA = 10; // minimum shots against (you can make this configurable later)
+    const MIN_SA = 1; // minimum shots against (you can make this configurable later)
 
 const topSavePct = [...players]
   .filter(([_, s]) => (s.shotsAgainst ?? 0) >= MIN_SA)
