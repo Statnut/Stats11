@@ -1322,6 +1322,7 @@ if(!skaterContainer || !goalieContainer) return;
   // helper function
   function getTop(stat){
     return [...players]
+      .filter(([_, s]) => !s.shotsAgainst)
       .sort((a,b)=> (b[1][stat] || 0) - (a[1][stat] || 0))
       .slice(0,10);
   }
@@ -1339,11 +1340,13 @@ if(!skaterContainer || !goalieContainer) return;
 
   // Shooting %
   const topShooting = [...players]
+    .filter(([_, s]) => !s.shotsAgainst)
     .filter(([_, s]) => (s.shots ?? 0) >= MIN_SHOTS)
     .sort((a,b)=> (b[1].goals / b[1].shots) - (a[1].goals / a[1].shots))
     .slice(0,10);  
 
   const topFaceoff = [...players]
+    .filter(([_, s]) => !s.shotsAgainst)
   .map(([name, s]) => {
     const wins = s.faceoffWins ?? 0;
     const losses = s.faceoffLosses ?? 0;
