@@ -4,7 +4,7 @@
 <meta charset="utf-8">  
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">  
 <meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>Hockey Stat Sheet v1.49</title>  
+<title>Hockey Stat Sheet v1.50</title>  
 
 <meta name="apple-mobile-web-app-capable" content="yes">  
   
@@ -1179,7 +1179,11 @@ Object.keys(structure).forEach(conf => {
     const divisionTeams = structure[conf][div];
 
     // sort by points
-    divisionTeams.sort((a,b)=> b.pts - a.pts);
+    divisionTeams.sort((a,b)=> {
+  if(b.pts !== a.pts) return b.pts - a.pts;
+  if((b.gf - b.ga) !== (a.gf - a.ga)) return (b.gf - b.ga) - (a.gf - a.ga);
+  return b.gf - a.gf;
+});
 
     html += `
       <h4 style="margin-top:12px;">${div} Division</h4>
@@ -1191,6 +1195,8 @@ Object.keys(structure).forEach(conf => {
           <th>L</th>
           <th>OT</th>
           <th>PTS</th>
+          <th>GF</th>
+          <th>GA</th>
           <th>DIFF</th>
         </tr>
     `;
@@ -1207,7 +1213,9 @@ Object.keys(structure).forEach(conf => {
           <td>${t.l}</td>
           <td>${t.otl}</td>
           <td>${t.pts}</td>
-          <td>${t.gf - t.ga}</td>
+          <td>${t.gf}</td>
+          <td>${t.ga}</td>
+          <td>${(t.gf - t.ga) > 0 ? "+" : ""}${t.gf - t.ga}</td>
         </tr>
       `;
     });
@@ -1365,6 +1373,16 @@ const topSavePct = [...players]
     ((a[1].goalsAgainst * 60) / a[1].minutesPlayed) -
     ((b[1].goalsAgainst * 60) / b[1].minutesPlayed)
   )
+  .slice(0,10);
+
+    const topGoalieWins = [...players]
+  .filter(([_, s]) => (s.wins ?? 0) > 0)
+  .sort((a,b)=> (b[1].wins ?? 0) - (a[1].wins ?? 0))
+  .slice(0,10);
+
+const topShutouts = [...players]
+  .filter(([_, s]) => (s.shutouts ?? 0) > 0)
+  .sort((a,b)=> (b[1].shutouts ?? 0) - (a[1].shutouts ?? 0))
   .slice(0,10);
     
 const goalieStatsConfig = [
@@ -2403,6 +2421,29 @@ else if(result === "loss"){
 
   });
 
+const homeScore = game.score?.home || 0;
+const awayScore = game.score?.away || 0;
+
+let winningGoalie = null;
+
+if(homeScore > awayScore){
+  winningGoalie = game.homeGoalie;
+}
+else if(awayScore > homeScore){
+  winningGoalie = game.awayGoalie;
+}
+
+if(winningGoalie){
+  if(!stats[winningGoalie]){
+    stats[winningGoalie] = {
+      team: winningGoalie === game.homeGoalie ? game.home : game.away,
+      wins: 0
+    };
+  }
+
+  stats[winningGoalie].wins = (stats[winningGoalie].wins || 0) + 1;
+}
+  
 // 👇 ADD THIS AT THE END OF applyGameStats
 const rules = state.seasonRules?.[season] || {};
 const minutesPlayed = rules?.regular?.regulationMinutes || 20;
@@ -2421,6 +2462,16 @@ if(game.awayGoalie){
   }
   stats[game.awayGoalie].minutesPlayed =
     (stats[game.awayGoalie].minutesPlayed || 0) + minutesPlayed;
+}
+
+  if(homeScore === 0 && game.awayGoalie){
+  stats[game.awayGoalie].shutouts =
+    (stats[game.awayGoalie].shutouts || 0) + 1;
+}
+
+if(awayScore === 0 && game.homeGoalie){
+  stats[game.homeGoalie].shutouts =
+    (stats[game.homeGoalie].shutouts || 0) + 1;
 }
   
   state.playerStats[season] = stats;
