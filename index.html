@@ -4,7 +4,7 @@
 <meta charset="utf-8">  
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">  
 <meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>Hockey Stat Sheet v1.50</title>  
+<title>Hockey Stat Sheet v1.51</title>  
 
 <meta name="apple-mobile-web-app-capable" content="yes">  
   
@@ -1207,7 +1207,11 @@ Object.keys(structure).forEach(conf => {
 
       html += `
         <tr style="${isLeader ? 'font-weight:bold; background:#f5faff;' : ''}">
-          <td>${t.name}</td>
+          <td>
+  <span class="team-link" data-team="${t.name}">
+    ${t.name}
+  </span>
+</td>
           <td>${t.gp}</td>
           <td>${t.w}</td>
           <td>${t.l}</td>
@@ -2541,6 +2545,115 @@ function applyTeamStats(){
   }
 
 }
+  
+  function openTeamPage(teamName){
+
+  const season = $("standingsSeason")?.value;
+
+  const statsRegular = state.playerStats?.[season]?.regular || {};
+  const statsPlayoffs = state.playerStats?.[season]?.playoffs || {};
+
+  const allPlayers = new Set([
+    ...Object.keys(statsRegular),
+    ...Object.keys(statsPlayoffs)
+  ]);
+
+  const players = [...allPlayers]
+    .map(name => {
+      const r = statsRegular[name] || {};
+      const p = statsPlayoffs[name] || {};
+
+      return {
+        name,
+        team: r.team || p.team,
+        goals: r.goals || 0,
+        assists: r.assists || 0,
+        points: r.points || 0,
+        shots: r.shots || 0,
+        pim: r.pim || 0,
+        shotsAgainst: r.shotsAgainst,
+        goalsAgainst: r.goalsAgainst,
+        minutesPlayed: r.minutesPlayed,
+        wins: r.wins || 0,
+        shutouts: r.shutouts || 0
+      };
+    })
+    .filter(p => p.team === teamName);
+
+  let html = `<h2>${teamName}</h2>`;
+
+  // SKATERS
+  html += `
+    <h3>Skaters</h3>
+    <table>
+      <tr>
+        <th>Player</th>
+        <th>G</th>
+        <th>A</th>
+        <th>PTS</th>
+        <th>S</th>
+        <th>PIM</th>
+      </tr>
+  `;
+
+  players
+    .filter(p => !p.shotsAgainst)
+    .forEach(p => {
+      html += `
+        <tr class="player-link" data-player="${p.name}">
+          <td>${p.name}</td>
+          <td>${p.goals}</td>
+          <td>${p.assists}</td>
+          <td>${p.points}</td>
+          <td>${p.shots}</td>
+          <td>${p.pim}</td>
+        </tr>
+      `;
+    });
+
+  html += `</table>`;
+
+  // GOALIES
+  html += `
+    <h3 style="margin-top:20px;">Goalies</h3>
+    <table>
+      <tr>
+        <th>Player</th>
+        <th>W</th>
+        <th>SO</th>
+        <th>SV%</th>
+        <th>GAA</th>
+      </tr>
+  `;
+
+  players
+    .filter(p => p.shotsAgainst !== undefined)
+    .forEach(p => {
+
+      const svpct = p.shotsAgainst
+        ? ((p.shotsAgainst - (p.goalsAgainst || 0)) / p.shotsAgainst * 100).toFixed(1)
+        : "0.0";
+
+      const gaa = p.minutesPlayed
+        ? ((p.goalsAgainst || 0) * 60 / p.minutesPlayed).toFixed(2)
+        : "0.00";
+
+      html += `
+        <tr class="player-link" data-player="${p.name}">
+          <td>${p.name}</td>
+          <td>${p.wins}</td>
+          <td>${p.shutouts}</td>
+          <td>${svpct}%</td>
+          <td>${gaa}</td>
+        </tr>
+      `;
+    });
+
+  html += `</table>`;
+
+  $("standingsTable").innerHTML = html; // 👈 IMPORTANT (use your existing container)
+}
+  
 /* ---------- GAME ---------- */  
   
 $("startGame").onclick = () => {  
@@ -5233,6 +5346,22 @@ refreshLeagueUI();
   
 });  
 
+document.addEventListener("click", (e) => {
+
+  const teamEl = e.target.closest(".team-link");
+  if(teamEl){
+    openTeamPage(teamEl.dataset.team);
+    return;
+  }
+
+  const playerEl = e.target.closest(".player-link");
+  if(playerEl){
+    openPlayerPage(playerEl.dataset.player);
+    return;
+  }
+
+});
+  
  function init(){
 
    console.log("init running");
