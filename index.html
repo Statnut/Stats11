@@ -2550,8 +2550,8 @@ function applyTeamStats(){
 
   const season = $("standingsSeason")?.value;
 
-  const statsRegular = state.playerStats?.[season]?.regular || {};
-  const statsPlayoffs = state.playerStats?.[season]?.playoffs || {};
+  const statsRegular = state.playerStats?.[season] || {};
+  const statsPlayoffs = {}; // not used yet
 
   const allPlayers = new Set([
     ...Object.keys(statsRegular),
@@ -2580,7 +2580,12 @@ function applyTeamStats(){
     })
     .filter(p => p.team === teamName);
 
-  let html = `<h2>${teamName}</h2>`;
+  let html = `
+  <button id="backToStandings" style="margin-bottom:10px;">
+    ← Back to Standings
+  </button>
+  <h2>${teamName}</h2>
+`;
 
   // SKATERS
   html += `
@@ -2651,7 +2656,13 @@ function applyTeamStats(){
 
   html += `</table>`;
 
-  $("standingsTable").innerHTML = html; // 👈 IMPORTANT (use your existing container)
+  $("standingsTable").innerHTML = html; 
+    const backBtn = $("backToStandings");
+if(backBtn){
+  backBtn.onclick = () => {
+    refreshLeagueUI();
+  };
+}
 }
   
 /* ---------- GAME ---------- */  
