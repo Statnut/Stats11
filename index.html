@@ -2494,17 +2494,55 @@ const rules = state.seasonRules?.[season] || {};
 const minutesPlayed = rules?.regular?.regulationMinutes || 20;
 
 if(game.homeGoalie){
+
   if(!stats[game.homeGoalie]){
-    stats[game.homeGoalie] = { shotsAgainst: 0, goalsAgainst: 0 };
+    stats[game.homeGoalie] = {
+      team: game.home,
+      goals: 0,
+      assists: 0,
+      points: 0,
+      pim: 0,
+      shots: 0,
+      ppg: 0,
+      faceoffWins: 0,
+      faceoffLosses: 0,
+      shotsAgainst: 0,
+      goalsAgainst: 0,
+      minutesPlayed: 0,
+      wins: 0,
+      losses: 0,
+      otLosses: 0,
+      shutouts: 0
+    };
   }
+
   stats[game.homeGoalie].minutesPlayed =
     (stats[game.homeGoalie].minutesPlayed || 0) + minutesPlayed;
 }
 
 if(game.awayGoalie){
+
   if(!stats[game.awayGoalie]){
-    stats[game.awayGoalie] = { shotsAgainst: 0, goalsAgainst: 0 };
+    stats[game.awayGoalie] = {
+      team: game.away,
+      goals: 0,
+      assists: 0,
+      points: 0,
+      pim: 0,
+      shots: 0,
+      ppg: 0,
+      faceoffWins: 0,
+      faceoffLosses: 0,
+      shotsAgainst: 0,
+      goalsAgainst: 0,
+      minutesPlayed: 0,
+      wins: 0,
+      losses: 0,
+      otLosses: 0,
+      shutouts: 0
+    };
   }
+
   stats[game.awayGoalie].minutesPlayed =
     (stats[game.awayGoalie].minutesPlayed || 0) + minutesPlayed;
 }
