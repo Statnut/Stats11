@@ -988,9 +988,6 @@ block.appendChild(title);
 
 };
 
-    title.appendChild(del);
-    block.appendChild(title);
-
     const divisions = confs[conf].divisions || [];
 const divisionContainer = document.createElement("div");
     
@@ -1326,7 +1323,7 @@ if(!skaterContainer || !goalieContainer) return;
   // helper function
   function getTop(stat){
     return [...players]
-      .filter(([_, s]) => !s.shotsAgainst)
+      .filter(([_, s]) => s.shotsAgainst == null)
       .sort((a,b)=> (b[1][stat] || 0) - (a[1][stat] || 0))
       .slice(0,10);
   }
@@ -2270,7 +2267,7 @@ function applyGameStats(){
       }
 
 // 👇 ADD THIS AFTER SCORER LOGIC
-const goalie = e.teamKey === "home" ? game.awayGoalie : game.homeGoalie;
+let goalie = e.teamKey === "home" ? game.awayGoalie : game.homeGoalie;
 
 if(goalie){
   const goalieTeam = e.teamKey === "home" ? game.away : game.home;
@@ -2356,7 +2353,7 @@ if(goalie){
       stats[e.player].shots += 1;
     }
 
-    // 👇 ADD THIS AT THE END OF SHOT BLOCK
+// 👇 ADD THIS AT THE END OF SHOT BLOCK
 const goalie = e.teamKey === "home" ? game.awayGoalie : game.homeGoalie;
 
 if(goalie){
@@ -2375,6 +2372,7 @@ if(goalie){
       faceoffLosses: 0,
       shotsAgainst: 0,
       goalsAgainst: 0,
+      minutesPlayed: 0,
       wins: 0,
       losses: 0,
       otLosses: 0,
