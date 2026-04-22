@@ -2664,6 +2664,131 @@ if(backBtn){
   };
 }
 }
+
+  function getCareerStats(playerName){
+
+  const career = {
+    goals: 0,
+    assists: 0,
+    points: 0,
+    wins: 0,
+    shutouts: 0
+  };
+
+  Object.values(state.playerStats || {}).forEach(seasonStats => {
+    const p = seasonStats[playerName];
+    if(!p) return;
+
+    career.goals += p.goals || 0;
+    career.assists += p.assists || 0;
+    career.points += p.points || 0;
+    career.wins += p.wins || 0;
+    career.shutouts += p.shutouts || 0;
+  });
+
+  return career;
+}
+
+  function openPlayerPage(playerName){
+
+  const season = $("standingsSeason")?.value;
+  const seasonStats = state.playerStats?.[season]?.[playerName] || {};
+
+  const career = getCareerStats(playerName);
+
+  const isGoalie = seasonStats.shotsAgainst !== undefined;
+
+  let html = `
+    <button id="backToTeam" style="margin-bottom:10px;">
+      ← Back to Team
+    </button>
+
+    <h2>${playerName}</h2>
+    <div style="opacity:0.7; margin-bottom:10px;">
+      ${seasonStats.team || ""}
+    </div>
+  `;
+
+  // 🟢 SEASON STATS
+  html += `<h3>Season Stats (${season})</h3>`;
+
+  if(isGoalie){
+    html += `
+      <table>
+        <tr>
+          <th>W</th><th>SO</th><th>GA</th><th>SA</th><th>SV%</th><th>GAA</th>
+        </tr>
+        <tr>
+          <td>${seasonStats.wins ?? 0}</td>
+          <td>${seasonStats.shutouts ?? 0}</td>
+          <td>${seasonStats.goalsAgainst ?? 0}</td>
+          <td>${seasonStats.shotsAgainst ?? 0}</td>
+          <td>${seasonStats.shotsAgainst
+            ? (((seasonStats.shotsAgainst - seasonStats.goalsAgainst) / seasonStats.shotsAgainst) * 100).toFixed(1) + "%"
+            : "0.0%"}</td>
+          <td>${seasonStats.minutesPlayed
+            ? ((seasonStats.goalsAgainst * 60) / seasonStats.minutesPlayed).toFixed(2)
+            : "0.00"}</td>
+        </tr>
+      </table>
+    `;
+  } else {
+    html += `
+      <table>
+        <tr>
+          <th>G</th><th>A</th><th>PTS</th><th>S</th><th>PIM</th>
+        </tr>
+        <tr>
+          <td>${seasonStats.goals ?? 0}</td>
+          <td>${seasonStats.assists ?? 0}</td>
+          <td>${seasonStats.points ?? 0}</td>
+          <td>${seasonStats.shots ?? 0}</td>
+          <td>${seasonStats.pim ?? 0}</td>
+        </tr>
+      </table>
+    `;
+  }
+
+  // 🔵 CAREER STATS
+  html += `<h3 style="margin-top:20px;">Career Stats</h3>`;
+
+  if(isGoalie){
+    html += `
+      <table>
+        <tr>
+          <th>W</th><th>SO</th>
+        </tr>
+        <tr>
+          <td>${career.wins}</td>
+          <td>${career.shutouts}</td>
+        </tr>
+      </table>
+    `;
+  } else {
+    html += `
+      <table>
+        <tr>
+          <th>G</th><th>A</th><th>PTS</th>
+        </tr>
+        <tr>
+          <td>${career.goals}</td>
+          <td>${career.assists}</td>
+          <td>${career.points}</td>
+        </tr>
+      </table>
+    `;
+  }
+
+  $("standingsTable").innerHTML = html;
+
+  // 🔙 Back button
+  const backBtn = $("backToTeam");
+  if(backBtn){
+    backBtn.onclick = () => {
+      openTeamPage(seasonStats.team);
+    };
+  }
+}
   
 /* ---------- GAME ---------- */  
   
