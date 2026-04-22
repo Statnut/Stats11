@@ -4,7 +4,7 @@
 <meta charset="utf-8">  
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">  
 <meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>Hockey Stat Sheet v1.51</title>  
+<title>Hockey Stat Sheet v1.52</title>  
 
 <meta name="apple-mobile-web-app-capable" content="yes">  
   
@@ -2696,7 +2696,7 @@ if(backBtn){
 
   const career = getCareerStats(playerName);
 
-  const isGoalie = seasonStats.shotsAgainst !== undefined;
+  const isGoalie = (seasonStats.minutesPlayed ?? 0) > 0;
 
   let html = `
     <button id="backToTeam" style="margin-bottom:10px;">
