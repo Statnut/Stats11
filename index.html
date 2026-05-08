@@ -4,7 +4,7 @@
 <meta charset="utf-8">  
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">  
 <meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>Hockey Stat Sheet v1.54</title>  
+<title>Hockey Stat Sheet v1.55</title>  
 
 <meta name="apple-mobile-web-app-capable" content="yes">  
  
@@ -261,6 +261,27 @@ th { background:#f0f0f0; }
 }
 .small-btn:hover {
  background: #e0e0e0;
+}
+
+ #playerPanel {
+  position: fixed;
+  top: 0;
+  right: -450px; /* hidden off-screen */
+  width: 400px;
+  height: 100%;
+  background: #fff;
+  box-shadow: -4px 0 15px rgba(0,0,0,0.2);
+  overflow-y: auto;
+  transition: right 0.25s ease;
+  z-index: 999;
+}
+
+#playerPanel.open {
+  right: 0;
+}
+
+#playerPanelContent {
+  padding: 15px;
 }
 </style>  
 </head>  
@@ -2437,16 +2458,17 @@ function getCareerStats(playerName){
 
  const isGoalie = (seasonStats.minutesPlayed ?? 0) > 0;
 
- let html = `
- <button id="backToTeam" style="margin-bottom:10px;">
- ← Back to Team
- </button>
 
- <h2>${playerName}</h2>
- <div style="opacity:0.7; margin-bottom:10px;">
- ${seasonStats.team || ""}
- </div>
- `;
+ let html = `
+  <button id="backToTeam" style="margin-bottom:10px;">
+    ← Close
+  </button>
+
+  <h2>${playerName}</h2>
+  <div style="opacity:0.7; margin-bottom:10px;">
+    ${seasonStats.team || ""}
+  </div>
+`;
 
   html += `
 <div style="font-size:13px; opacity:0.7;">
@@ -2633,7 +2655,11 @@ html += `
 `;
 
  // 🎯 RENDER PAGE
-$("standingsTable").innerHTML = html;
+const panel = $("playerPanel");
+const content = $("playerPanelContent");
+
+content.innerHTML = html;
+panel.classList.add("open");
 
  const firstTab = document.querySelector('.player-tab[data-tab="season"]');
 if(firstTab){
@@ -2644,8 +2670,8 @@ if(firstTab){
 const backBtn = $("backToTeam");
 if(backBtn){
  backBtn.onclick = () => {
- openTeamPage(seasonStats.team);
- };
+  panel.classList.remove("open");
+};
 }
 
 
@@ -3966,6 +3992,11 @@ strong { font-weight:700; }
 </head>  
 <body>  
 ${box.innerHTML}  
+
+<div id="playerPanel">
+  <div id="playerPanelContent"></div>
+</div>
+
 </body>  
 </html>  
 `;  
@@ -5284,6 +5315,27 @@ document.addEventListener("click", (e) => {
  openPlayerPage(playerEl.dataset.player);
  return;
  }
+
+ document.addEventListener("click", (e) => {
+  const panel = $("playerPanel");
+
+  if(!panel.classList.contains("open")) return;
+
+  if(!panel.contains(e.target) && !e.target.closest(".player-link")){
+    panel.classList.remove("open");
+  }
+
+  document.addEventListener("click", (e) => {
+
+  const row = e.target.closest(".player-link");
+  if(!row) return;
+
+  const playerName = row.dataset.player;
+  if(!playerName) return;
+
+  openPlayerPage(playerName);
+
+});
 
 });
  
